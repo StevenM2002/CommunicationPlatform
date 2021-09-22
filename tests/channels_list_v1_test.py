@@ -19,6 +19,11 @@ List of dictionaries, where each dictionary contains types { channel_id, name }
 List both private and public channels
 '''
 
+def test_work_with_stub():
+	clear_v1()
+	chan_id1 = channels_create_v1(1, "My Channel", True)
+	assert channels_list_v1(1) == [{"channel_id": chan_id1, "name": "My Channel"}]
+
 def test_one_channel_public():
 	clear_v1()
 	chan_id1 = channels_create_v1(1, "one_channel", True)
