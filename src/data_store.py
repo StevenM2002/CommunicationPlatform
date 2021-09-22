@@ -25,9 +25,23 @@ Example usage:
 '''
 
 ## YOU SHOULD MODIFY THIS OBJECT BELOW
-initial_object = {
-    'users': [],
+data = {
+    'users': [
+        {
+            'id': 1,
+            'name' : 'user1',
+            'handle'
+        }
+    ],
+    'channels': [
+        {
+            'id': 2,
+            'name' : 'channel2',
+            'owner': 'user_id'
+        },
+    ],
 }
+
 ## YOU SHOULD MODIFY THIS OBJECT ABOVE
 
 class Datastore:
