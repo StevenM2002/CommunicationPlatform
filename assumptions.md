@@ -1,0 +1,1 @@
+- Assumes that, for channels_create, channel_ids are created incrementally, beginning at 0 (for example, the first created channel has an id of 0, with the second having an id of 1, and so on)
