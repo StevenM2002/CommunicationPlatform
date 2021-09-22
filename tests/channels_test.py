@@ -36,8 +36,3 @@ def test_create_valid_private():
 # making sure different channel IDs are created by the function
 def test_create_multiple():
     assert(channels_create_v1('abc', 'channel', 0) == 1)
-"""There is no comment on whether we have to verify validity of inputs,
-will check with the tutors to ensure that we can assume things like the
-boolean value for is_public is correct, same for whether auth_user_id can
-be assumed to be correct when input to each function, not just when it is 
-created"""
