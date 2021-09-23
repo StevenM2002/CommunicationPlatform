@@ -6,16 +6,19 @@ from src.error import InputError
 
 def auth_login_v1(email, password):
     """
-    auth_login_v1
-
     Given a registered user's email and password, returns their `auth_user_id` value.
 
-    Parameters:{ email, password }
-    Return Type:{ auth_user_id }
+    Arguments:
+        email (string) - email of user
+        password (string) - password of user
 
-    InputError when any of:
-        - email entered does not belong to a user
-        - password is not correct"""
+    Exceptions:
+        InputError - Occurs when:
+            - email entered does not belong to a user
+            - password is not correct
+
+    Return Value:
+        Returns { auth_user_id } on successful login"""
 
     store = data_store.get()
     users = store["users"]
@@ -31,21 +34,26 @@ def auth_login_v1(email, password):
 
 def auth_register_v1(email, password, name_first, name_last):
     """
-    auth_register_v1
-
     Given a user's first and last name, email address, and password, create a new account for them and return a new `auth_user_id`.
     Handle length < 20 charecters
     if identical handles add number 0,1,2,ect. (num excluded from 20 char limit)
 
-    Parameters:{ email, password, name_first, name_last }
-    Return Type:{ auth_user_id }
+    Arguments:
+        email (string) - email of user
+        password (string) - password of user
+        name_first (string) - first name of user
+        name_last (string) - last name of user
 
-    InputError when any of:
-        - email entered is not a valid email (more in section 6.4)
-        - email address is already being used by another user
-        - length of password is less than 6 characters
-        - length of name_first is not between 1 and 50 characters inclusive
-        - length of name_last is not between 1 and 50 characters inclusive"""
+    Exceptions:
+        InputError - Occurs when:
+            - email entered is not a valid email (more in section 6.4)
+            - email address is already being used by another user
+            - length of password is less than 6 characters
+            - length of name_first is not between 1 and 50 characters inclusive
+            - length of name_last is not between 1 and 50 characters inclusive
+
+    Return Value:
+        Returns { auth_user_id } on successful registration"""
 
     # password, email and name validity checks
     if len(password) < 6:
@@ -91,9 +99,14 @@ def auth_register_v1(email, password, name_first, name_last):
 
 def handle_check(handle, base_length):
     """
-    username_check
+    checks if a given handle already exists and if so will add number to end of handle
 
-    checks if a given handle already exists and if so will add number to end of handle"""
+    Arguments:
+        handle (string) - handle to be checked
+        base_length (integer) - length of non-counter part of handle
+
+    Return Value:
+        Returns correct handle when no other similar handles found"""
 
     users = data_store.get()["users"]
 
