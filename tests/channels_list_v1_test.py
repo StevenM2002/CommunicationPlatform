@@ -66,7 +66,7 @@ def test_two_channels():
 def test_not_admin():
 	clear_v1()
 	chan_id1 = channels_create_v1(1, "first_channel", True)
-	channels_join_v1(2, chan_id["channel_id"])
+	channel_join_v1(2, chan_id["channel_id"])
 	assert channels_list_v1(2) == {
 		"channels": [
 			{"channel_id": chan_id1["channel_id"], "name": "first_channel"}
@@ -99,7 +99,7 @@ def test_mixed_channels():
 	chan_id1 = channels_create_v1(1, "first_channel", True)
 	chan_id2 = channels_create_v1(1, "second_channel", False)
 	chan_id3 = channels_create_v1(2, "second_channel", True)
-	channels_join_v1(1, chan_id3["channel_id"])
+	channel_join_v1(1, chan_id3["channel_id"])
 	channels_create_v1(3, "fourth_channel", False)
 	channels_create_v1(4, "fifth_channel", True) 
 	assert channels_list_v1(1) == {
