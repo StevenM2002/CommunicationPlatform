@@ -1,1 +1,2 @@
 - When clearing `data_store` in `clear_v1` it may contain keys other than `users` and `channels`.
+- user dictionaries will contain email, password, name_first, name_last, u_id and handle_str
