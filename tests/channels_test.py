@@ -25,16 +25,16 @@ def test_create_inval_auth():
 # Valid input name is used with a public chat
 def test_create_valid_public():
     #clear_v1()
-    assert(channels_create_v1(1, 'channel', 1) == 0)
+    assert(channels_create_v1(1, 'channel', 1) == {'channel_id': 0})
 
 # Valid input name is used with a private chat
 def test_create_valid_private():
     #clear_v1()
-    assert(channels_create_v1(1, 'channel', 0) == 0)
+    assert(channels_create_v1(1, 'channel', 0) == {'channel_id': 1})
 
 # Multiple channels created by the same user with identical channel names, 
 # making sure different channel IDs are created by the function
 def test_create_multiple():
     #clear_v1()
-    channels_create_v1(1, 'channel', 0)
-    assert(channels_create_v1(1, 'channel', 0) == 1)
+    assert(channels_create_v1(1, 'channel', 0) == {'channel_id': 3})
+    assert(channels_create_v1(1, 'channel', 0) == {'channel_id': 4})
