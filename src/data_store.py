@@ -1,4 +1,4 @@
-'''
+"""
 data_store.py
 
 This contains a definition for a Datastore class which you should use to store your data.
@@ -22,13 +22,10 @@ Example usage:
 
     print(store) # Prints { 'names': ['Emily', 'Hayden', 'Jake', 'Nick'] }
     data_store.set(store)
-'''
+"""
 
-## YOU SHOULD MODIFY THIS OBJECT BELOW
-initial_object = {
-    'users': [],
-}
-## YOU SHOULD MODIFY THIS OBJECT ABOVE
+initial_object = {"users": [], "channels": []}
+
 
 class Datastore:
     def __init__(self):
@@ -39,11 +36,11 @@ class Datastore:
 
     def set(self, store):
         if not isinstance(store, dict):
-            raise TypeError('store must be of type dictionary')
+            raise TypeError("store must be of type dictionary")
         self.__store = store
 
-print('Loading Datastore...')
+
+print("Loading Datastore...")
 
 global data_store
 data_store = Datastore()
-
