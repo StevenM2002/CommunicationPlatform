@@ -25,7 +25,6 @@ def auth_login_v1(email, password):
     for user in users:
         # check for correct email and password pair
         if user["email"] == email and user["password"] == password:
-            data_store.set(store)
             return {
                 "auth_user_id": user["u_id"],
             }
@@ -34,7 +33,9 @@ def auth_login_v1(email, password):
 
 def auth_register_v1(email, password, name_first, name_last):
     """
-    Given a user's first and last name, email address, and password, create a new account for them and return a new `auth_user_id`.
+    Given a user's first and last name, email address, and password, 
+    create a new account for them and return a new `auth_user_id`.
+
     Handle length < 20 charecters
     if identical handles add number 0,1,2,ect. (num excluded from 20 char limit)
 
