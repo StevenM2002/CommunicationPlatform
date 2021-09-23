@@ -24,12 +24,14 @@ Example usage:
     data_store.set(store)
 """
 
+from copy import deepcopy
+
 initial_object = {"users": [], "channels": []}
 
 
 class Datastore:
     def __init__(self):
-        self.__store = initial_object
+        self.__store = deepcopy(initial_object)
 
     def get(self):
         return self.__store
