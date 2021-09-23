@@ -1,0 +1,1 @@
+- When clearing `data_store` in `clear_v1` it may contain keys other than `users` and `channels`.
