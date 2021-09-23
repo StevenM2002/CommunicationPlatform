@@ -25,11 +25,7 @@ def channels_create_v1(auth_user_id, name, is_public):
     # Retrieves the data store, and the channel dictionary
     store = data_store.get()
     users = store['users']
-    print("Users:")
-    for item in users: print(item)
     channels = store['channels']
-    print("Channels:")
-    for item in channels: print(item)
     # Determines if the auth_user_id is valid by iterating through the names list
     valid = 0
     for item in users:
@@ -41,8 +37,6 @@ def channels_create_v1(auth_user_id, name, is_public):
     if valid == 0:
         raise AccessError("User_ID Not Found")
 
-    print(name)
-    print(len(name))
     # Checks for if the name is valid
     if len(name) < 1 or len(name) > 20:
         raise InputError("Invalid Name")
@@ -54,18 +48,21 @@ def channels_create_v1(auth_user_id, name, is_public):
         for item in channels:
             if item['channel_id'] == i:
                 found = 1
+                print(f"ID: {i} is taken")
         if found == 0:
+            print(f"Using ID {i}")
             id = i
             # If the given id is not found, then the new channel is given that id
-            channels.append[{
-                'id': i,
+            channels.append({
+                'channel_id': i,
                 'name': name,
                 'owner': auth_user_id,
                 'members': [auth_user_id]
-            }]
+            })
             break
     # Sets the data store
     data_store.set(store)
+    print("At end")
     return {
         'channel_id': id,
     }
