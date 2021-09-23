@@ -31,19 +31,20 @@ initial_object = {"users": [], "channels": []}
 <<<<<<< HEAD
 =======
 ## YOU SHOULD MODIFY THIS OBJECT BELOW
-data = {
+initial_object = {
     'users': [
         {
             'id': 1,
             'name' : 'user1',
-            'handle'
+            'handle': 'user1'
         }
     ],
     'channels': [
         {
-            'id': 2,
+            'channel_id': 2,
             'name' : 'channel2',
-            'owner': 'user_id'
+            'owner': 'user_id',
+            'members': []
         },
     ],
 }
