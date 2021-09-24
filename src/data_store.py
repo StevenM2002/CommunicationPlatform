@@ -28,31 +28,6 @@ from copy import deepcopy
 
 initial_object = {"users": [], "channels": []}
 
-<<<<<<< HEAD
-=======
-## YOU SHOULD MODIFY THIS OBJECT BELOW
-initial_object = {
-    'users': [
-        {
-            'id': 1,
-            'name' : 'user1',
-            'email': 'user1@gmail.com',
-            'password': 'xxxxxx',
-            'handle': 'user1'
-        }
-    ],
-    'channels': [
-        {
-            'channel_id': 2,
-            'name' : 'channel2',
-            'owner': 'user_id',
-            'members': []
-        },
-    ],
-}
-
-## YOU SHOULD MODIFY THIS OBJECT ABOVE
->>>>>>> Created unstable implementation of channels_create
 
 class Datastore:
     def __init__(self):
