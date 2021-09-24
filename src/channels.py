@@ -58,28 +58,21 @@ def channels_create_v1(auth_user_id, name, is_public):
     if len(name) < 1 or len(name) > 20:
         raise InputError("Invalid Name")
 
-    # Iterates through the channels list to determine the next available index
-    # Creates the new list when an available index is found
-    for i in range(len(channels) + 1):
-        found = False
-        for channel in channels:
-            if channel["channel_id"] == i:
-                found = True
-        if not found:
-            id = i
-            # If the given id is not found, then the new channel is given that id
-            channels.append(
-                {
-                    "channel_id": i,
-                    "name": name,
-                    "owner": auth_user_id,
-                    "members": [auth_user_id],
-                    "is_public": is_public
-                }
-            )
-            break
+    # Sets channel_id as the next highest number in the channel list
+    channel_id = max(channels, key=lambda x: x["channel_id"])["channel_id"] + 1 if len(channels) > 0 else 0
+
+    channels.append(
+        {
+            "channel_id": channel_id,
+            "name": name,
+            "owner": auth_user_id,
+            "members": [auth_user_id],
+            "is_public": is_public
+        }
+    )
+
     # Sets the data store
     data_store.set(store)
     return {
-        "channel_id": id,
+        "channel_id": channel_id,
     }
