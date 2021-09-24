@@ -1,7 +1,3 @@
-<<<<<<< HEAD
 - When clearing `data_store` in `clear_v1` it may contain keys other than `users` and `channels`.
 - user dictionaries will contain email, password, name_first, name_last, u_id and handle_str
 - Assumes that, for channels_create, channel_ids are created incrementally, beginning at 0 (for example, the first created channel has an id of 0, with the second having an id of 1, and so on)
-=======
-- Assumes that, for channels_create, channel_ids are created incrementally, beginning at 0 (for example, the first created channel has an id of 0, with the second having an id of 1, and so on)
->>>>>>> origin/riley/channels_create
