@@ -33,6 +33,7 @@ def channels_list_v1(auth_user_id):
     return {"channels": channels}
 
 
+
 def channels_listall_v1(auth_user_id):
     initial_object = data_store.get()
     # If there are no channels return None
