@@ -3,6 +3,7 @@ from src.channels import channels_create_v1
 from src.other import clear_v1
 from src.channel import channel_join_v1
 from src.channels import channels_list_v1
+from src.auth import auth_register_v1
 '''
 channels_list_v1
 Provide a list of all channels 
@@ -28,17 +29,19 @@ should just be a list of dictionary
 
 def test_work_with_stub():
 	clear_v1()
-	chan_id1 = channels_create_v1(1, "My Channel", True)
-	assert channels_list_v1(1) == {
+	auth_id1 = auth_register_v1("authid1@gmail.com", "password", "firstname", "lastname")
+	chan_id1 = channels_create_v1(auth_id1["auth_user_id"], "first channe;", True)
+	assert channels_list_v1(auth_id1["auth_user_id"]) == {
 		"channels": [
-			{"channel_id": chan_id1["channel_id"], "name": "My Channel"}
+			{"channel_id": chan_id1["channel_id"], "name": "first_channel"}
 		]
 	}
 
 def test_one_channel_public():
 	clear_v1()
-	chan_id1 = channels_create_v1(1, "one_channel", True)
-	assert channels_list_v1(1) == {
+	auth_id1 = auth_register_v1("authid1@gmail.com", "password", "firstname", "lastname")
+	chan_id1 = channels_create_v1(auth_id1["auth_user_id"], "one_channel", True)
+	assert channels_list_v1(auth_id1["auth_user_id"]) == {
 		"channels": [
 			{"channel_id": chan_id1["channel_id"], "name": "one_channel"}
 		]
@@ -46,17 +49,20 @@ def test_one_channel_public():
 
 def test_one_channel_private():
 	clear_v1()
-	chan_id1 = channels_create_v1(1, "one_channel", False)
-	assert channels_list_v1(1) == {
+	auth_id1 = auth_register_v1("authid1@gmail.com", "password", "firstname", "lastname")
+	chan_id1 = channels_create_v1(auth_id1["auth_user_id"], "one_channel", False)
+	assert channels_list_v1(auth_id1["auth_user_id"]) == {
 		"channels": [
 			{"channel_id": chan_id1["channel_id"], "name": "one_channel"}
 		]
 	}
 def test_two_channels():
 	clear_v1()
-	chan_id1 = channels_create_v1(1, "first_channel", True)
-	chan_id2 = channels_create_v1(1, "second_channel", False)
-	assert channels_list_v1(1) == {
+	auth_id1 = auth_register_v1("authid1@gmail.com", "password", "firstname", "lastname")
+	auth_id2 = auth_register_v1("authid2@gmail.com", "password", "firstname", "lastname")
+	chan_id1 = channels_create_v1(auth_id1["auth_user_id"], "first_channel", True)
+	chan_id2 = channels_create_v1(auth_id2["auth_user_id"], "second_channel", False)
+	assert channels_list_v1(auth_id1["auth_user_id"]) == {
 		"channels": [
 			{"channel_id": chan_id1["channel_id"], "name": "first_channel"}, 
 			{"channel_id": chan_id2["channel_id"], "name": "second_channel"}
@@ -65,9 +71,11 @@ def test_two_channels():
 
 def test_not_admin():
 	clear_v1()
-	chan_id1 = channels_create_v1(1, "first_channel", True)
-	channel_join_v1(2, chan_id["channel_id"])
-	assert channels_list_v1(2) == {
+	auth_id1 = auth_register_v1("authid1@gmail.com", "password", "firstname", "lastname")
+	auth_id2 = auth_register_v1("authid2@gmail.com", "password", "firstname", "lastname")
+	chan_id1 = channels_create_v1(auth_id1["auth_user_id"], "first_channel", True)
+	channel_join_v1(auth_id2["auth_user_id"], chan_id["channel_id"])
+	assert channels_list_v1(auth_id2["auth_user_id"]) == {
 		"channels": [
 			{"channel_id": chan_id1["channel_id"], "name": "first_channel"}
 		]
@@ -75,19 +83,23 @@ def test_not_admin():
 
 def test_not_in_channels():
 	clear_v1()
-	assert channels_list_v1(1) == None
-	channels_create_v1(2, "first_channel", True)
-	assert channels_list_v1(1) == None
-	channels_create_v1(3, "second_channel", False)
-	assert channels_list_v1(1) == None
-	channels_create_v1(2, "third_channel", True)
-	assert channels_list_v1(1) == None
+	auth_id1 = auth_register_v1("authid1@gmail.com", "password", "firstname", "lastname")
+	auth_id2 = auth_register_v1("authid2@gmail.com", "password", "firstname", "lastname")
+	auth_id3 = auth_register_v1("authid3@gmail.com", "password", "firstname", "lastname")
+	assert channels_list_v1(auth_id1["auth_user_id"]) == None
+	channels_create_v1(auth_id2["auth_user_id"], "first_channel", True)
+	assert channels_list_v1(auth_id1["auth_user_id"]) == None
+	channels_create_v1(auth_id3["auth_user_id"], "second_channel", False)
+	assert channels_list_v1(auth_id1["auth_user_id"]) == None
+	channels_create_v1(auth_id2["auth_user_id"], "third_channel", True)
+	assert channels_list_v1(auth_id1["auth_user_id"]) == None
 
 def test_same_channel_name():
 	clear_v1()
-	chan_id1 = channels_create_v1(1, "first_channel", True)
-	chan_id2 = channels_create_v1(1, "first_channel", False)
-	assert channels_list_v1(1) == {
+	auth_id1 = auth_register_v1("authid1@gmail.com", "password", "firstname", "lastname")
+	chan_id1 = channels_create_v1(auth_id1["auth_user_id"], "first_channel", True)
+	chan_id2 = channels_create_v1(auth_id1["auth_user_id"], "first_channel", False)
+	assert channels_list_v1(auth_id1["auth_user_id"]) == {
 		"channels": [
 			{"channel_id": chan_id1["channel_id"], "name": "first_channel"}, 
 			{"channel_id": chan_id2["channel_id"], "name": "first_channel"}
@@ -96,13 +108,17 @@ def test_same_channel_name():
 
 def test_mixed_channels():
 	clear_v1()
-	chan_id1 = channels_create_v1(1, "first_channel", True)
-	chan_id2 = channels_create_v1(1, "second_channel", False)
-	chan_id3 = channels_create_v1(2, "second_channel", True)
-	channel_join_v1(1, chan_id3["channel_id"])
-	channels_create_v1(3, "fourth_channel", False)
-	channels_create_v1(4, "fifth_channel", True) 
-	assert channels_list_v1(1) == {
+	auth_id1 = auth_register_v1("authid1@gmail.com", "password", "firstname", "lastname")
+	auth_id2 = auth_register_v1("authid2@gmail.com", "password", "firstname", "lastname")
+	auth_id3 = auth_register_v1("authid3@gmail.com", "password", "firstname", "lastname")
+	auth_id4 = auth_register_v1("authid4@gmail.com", "password", "firstname", "lastname")
+	chan_id1 = channels_create_v1(auth_id1["auth_user_id"], "first_channel", True)
+	chan_id2 = channels_create_v1(auth_id1["auth_user_id"], "second_channel", False)
+	chan_id3 = channels_create_v1(auth_id2["auth_user_id"], "second_channel", True)
+	channel_join_v1(auth_id1["auth_user_id"], chan_id3["channel_id"])
+	channels_create_v1(auth_id3["auth_user_id"], "fourth_channel", False)
+	channels_create_v1(auth_id4["auth_user_id"], "fifth_channel", True) 
+	assert channels_list_v1(auth_id1["auth_user_id"]) == {
 		"channels": [
 			{"channel_id": chan_id1["channel_id"], "name": "first_channel"}, 
 			{"channel_id": chan_id2["channel_id"], "name": "second_channel"},
