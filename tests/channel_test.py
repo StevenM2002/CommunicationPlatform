@@ -1,14 +1,14 @@
 from src.channels import channels_create_v1
 from src.auth import auth_register_v1
 import pytest
-from src.data_store import data_store
+from src.data_store import Datastore
 from src.channel import channel_invite_v1
 from src.other import clear_v1
 from src.error import AccessError, InputError
 
 def test_channel_invite():
     clear_v1()
-    store = data_store.get()
+    store = Datastore.get()
     u_id = auth_register_v1("random@gmail.com", "joel", "bryla")
     auth_id = auth_register_v1("example@gmail.com", "lewis", "bandas")
     channels = store["channels"]
@@ -25,7 +25,7 @@ def test_channel_invite():
 
 def test_invite_invalid_channel():
     clear_v1()
-    store = data_store.get()
+    store = Datastore.get()
     u_id = auth_register_v1("random@gmail.com", "joel", "bryla")
     auth_id = auth_register_v1("example@gmail.com", "lewis", "bandas")
     channels = store["channels"]
@@ -34,7 +34,7 @@ def test_invite_invalid_channel():
 
 def test_invite_invalid_user():
     clear_v1()
-    store = data_store.get()
+    store = Datastore.get()
     u_id = auth_register_v1("random@gmail.com", "joel", "bryla")
     auth_id = 15 - u_id
     channels = store["channels"]
@@ -44,7 +44,7 @@ def test_invite_invalid_user():
 
 def test_invite_auth_not_member():
     clear_v1()
-    store = data_store.get()
+    store = Datastore.get()
     u_id = auth_register_v1("random@gmail.com", "joel", "bryla")
     auth_id = auth_register_v1("example@gmail.com", "lewis", "bandas")
     added_user = auth_register_v1("yeah@gmail.com", "hayden", "smith")
@@ -55,7 +55,7 @@ def test_invite_auth_not_member():
 
 def test_invite_already_member():
     clear_v1()
-    store = data_store.get()
+    store = Datastore.get()
     u_id = auth_register_v1("random@gmail.com", "joel", "bryla")
     auth_id = auth_register_v1("example@gmail.com", "lewis", "bandas")
     channels = store["channels"]
