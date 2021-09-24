@@ -3,6 +3,7 @@ import pytest
 from src.error import InputError, AccessError
 from src.channels import channels_create_v1
 from src.other import clear_v1
+<<<<<<< HEAD
 from src.auth import auth_register_v1
 
 @pytest.fixture
@@ -24,10 +25,29 @@ def test_create_large(clear_and_register):
 
 # Invalid user_auth_id (access error)
 def test_create_inval_auth(clear_and_register):
+=======
+# Channel Create Tests
+# Input name is an empty string (input error)
+def test_create_empty():
+    #clear_v1()
+    with pytest.raises(InputError):
+        assert(channels_create_v1(1, '', 1))
+
+# Input name is greater than 20 characters (input error)
+def test_create_large():
+    #clear_v1()
+    with pytest.raises(InputError):
+        channels_create_v1(1, 'abcdefghijklmnopqrstuvwxyz', 1)
+
+# Invalid user_auth_id (access error)
+def test_create_inval_auth():
+    #clear_v1()
+>>>>>>> origin/riley/channels_create
     with pytest.raises(AccessError):
         channels_create_v1('zhyuasf', 'channel', 1)
 
 # Valid input name is used with a public chat
+<<<<<<< HEAD
 def test_create_valid_public(clear_and_register):
     assert(channels_create_v1(0, 'channel', 1) == {'channel_id': 0})
 
@@ -40,3 +60,20 @@ def test_create_valid_private(clear_and_register):
 def test_create_multiple(clear_and_register):
     assert(channels_create_v1(0, 'channel', 0) == {'channel_id': 0})
     assert(channels_create_v1(0, 'channel', 0) == {'channel_id': 1})
+=======
+def test_create_valid_public():
+    #clear_v1()
+    assert(channels_create_v1(1, 'channel', 1) == {'channel_id': 0})
+
+# Valid input name is used with a private chat
+def test_create_valid_private():
+    #clear_v1()
+    assert(channels_create_v1(1, 'channel', 0) == {'channel_id': 1})
+
+# Multiple channels created by the same user with identical channel names, 
+# making sure different channel IDs are created by the function
+def test_create_multiple():
+    #clear_v1()
+    assert(channels_create_v1(1, 'channel', 0) == {'channel_id': 3})
+    assert(channels_create_v1(1, 'channel', 0) == {'channel_id': 4})
+>>>>>>> origin/riley/channels_create

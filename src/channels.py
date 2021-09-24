@@ -26,11 +26,18 @@ def channels_create_v1(auth_user_id, name, is_public):
     store = data_store.get()
     users = store['users']
     channels = store['channels']
+<<<<<<< HEAD
     print(f"auth_user_id = {auth_user_id}")
     # Determines if the auth_user_id is valid by iterating through the names list
     valid = 0
     for item in users:
         if item['u_id'] == auth_user_id:
+=======
+    # Determines if the auth_user_id is valid by iterating through the names list
+    valid = 0
+    for item in users:
+        if item['id'] == auth_user_id:
+>>>>>>> origin/riley/channels_create
             valid = 1
             break
     print(valid)
