@@ -1,3 +1,5 @@
+
+
 from src.data_store import data_store
 from src.error import InputError, AccessError
 
@@ -72,6 +74,7 @@ def channels_create_v1(auth_user_id, name, is_public):
                     "name": name,
                     "owner": auth_user_id,
                     "members": [auth_user_id],
+                    "is_public": is_public
                 }
             )
             break
