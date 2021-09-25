@@ -76,8 +76,12 @@ def test_existing_handle():
     clear_v1()
 
     auth_register_v1("email@email.com", "password", "first", "last")
-    user_id0 = auth_register_v1("email1@email.com", "password2", "first", "last")
-    user_id1 = auth_register_v1("email2@email.com", "password3", "first", "last")
+    user_id0 = auth_register_v1("email1@email.com", "password2", "first", "last")[
+        "auth_user_id"
+    ]
+    user_id1 = auth_register_v1("email2@email.com", "password3", "first", "last")[
+        "auth_user_id"
+    ]
 
     users = data_store.get()["users"]
     for user in users:
@@ -116,10 +120,10 @@ def test_max_length_handle():
     auth_register_v1("email@email.com", "password", "firstverylongname", "lastname")
     user_id0 = auth_register_v1(
         "email1@email.com", "password2", "firstverylongname", "lastname"
-    )
+    )["auth_user_id"]
     user_id1 = auth_register_v1(
         "email2@email.com", "password3", "firstverylongname", "lastname"
-    )
+    )["auth_user_id"]
 
     users = data_store.get()["users"]
     for user in users:
