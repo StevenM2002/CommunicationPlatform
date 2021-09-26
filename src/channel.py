@@ -92,5 +92,40 @@ def channel_messages_v1(auth_user_id, channel_id, start):
 
 
 def channel_join_v1(auth_user_id, channel_id):
+    """Given a channel_id of a channel that the authorised user can join,
+    adds them to that channel."""
 
+    store = data_store.get()
+    # find user corresponding to the id passed into the function, save this user
+    # to a dictionary
+    for users in store["users"]:
+        if users["u_id"] == auth_user_id:
+            to_add = users
+
+    # determine if c_id represents an actual channel, and if so saves this
+    # channel to a dictionary
+    is_valid_channel = False
+    for channels in store["channels"]:
+        if channels["channel_id"] == channel_id:
+            to_add_to = channels
+            is_valid_channel = True
+    if is_valid_channel == False:
+        raise InputError("channel_id does not refer to a valid channel")
+
+    # checks if the user to add is already in the given channel
+    for each_user in to_add_to["members"]:
+        if each_user == auth_user_id:
+            raise InputError(
+                "the authorised user is already a member of the \
+                channel"
+            )
+    # makes sure the channel is not private
+    if to_add_to["is_public"] == False and to_add["u_id"] != channels["owner"]:
+        raise AccessError(
+            "channel_id refers to a channel that is private and \
+            the authorised user is not a global owner"
+        )
+
+    # adds the user to the channel members list
+    to_add_to["members"].append(auth_user_id)
     return {}
