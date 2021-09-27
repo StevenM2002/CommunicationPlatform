@@ -57,18 +57,19 @@ def channels_create_v1(auth_user_id, name, is_public):
         raise InputError("Invalid Name")
 
     # Sets channel_id as the next highest number in the channel list
-    channel_id = max(channels, key=lambda x: x["channel_id"])["channel_id"] + 1 if len(channels) > 0 else 0
-
-    # Gets the owner member from the users list
-    new_member = [user for user in users if user["u_id"] == auth_user_id]
+    channel_id = (
+        max(channels, key=lambda x: x["channel_id"])["channel_id"] + 1
+        if len(channels) > 0
+        else 0
+    )
 
     channels.append(
         {
             "channel_id": channel_id,
             "name": name,
-            "owner_members": new_member,
-            "all_members": new_member,
-            "is_public": is_public
+            "owner_members": [auth_user_id],
+            "all_members": [auth_user_id],
+            "is_public": is_public,
         }
     )
 
