@@ -7,6 +7,25 @@ def channel_invite_v1(auth_user_id, channel_id, u_id):
     Invites a user with ID u_id to join a channel with ID channel_id. Once
     invited, the user is added to the channel immediately. In both public and
     private channels, all members are able to invite users.
+
+    Arguments:
+        auth_user_id (integer)    - id of authorised user
+        channel_id (integer)    - id of given channel
+        u_id (integer)    - id of user being invited
+
+    Exceptions:
+        InputError  - Occurs when:
+            - channel_id does not refer to a valid channel
+            - u_id does not refer to a valid user
+            - u_id refers to a user who is already a member of the channel
+        AccessError - Occurs when:
+            - channel_id is valid and the authorised user is not a member 
+            of the channel
+
+    Return Value:
+        Returns {} if invite is successful
+        
+
     """
     store = data_store.get()
     channel_list = store["channels"]
@@ -91,7 +110,23 @@ def channel_messages_v1(auth_user_id, channel_id, start):
 
 def channel_join_v1(auth_user_id, channel_id):
     """Given a channel_id of a channel that the authorised user can join,
-    adds them to that channel."""
+    adds them to that channel.
+
+    Arguments:
+        auth_user_id (integer)    - id of user joining the channel
+        channel_id (integer)    - id of given channel
+
+    Exceptions:
+        InputError  - Occurs when:
+            - channel_id does not refer to a valid channel
+            - the authorised user is already a member of the channel
+        AccessError - Occurs when:
+            - channel_id refers to a channel that is private and the authorised 
+            user is not already a channel member and is not a global owner
+
+    Return Value:
+        Returns {} if join is successful
+    """
 
     store = data_store.get()
     # find user corresponding to the id passed into the function, save this user
