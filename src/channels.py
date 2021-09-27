@@ -59,12 +59,15 @@ def channels_create_v1(auth_user_id, name, is_public):
     # Sets channel_id as the next highest number in the channel list
     channel_id = max(channels, key=lambda x: x["channel_id"])["channel_id"] + 1 if len(channels) > 0 else 0
 
+    # Gets the owner member from the users list
+    new_member = [user for user in users if user["u_id"] == auth_user_id]
+
     channels.append(
         {
             "channel_id": channel_id,
             "name": name,
-            "owner": auth_user_id,
-            "members": [auth_user_id],
+            "owner_members": new_member,
+            "all_members": new_member,
             "is_public": is_public
         }
     )
