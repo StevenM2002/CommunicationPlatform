@@ -1,4 +1,5 @@
 from src.data_store import data_store
+from src.error import InputError, AccessError
 
 
 def channel_invite_v1(auth_user_id, channel_id, u_id):
@@ -33,38 +34,47 @@ def channel_details_v1(auth_user_id, channel_id):
     if not valid:
         raise InputError("Channel_id not found")
 
-    # Checks whether auth_user_id is a member of the channel
-    is_member = any(True for user in users if user["all_members"] == user)
-    if not is_member:
-        raise AccessError("User is not a member of the channel")
-
     # Finds the given channel, and saves the given data to a dictionary
     found_channel = [
         channel for channel in channels if channel["channel_id"] == channel_id
-    ]
+    ][0]
 
-    printf(found_channel)
-    return {
-        "name": "Hayden",
-        "owner_members": [
-            {
-                "u_id": 1,
-                "email": "example@gmail.com",
-                "name_first": "Hayden",
-                "name_last": "Jacobs",
-                "handle_str": "haydenjacobs",
-            }
-        ],
-        "all_members": [
-            {
-                "u_id": 1,
-                "email": "example@gmail.com",
-                "name_first": "Hayden",
-                "name_last": "Jacobs",
-                "handle_str": "haydenjacobs",
-            }
-        ],
-    }
+    # Checks whether auth_user_id is a member of the channel
+    is_member = any(
+        True for user in found_channel["all_members"] if user == auth_user_id
+    )
+    if not is_member:
+        raise AccessError("User is not a member of the channel")
+
+    # Loops through the users list, removing all passwords
+    for user in users:
+        user.pop("password")
+
+    # Finds the user information for each owner of the channel
+    for i in range(len(found_channel["owner_members"])):
+        user_id = found_channel["owner_members"][i]
+        print("owners")
+        print([user for user in users if user["u_id"] == user_id])
+        found_channel["owner_members"][i] = [
+            user for user in users if user["u_id"] == user_id
+        ][0]
+
+    # Finds the user information for each member of the channel
+    print("All members auth_user_ids")
+    print(found_channel["all_members"])
+    for i in range(len(found_channel["all_members"])):
+        user_id = found_channel["all_members"][i]
+        print("members")
+        print([user for user in users if user["u_id"] == user_id])
+        found_channel["all_members"][i] = [
+            user for user in users if user["u_id"] == user_id
+        ][0]
+
+    found_channel.pop("channel_id")
+    found_channel.pop("is_public")
+    print(f"found_channel: {found_channel}")
+
+    return found_channel
 
 
 def channel_messages_v1(auth_user_id, channel_id, start):

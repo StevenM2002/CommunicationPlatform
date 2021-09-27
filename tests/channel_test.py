@@ -72,7 +72,7 @@ def test_valid_inputs(setup_public):
 
 
 # Checking access for multiple users
-def test_valid_inputs(setup_public):
+def test_valid_multiple(setup_public):
     auth_register_v1("jane.citizen@gmail.com", "password", "jane", "Citizen")
     channel_join_v1(1, 0)
     assert channel_details_v1(0, 0) == {
