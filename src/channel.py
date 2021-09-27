@@ -23,10 +23,8 @@ def channel_invite_v1(auth_user_id, channel_id, u_id):
         raise InputError("channel_id does not refer to a valid channel")
 
     # loop through user_list to check u_id corresponds to an actual user
-    valid_user = False
-    for each_user in user_list:
-        if each_user["u_id"] == u_id:
-            valid_user = True
+    valid_user = any(True for each_user in user_list if each_user["u_id"] == \
+    u_id)
     if valid_user == False:
         raise InputError("u_id does not refer to a valid user")
 
