@@ -27,19 +27,19 @@ def setup_private():
 
 # Channel Details Tests
 # Input channel_id is invalid
-def invalid_channel_id(setup_public):
+def test_invalid_channel_id(setup_public):
     with pytest.raises(InputError):
         channel_details_v1(0, 10)
 
 
 # Input auth_user_id is invalid
-def invalid_user_id(setup_public):
+def test_invalid_user_id(setup_public):
     with pytest.raises(AccessError):
         channel_details_v1(10, 0)
 
 
 # User is not a member of the channel
-def not_member(setup_private):
+def test_not_member(setup_private):
     # Initialises a new member that isn't a member of the new private channel
     auth_register_v1("jane.citizen@gmail.com", "password", "Jane", "Citizen")
     with pytest.raises(AccessError):
@@ -47,7 +47,7 @@ def not_member(setup_private):
 
 
 # Both inputs are valid
-def valid_inputs(setup_public):
+def test_valid_inputs(setup_public):
     assert channel_details_v1(0, 0) == {
         "name": "public_channel",
         "owner_members": [
@@ -72,7 +72,7 @@ def valid_inputs(setup_public):
 
 
 # Checking access for multiple users
-def valid_inputs(setup_public):
+def test_valid_inputs(setup_public):
     auth_register_v1("jane.citizen@gmail.com", "password", "jane", "Citizen")
     channel_join_v1(1, 0)
     assert channel_details_v1(0, 0) == {
@@ -106,7 +106,7 @@ def valid_inputs(setup_public):
 
 
 # Checking for private channels, only the owner is included
-def valid_private(setup_private):
+def test_valid_private(setup_private):
     auth_register_v1("jane.citizen@gmail.com", "password", "Jane", "Citizen")
     assert channel_details_v1(0, 0) == {
         "name": "public_channel",
@@ -132,7 +132,7 @@ def valid_private(setup_private):
 
 
 # Check if it works for new channels
-def multiple_channels(setup_public):
+def test_multiple_channels(setup_public):
     auth_register_v1("jane.citizen@gmail.com", "password", "Jane", "Citizen")
     channels_create_v1(0, "second_channel", 1)
     channels_create_v1(0, "private_channel", 0)

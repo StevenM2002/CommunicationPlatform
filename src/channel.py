@@ -1,3 +1,6 @@
+from src.data_store import data_store
+
+
 def channel_invite_v1(auth_user_id, channel_id, u_id):
     return {}
 
@@ -19,22 +22,28 @@ def channel_details_v1(auth_user_id, channel_id):
 
     Return Value:
         Returns {channel_name, owner_members, and all _members}"""
+
     # Importing the data_store
     store = data_store.get()
     users = store["users"]
     channels = store["channels"]
-    # Checks whether the channel_id is used 
+
+    # Checks whether the channel_id is used
     valid = any(True for channel in channels if channel["channel_id"] == channel_id)
     if not valid:
         raise InputError("Channel_id not found")
 
     # Checks whether auth_user_id is a member of the channel
-    is_member = any(True for user in users if user["all_members"] = user)
+    is_member = any(True for user in users if user["all_members"] == user)
     if not is_member:
         raise AccessError("User is not a member of the channel")
 
     # Finds the given channel, and saves the given data to a dictionary
-    
+    found_channel = [
+        channel for channel in channels if channel["channel_id"] == channel_id
+    ]
+
+    printf(found_channel)
     return {
         "name": "Hayden",
         "owner_members": [
