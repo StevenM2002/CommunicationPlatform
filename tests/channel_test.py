@@ -30,7 +30,7 @@ def test_channel_invite():
     c_id = channels_create_v1(auth_id, "Test", False)["channel_id"]
     channel_invite_v1(auth_id, c_id, u_id)
 
-    assert is_in_channel
+    assert is_in_channel(channels, c_id, u_id)
 
 
 def test_invite_invalid_channel():
@@ -94,7 +94,7 @@ def test_channel_join():
     ]
     c_id = channels_create_v1(owner_id, "Test", True)["channel_id"]
     channel_join_v1(auth_id, c_id)
-    assert is_in_channel
+    assert is_in_channel(store["channels"], c_id, auth_id)
 
 
 def test_join_invalid_channel():
