@@ -24,8 +24,6 @@ def channel_invite_v1(auth_user_id, channel_id, u_id):
 
     Return Value:
         Returns {} if invite is successful
-        
-
     """
     store = data_store.get()
     channel_list = store["channels"]
@@ -38,13 +36,13 @@ def channel_invite_v1(auth_user_id, channel_id, u_id):
         if each_channel["channel_id"] == channel_id:
             valid_channel = True
             channel = each_channel
-    if valid_channel == False:
+    if not valid_channel:
         raise InputError("channel_id does not refer to a valid channel")
 
     # loop through user_list to check u_id corresponds to an actual user
     valid_user = any(True for each_user in user_list if each_user["u_id"] == \
     u_id)
-    if valid_user == False:
+    if not valid_user:
         raise InputError("u_id does not refer to a valid user")
 
     # loop through members of channel to make sure auth_user_id is actually
@@ -56,9 +54,9 @@ def channel_invite_v1(auth_user_id, channel_id, u_id):
             valid_member = True
         if users == u_id:
             uid_in_channel = True
-    if valid_member == False:
+    if not valid_member:
         raise AccessError("the authorised user is not a member of the channel")
-    if uid_in_channel == True:
+    if uid_in_channel:
         raise InputError(
             "u_id refers to a user who is already a member of \
             the channel"
@@ -142,7 +140,7 @@ def channel_join_v1(auth_user_id, channel_id):
         if channels["channel_id"] == channel_id:
             to_add_to = channels
             is_valid_channel = True
-    if is_valid_channel == False:
+    if not is_valid_channel:
         raise InputError("channel_id does not refer to a valid channel")
 
     # checks if the user to add is already in the given channel
@@ -153,7 +151,7 @@ def channel_join_v1(auth_user_id, channel_id):
                 channel"
             )
     # makes sure the channel is not private
-    if to_add_to["is_public"] == False and to_add["u_id"] != channels["owner"]:
+    if not to_add_to["is_public"] and to_add["u_id"] != channels["owner"]:
         raise AccessError(
             "channel_id refers to a channel that is private and \
             the authorised user is not a global owner"
