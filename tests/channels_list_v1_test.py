@@ -28,7 +28,7 @@ as a dictionary of a list of dictionary whereas spec says returns channel which
 should just be a list of dictionary
 """
 
-
+#Should add a pytest fixture here
 def test_work_with_stub():
     clear_v1()
     auth_id1 = auth_register_v1(
