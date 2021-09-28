@@ -52,12 +52,17 @@ def channels_create_v1(auth_user_id, name, is_public):
 
     if not valid:
         raise AccessError("Invalid user_id")
+
     # Checks for if the name is valid
     if len(name) < 1 or len(name) > 20:
         raise InputError("Invalid Name")
 
     # Sets channel_id as the next highest number in the channel list
-    channel_id = max(channels, key=lambda x: x["channel_id"])["channel_id"] + 1 if len(channels) > 0 else 0
+    channel_id = (
+        max(channels, key=lambda x: x["channel_id"])["channel_id"] + 1
+        if len(channels) > 0
+        else 0
+    )
 
     channels.append(
         {
@@ -65,7 +70,7 @@ def channels_create_v1(auth_user_id, name, is_public):
             "name": name,
             "owner": auth_user_id,
             "members": [auth_user_id],
-            "is_public": is_public
+            "is_public": is_public,
         }
     )
 
