@@ -49,7 +49,7 @@ def channel_invite_v1(auth_user_id, channel_id, u_id):
     # a member of the channel, and also that u_id is not already in the channel
     valid_member = False
     uid_in_channel = False
-    for users in channel["members"]:
+    for users in channel["all_members"]:
         if users == auth_user_id:
             valid_member = True
         if users == u_id:
@@ -63,7 +63,7 @@ def channel_invite_v1(auth_user_id, channel_id, u_id):
         )
 
     # if no errors were raised, add u_id to the list of members of the channel
-    channel["members"].append(u_id)
+    channel["all_members"].append(u_id)
     return {}
 
 
@@ -144,19 +144,20 @@ def channel_join_v1(auth_user_id, channel_id):
         raise InputError("channel_id does not refer to a valid channel")
 
     # checks if the user to add is already in the given channel
-    for each_user in to_add_to["members"]:
+    for each_user in to_add_to["all_members"]:
         if each_user == auth_user_id:
             raise InputError(
                 "the authorised user is already a member of the \
                 channel"
             )
     # makes sure the channel is not private
-    if not to_add_to["is_public"] and to_add["u_id"] != channels["owner"]:
+    if not to_add_to["is_public"] and to_add["u_id"] != \
+    channels["owner_members"]:
         raise AccessError(
             "channel_id refers to a channel that is private and \
             the authorised user is not a global owner"
         )
 
     # adds the user to the channel members list
-    to_add_to["members"].append(auth_user_id)
+    to_add_to["all_members"].append(auth_user_id)
     return {}
