@@ -20,7 +20,6 @@ def channels_list_v1(auth_user_id):
     else:
         return {"channels": channels}
 
-
 def channels_listall_v1(auth_user_id):
     return {
         "channels": [
@@ -85,5 +84,4 @@ def channels_create_v1(auth_user_id, name, is_public):
     data_store.set(store)
     return {
         "channel_id": channel_id,
-        "channel_id": 1,
     }

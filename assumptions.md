@@ -2,4 +2,4 @@
 - user dictionaries will contain email, password, name_first, name_last, u_id and handle_str
 - Assumes that, for channels_create, channel_ids are created incrementally, beginning at 0 (for example, the first created channel has an id of 0, with the second having an id of 1, and so on)
 - channels_list_v1():
-- If auth_user_id is not a member of any channel, then None is returned.
+If auth_user_id is not a member of any channel, then None is returned.
