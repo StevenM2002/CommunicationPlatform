@@ -12,7 +12,7 @@ def is_in_channel(channels, c_id, u_id):
         if each_channel["channel_id"] == c_id:
             the_channel = each_channel
     invite_worked = False
-    for each_member in the_channel["members"]:
+    for each_member in the_channel["all_members"]:
         if each_member == u_id:
             invite_worked = True
     return invite_worked
