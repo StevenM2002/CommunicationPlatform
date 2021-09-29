@@ -14,17 +14,6 @@ Provide a list of all channels, including private channels, (and their associate
 
 """
 
-
-def test_work_dummy_data():
-    clear_v1()
-    assert channels_listall_v1(1) == {
-        "channels": [
-            {"channel_id": 1, "name": "first_channel"},
-            {"channel_id": 2, "name": "second_channel"},
-        ]
-    }
-
-
 def test_one_channel_public():
     clear_v1()
     auth_id = auth_register_v1("firstid@gmail.com", "password", "firstname", "lastname")
@@ -70,7 +59,7 @@ def test_multiple_members():
         "secondid@gmail.com", "password", "firstname", "lastname"
     )
     ch_id1 = channels_create_v1(auth_id1["auth_user_id"], "first channel", True)
-    channel_join_v1(auth_id2["channel_id"], ch_id1["channel_id"])
+    channel_join_v1(auth_id2["auth_user_id"], ch_id1["channel_id"])
     assert channels_listall_v1(auth_id1["auth_user_id"]) == {
         "channels": [{"channel_id": ch_id1["channel_id"], "name": "first channel"}]
     }

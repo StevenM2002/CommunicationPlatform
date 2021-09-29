@@ -40,7 +40,7 @@ def channels_listall_v1(auth_user_id):
     if len(initial_object["channels"]) == 0:
         return None
     channels = []
-    for channel in range(len(initial_object["channels"])):
+    for channel, _ in enumerate(initial_object["channels"]):
         # Get route to all channels iteratively
         channels_list = initial_object["channels"][channel]
         # Save information to channels
