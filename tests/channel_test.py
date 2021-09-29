@@ -224,13 +224,12 @@ def test_multiple_channels(setup_public):
     }
 
 
-"""
 def is_in_channel(channels, c_id, u_id):
     for each_channel in channels:
         if each_channel["channel_id"] == c_id:
             the_channel = each_channel
     invite_worked = False
-    for each_member in the_channel["members"]:
+    for each_member in the_channel["all_members"]:
         if each_member == u_id:
             invite_worked = True
     return invite_worked
@@ -351,4 +350,3 @@ def test_join_priv_channel():
     c_id = channels_create_v1(owner_id, "Test", False)["channel_id"]
     with pytest.raises(AccessError):
         assert channel_join_v1(auth_id, c_id)
-"""
