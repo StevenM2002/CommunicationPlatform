@@ -30,7 +30,6 @@ def auth_login_v1(email, password):
             }
     raise InputError
 
-
 def auth_register_v1(email, password, name_first, name_last):
     """
     Given a user's first and last name, email address, and password,

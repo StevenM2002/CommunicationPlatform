@@ -32,15 +32,21 @@ def channels_list_v1(auth_user_id):
                 channels.append(chan_info)
     return {"channels": channels}
 
+
 def channels_listall_v1(auth_user_id):
     initial_object = data_store.get()
+    # If there are no channels return None
     if len(initial_object["channels"]) == 0:
         return None
-
     channels = []
     for channel in range(len(initial_object["channels"])):
+        # Get route to all channels iteratively
         channels_list = initial_object["channels"][channel]
-        channels.append({"channel_id": channels_list["channel_id"], "name": channels_list["name"]})
+        # Save information to channels
+        channels.append(
+            {"channel_id": channels_list["channel_id"], "name": channels_list["name"]}
+        )
+    # If no information on channels saved then there are no channels or else, return the channel information
     if len(channels) == 0:
         return None
     else:
