@@ -34,7 +34,7 @@ def test_work_with_stub():
     auth_id1 = auth_register_v1(
         "authid1@gmail.com", "password", "firstname", "lastname"
     )
-    chan_id1 = channels_create_v1(auth_id1["auth_user_id"], "first channe;", True)
+    chan_id1 = channels_create_v1(auth_id1["auth_user_id"], "first channel", True)
     assert channels_list_v1(auth_id1["auth_user_id"]) == {
         "channels": [{"channel_id": chan_id1["channel_id"], "name": "first_channel"}]
     }
