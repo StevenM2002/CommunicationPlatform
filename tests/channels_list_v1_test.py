@@ -30,47 +30,47 @@ should just be a list of dictionary
 
 # Should add a pytest fixture here
 @pytest.fixture
-def clear_and_register():
+def data_set():
     clear_v1()
-    auth_id1 = auth_register_v1(
+    auth_id0 = auth_register_v1(
         "authid1@gmail.com", "password", "firstname", "lastname"
     )
-    auth_id2 = auth_register_v1(
+    auth_id1 = auth_register_v1(
         "authid2@gmail.com", "password", "firstname", "lastname"
     )
-    auth_id3 = auth_register_v1(
+    auth_id2 = auth_register_v1(
         "authid3@gmail.com", "password", "firstname", "lastname"
     )
-    auth_id4 = auth_register_v1(
+    auth_id3 = auth_register_v1(
         "authid4@gmail.com", "password", "firstname", "lastname"
     )
+    return (auth_id0, auth_id1, auth_id2, auth_id3)
 
-
-def test_work_with_stub(clear_and_register):
-    chan_id1 = channels_create_v1(auth_id1["auth_user_id"], "first channel", True)
-    assert channels_list_v1(auth_id1["auth_user_id"]) == {
+def test_work_with_stub(data_set):
+    chan_id1 = channels_create_v1(data_set[0]["auth_user_id"], "first channel", True)
+    assert channels_list_v1(data_set[0]["auth_user_id"]) == {
         "channels": [{"channel_id": chan_id1["channel_id"], "name": "first channel"}]
     }
 
 
-def test_one_channel_public(clear_and_register):
-    chan_id1 = channels_create_v1(auth_id1["auth_user_id"], "one_channel", True)
-    assert channels_list_v1(auth_id1["auth_user_id"]) == {
+def test_one_channel_public(data_set):
+    chan_id1 = channels_create_v1(data_set[0]["auth_user_id"], "one_channel", True)
+    assert channels_list_v1(data_set[0]["auth_user_id"]) == {
         "channels": [{"channel_id": chan_id1["channel_id"], "name": "one_channel"}]
     }
 
 
-def test_one_channel_private(clear_and_register):
-    chan_id1 = channels_create_v1(auth_id1["auth_user_id"], "one_channel", False)
-    assert channels_list_v1(auth_id1["auth_user_id"]) == {
+def test_one_channel_private(data_set):
+    chan_id1 = channels_create_v1(data_set[0]["auth_user_id"], "one_channel", False)
+    assert channels_list_v1(data_set[0]["auth_user_id"]) == {
         "channels": [{"channel_id": chan_id1["channel_id"], "name": "one_channel"}]
     }
 
 
-def test_two_channels(clear_and_register):
-    chan_id1 = channels_create_v1(auth_id1["auth_user_id"], "first_channel", True)
-    chan_id2 = channels_create_v1(auth_id1["auth_user_id"], "second_channel", False)
-    assert channels_list_v1(auth_id1["auth_user_id"]) == {
+def test_two_channels(data_set):
+    chan_id1 = channels_create_v1(data_set[0]["auth_user_id"], "first_channel", True)
+    chan_id2 = channels_create_v1(data_set[0]["auth_user_id"], "second_channel", False)
+    assert channels_list_v1(data_set[0]["auth_user_id"]) == {
         "channels": [
             {"channel_id": chan_id1["channel_id"], "name": "first_channel"},
             {"channel_id": chan_id2["channel_id"], "name": "second_channel"},
@@ -78,28 +78,28 @@ def test_two_channels(clear_and_register):
     }
 
 
-def test_not_admin(clear_and_register):
-    chan_id1 = channels_create_v1(auth_id1["auth_user_id"], "first_channel", True)
-    channel_join_v1(auth_id2["auth_user_id"], chan_id1["channel_id"])
-    assert channels_list_v1(auth_id2["auth_user_id"]) == {
+def test_not_admin(data_set):
+    chan_id1 = channels_create_v1(data_set[0]["auth_user_id"], "first_channel", True)
+    channel_join_v1(data_set[1]["auth_user_id"], chan_id1["channel_id"])
+    assert channels_list_v1(data_set[1]["auth_user_id"]) == {
         "channels": [{"channel_id": chan_id1["channel_id"], "name": "first_channel"}]
     }
 
 
-def test_not_in_channels(clear_and_register):
-    assert channels_list_v1(auth_id1["auth_user_id"]) == None
-    channels_create_v1(auth_id2["auth_user_id"], "first_channel", True)
-    assert channels_list_v1(auth_id1["auth_user_id"]) == None
-    channels_create_v1(auth_id3["auth_user_id"], "second_channel", False)
-    assert channels_list_v1(auth_id1["auth_user_id"]) == None
-    channels_create_v1(auth_id2["auth_user_id"], "third_channel", True)
-    assert channels_list_v1(auth_id1["auth_user_id"]) == None
+def test_not_in_channels(data_set):
+    assert channels_list_v1(data_set[0]["auth_user_id"]) == None
+    channels_create_v1(data_set[1]["auth_user_id"], "first_channel", True)
+    assert channels_list_v1(data_set[0]["auth_user_id"]) == None
+    channels_create_v1(data_set[2]["auth_user_id"], "second_channel", False)
+    assert channels_list_v1(data_set[0]["auth_user_id"]) == None
+    channels_create_v1(data_set[1]["auth_user_id"], "third_channel", True)
+    assert channels_list_v1(data_set[0]["auth_user_id"]) == None
 
 
-def test_same_channel_name(clear_and_register):
-    chan_id1 = channels_create_v1(auth_id1["auth_user_id"], "first_channel", True)
-    chan_id2 = channels_create_v1(auth_id1["auth_user_id"], "first_channel", False)
-    assert channels_list_v1(auth_id1["auth_user_id"]) == {
+def test_same_channel_name(data_set):
+    chan_id1 = channels_create_v1(data_set[0]["auth_user_id"], "first_channel", True)
+    chan_id2 = channels_create_v1(data_set[0]["auth_user_id"], "first_channel", False)
+    assert channels_list_v1(data_set[0]["auth_user_id"]) == {
         "channels": [
             {"channel_id": chan_id1["channel_id"], "name": "first_channel"},
             {"channel_id": chan_id2["channel_id"], "name": "first_channel"},
@@ -107,14 +107,14 @@ def test_same_channel_name(clear_and_register):
     }
 
 
-def test_mixed_channels(clear_and_register):
-    chan_id1 = channels_create_v1(auth_id1["auth_user_id"], "first_channel", True)
-    chan_id2 = channels_create_v1(auth_id1["auth_user_id"], "second_channel", False)
-    chan_id3 = channels_create_v1(auth_id2["auth_user_id"], "second_channel", True)
-    channel_join_v1(auth_id1["auth_user_id"], chan_id3["channel_id"])
-    channels_create_v1(auth_id3["auth_user_id"], "fourth_channel", False)
-    channels_create_v1(auth_id4["auth_user_id"], "fifth_channel", True)
-    assert channels_list_v1(auth_id1["auth_user_id"]) == {
+def test_mixed_channels(data_set):
+    chan_id1 = channels_create_v1(data_set[0]["auth_user_id"], "first_channel", True)
+    chan_id2 = channels_create_v1(data_set[0]["auth_user_id"], "second_channel", False)
+    chan_id3 = channels_create_v1(data_set[1]["auth_user_id"], "second_channel", True)
+    channel_join_v1(data_set[0]["auth_user_id"], chan_id3["channel_id"])
+    channels_create_v1(data_set[2]["auth_user_id"], "fourth_channel", False)
+    channels_create_v1(data_set[3]["auth_user_id"], "fifth_channel", True)
+    assert channels_list_v1(data_set[0]["auth_user_id"]) == {
         "channels": [
             {"channel_id": chan_id1["channel_id"], "name": "first_channel"},
             {"channel_id": chan_id2["channel_id"], "name": "second_channel"},
