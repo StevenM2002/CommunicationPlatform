@@ -50,6 +50,7 @@ def test_not_member(setup_private):
 def test_valid_inputs(setup_public):
     assert channel_details_v1(0, 0) == {
         "name": "public_channel",
+        "is_public": True,
         "owner_members": [
             {
                 "u_id": 0,
@@ -77,6 +78,7 @@ def test_valid_multiple(setup_public):
     channel_join_v1(1, 0)
     assert channel_details_v1(0, 0) == {
         "name": "public_channel",
+        "is_public": True,
         "owner_members": [
             {
                 "u_id": 0,
@@ -110,6 +112,7 @@ def test_valid_private(setup_private):
     auth_register_v1("jane.citizen@gmail.com", "password", "Jane", "Citizen")
     assert channel_details_v1(0, 0) == {
         "name": "public_channel",
+        "is_public": False,
         "owner_members": [
             {
                 "u_id": 0,
@@ -140,6 +143,7 @@ def test_multiple_channels(setup_public):
     channel_join_v1(1, 1)
     assert channel_details_v1(0, 0) == {
         "name": "public_channel",
+        "is_public": True,
         "owner_members": [
             {
                 "u_id": 0,
@@ -168,6 +172,7 @@ def test_multiple_channels(setup_public):
     }
     assert channel_details_v1(0, 1) == {
         "name": "new_channel",
+        "is_public": True,
         "owner_members": [
             {
                 "u_id": 0,
@@ -196,6 +201,7 @@ def test_multiple_channels(setup_public):
     }
     assert channel_details_v1(0, 2) == {
         "name": "private_channel",
+        "is_public": False,
         "owner_members": [
             {
                 "u_id": 0,
