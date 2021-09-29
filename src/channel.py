@@ -60,19 +60,14 @@ def channel_details_v1(auth_user_id, channel_id):
         ][0]
 
     # Finds the user information for each member of the channel
-    print("All members auth_user_ids")
-    print(found_channel["all_members"])
     for i in range(len(found_channel["all_members"])):
         user_id = found_channel["all_members"][i]
-        print("members")
-        print([user for user in users if user["u_id"] == user_id])
         found_channel["all_members"][i] = [
             user for user in users if user["u_id"] == user_id
         ][0]
 
+    # Removing the unrequired fields
     found_channel.pop("channel_id")
-    found_channel.pop("is_public")
-    print(f"found_channel: {found_channel}")
 
     return found_channel
 
