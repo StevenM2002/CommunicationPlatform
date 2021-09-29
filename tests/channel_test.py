@@ -75,7 +75,7 @@ def test_valid_inputs(setup_public):
 
 # Checking access for multiple users
 def test_valid_multiple(setup_public):
-    auth_register_v1("jane.citizen@gmail.com", "password", "jane", "Citizen")
+    auth_register_v1("jane.citizen@gmail.com", "password", "Jane", "Citizen")
     channel_join_v1(1, 0)
     assert channel_details_v1(0, 0) == {
         "name": "public_channel",
@@ -112,7 +112,7 @@ def test_valid_multiple(setup_public):
 def test_valid_private(setup_private):
     auth_register_v1("jane.citizen@gmail.com", "password", "Jane", "Citizen")
     assert channel_details_v1(0, 0) == {
-        "name": "public_channel",
+        "name": "private_channel",
         "is_public": False,
         "owner_members": [
             {
@@ -172,7 +172,7 @@ def test_multiple_channels(setup_public):
         ],
     }
     assert channel_details_v1(0, 1) == {
-        "name": "new_channel",
+        "name": "second_channel",
         "is_public": True,
         "owner_members": [
             {

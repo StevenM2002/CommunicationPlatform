@@ -83,7 +83,7 @@ def channel_details_v1(auth_user_id, channel_id):
 
     Return Value:
         Returns {channel_name, owner_members, and all _members}"""
-
+    print("Starting function")
     # Importing the data_store
     store = data_store.get()
     users = store["users"]
@@ -106,30 +106,52 @@ def channel_details_v1(auth_user_id, channel_id):
     if not is_member:
         raise AccessError("User is not a member of the channel")
 
-    # Loops through the users list, removing all passwords
-    for user in users:
-        user.pop("password")
-
     # Finds the user information for each owner of the channel
     for i in range(len(found_channel["owner_members"])):
         user_id = found_channel["owner_members"][i]
-        print("owners")
-        print([user for user in users if user["u_id"] == user_id])
-        found_channel["owner_members"][i] = [
-            user for user in users if user["u_id"] == user_id
-        ][0]
+        owner_user = [user for user in users if user["u_id"] == user_id][0]
+        owner_u_id = owner_user["u_id"]
+        owner_email = owner_user["email"]
+        owner_name_first = owner_user["name_first"]
+        owner_name_last = owner_user["name_last"]
+        owner_handle_str = owner_user["handle_str"]
+        found_channel["owner_members"][i] = {
+            "u_id": owner_u_id,
+            "email": owner_email,
+            "name_first": owner_name_first,
+            "name_last": owner_name_last,
+            "handle_str": owner_handle_str,
+        }
 
     # Finds the user information for each member of the channel
     for i in range(len(found_channel["all_members"])):
         user_id = found_channel["all_members"][i]
-        found_channel["all_members"][i] = [
-            user for user in users if user["u_id"] == user_id
-        ][0]
+        member_user = [user for user in users if user["u_id"] == user_id][0]
+        print(member_user)
+        member_u_id = member_user["u_id"]
+        member_email = member_user["email"]
+        member_name_first = member_user["name_first"]
+        member_name_last = member_user["name_last"]
+        member_handle_str = member_user["handle_str"]
+        found_channel["all_members"][i] = {
+            "u_id": member_u_id,
+            "email": member_email,
+            "name_first": member_name_first,
+            "name_last": member_name_last,
+            "handle_str": member_handle_str,
+        }
 
-    # Removing the unrequired fields
-    found_channel.pop("channel_id")
+    channel_name = found_channel["name"]
+    channel_is_public = found_channel["is_public"]
+    channel_owner_members = found_channel["owner_members"]
+    channel_all_members = found_channel["all_members"]
 
-    return found_channel
+    return {
+        "name": channel_name,
+        "is_public": channel_is_public,
+        "owner_members": channel_owner_members,
+        "all_members": channel_all_members,
+    }
 
 
 def channel_messages_v1(auth_user_id, channel_id, start):
