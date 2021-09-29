@@ -35,7 +35,10 @@ def channels_list_v1(auth_user_id):
 
 
 
-
+'''
+Returns a dictionary of a list of all channels (their corresponding channel ids and channel names), public and private given an authorised user id.
+The form of the dictionary list is {"channels": []} when returned.
+'''
 def channels_listall_v1(auth_user_id):
     initial_object = data_store.get()
     # If there are no channels return None
