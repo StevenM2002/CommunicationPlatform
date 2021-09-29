@@ -14,6 +14,7 @@ Provide a list of all channels, including private channels, (and their associate
 
 """
 
+
 def test_one_channel_public():
     clear_v1()
     auth_id = auth_register_v1("firstid@gmail.com", "password", "firstname", "lastname")

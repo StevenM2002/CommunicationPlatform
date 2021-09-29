@@ -1,6 +1,7 @@
 from src.data_store import data_store
 from src.error import InputError, AccessError
 
+
 def channels_list_v1(auth_user_id):
     """
     Given an auth_user_id, return a list of channels and corresponding name and ids that
@@ -34,6 +35,7 @@ def channels_list_v1(auth_user_id):
 
 
 
+
 def channels_listall_v1(auth_user_id):
     initial_object = data_store.get()
     # If there are no channels return None
@@ -52,6 +54,7 @@ def channels_listall_v1(auth_user_id):
         return None
     else:
         return {"channels": channels}
+
 
 def channels_create_v1(auth_user_id, name, is_public):
     """Creates a new channel in the data_store when given an auth_user_id,
