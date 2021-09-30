@@ -210,3 +210,7 @@ def test_mixed(data_set_listall):
             {"channel_id": ch_id3["channel_id"], "name": "third channel"},
         ]
     }
+
+
+def test_no_channels(data_set_listall):
+    assert channels_listall_v1(data_set_listall[0]) == {'channels': []}

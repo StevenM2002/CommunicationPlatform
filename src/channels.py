@@ -36,27 +36,30 @@ def channels_list_v1(auth_user_id):
 
 
 '''
-Returns a dictionary of a list of all channels (their corresponding channel ids and channel names), public and private given an authorised user id.
-The form of the dictionary list is {"channels": []} when returned.
+Returns a list of channel ids and channel names of all channels
+, both private and public provided an auth_user_id
+
+Arguments:
+    auth_user_id (int)    - an id generated from a user registration
+
+Exceptions:
+    InputError  - N/A
+    AccessError - N/A
+
+Return Value:
+    Returns {"channels": [{"channel_id": channel_id, "name": channel_name}, {}...]} 
+    on condition that there is at least one channel made
+
+    Returns {"channels": []} on condition there are no channels made
+
 '''
 def channels_listall_v1(auth_user_id):
     initial_object = data_store.get()
-    # If there are no channels return None
-    if len(initial_object["channels"]) == 0:
-        return None
-    channels = []
-    for channel, _ in enumerate(initial_object["channels"]):
-        # Get route to all channels iteratively
-        channels_list = initial_object["channels"][channel]
-        # Save information to channels
-        channels.append(
-            {"channel_id": channels_list["channel_id"], "name": channels_list["name"]}
-        )
-    # If no information on channels saved then there are no channels or else, return the channel information
-    if len(channels) == 0:
-        return None
-    else:
-        return {"channels": channels}
+    channels = [
+        {"channel_id": channel["channel_id"], "name": channel["name"]} 
+        for channel in initial_object["channels"]
+    ]
+    return {"channels": channels}
 
 
 def channels_create_v1(auth_user_id, name, is_public):
