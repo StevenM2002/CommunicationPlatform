@@ -105,22 +105,15 @@ def channel_details_v1(auth_user_id, channel_id):
     if not is_member:
         raise AccessError("User is not a member of the channel")
 
-    # Finds the user information for each owner of the channel
-    for i in range(len(found_channel["owner_members"])):
-        user_id = found_channel["owner_members"][i]
-        owner_user = [user for user in users if user["u_id"] == user_id][0]
-        found_channel["owner_members"][i] = {
-            key: value for key, value in owner_user.items() if key != "password"
-        }
+    # Loops through the tuple containing "owner_members" and "all_members,"
+    # finding the user from the user_id and adding it to the corresponding list
+    for member_key in ("owner_members", "all_members"):
+        for i, user_id in enumerate(found_channel[member_key]):
+            member_user = [user for user in users if user["u_id"] == user_id][0]
+            found_channel[member_key][i] = {
+                key: value for key, value in member_user.items() if key != "password"
+            }
 
-    # Finds the user information for each member of the channel
-    for i in range(len(found_channel["all_members"])):
-        user_id = found_channel["all_members"][i]
-        member_user = [user for user in users if user["u_id"] == user_id][0]
-        found_channel["all_members"][i] = {
-            key: value for key, value in member_user.items() if key != "password"
-        }
-    print(found_channel)
     return {key: value for key, value in found_channel.items() if key != "channel_id"}
 
 
