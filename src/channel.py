@@ -83,7 +83,6 @@ def channel_details_v1(auth_user_id, channel_id):
 
     Return Value:
         Returns {channel_name, owner_members, and all _members}"""
-    print("Starting function")
     # Importing the data_store
     store = data_store.get()
     users = store["users"]
@@ -127,7 +126,6 @@ def channel_details_v1(auth_user_id, channel_id):
     for i in range(len(found_channel["all_members"])):
         user_id = found_channel["all_members"][i]
         member_user = [user for user in users if user["u_id"] == user_id][0]
-        print(member_user)
         member_u_id = member_user["u_id"]
         member_email = member_user["email"]
         member_name_first = member_user["name_first"]
