@@ -46,7 +46,7 @@ def channels_listall_v1(auth_user_id):
 
     Exceptions:
         InputError  - N/A
-        AccessError - N/A
+        AccessError - is raised when parameter auth_user_id is not in the data
 
     Return Value:
         Returns {"channels": [{"channel_id": channel_id, "name": channel_name}, {}...]} 
@@ -56,6 +56,11 @@ def channels_listall_v1(auth_user_id):
 
     """
     initial_object = data_store.get()
+    # Check auth_user_id 
+    valid = any(True for user in initial_object["users"] if user["u_id"] == auth_user_id)
+    if not valid:
+        raise AccessError("Invalid user_id")
+    # Get all channels
     channels = [
         {"channel_id": channel["channel_id"], "name": channel["name"]} 
         for channel in initial_object["channels"]

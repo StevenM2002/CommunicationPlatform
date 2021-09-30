@@ -132,27 +132,29 @@ def data_set_listall():
     auth_id5 = auth_register_v1(
         "sixthid@gmail.com", "password", "firstname", "lastname"
     )
-    return (auth_id0, auth_id1, auth_id2, auth_id3, auth_id4, auth_id5)
+    return (auth_id0["auth_user_id"], auth_id1["auth_user_id"], 
+            auth_id2["auth_user_id"], auth_id3["auth_user_id"], 
+            auth_id4["auth_user_id"], auth_id5["auth_user_id"])
 
 
 def test_one_channel_public(data_set_listall):
-    ch_id = channels_create_v1(data_set_listall[0]["auth_user_id"], "first channel", True)
-    assert channels_listall_v1(data_set_listall[0]["auth_user_id"]) == {
+    ch_id = channels_create_v1(data_set_listall[0], "first channel", True)
+    assert channels_listall_v1(data_set_listall[0]) == {
         "channels": [{"channel_id": ch_id["channel_id"], "name": "first channel"}]
     }
 
 
 def test_one_channel_private(data_set_listall):
-    ch_id = channels_create_v1(data_set_listall[0]["auth_user_id"], "first channel", False)
-    assert channels_listall_v1(data_set_listall[0]["auth_user_id"]) == {
+    ch_id = channels_create_v1(data_set_listall[0], "first channel", False)
+    assert channels_listall_v1(data_set_listall[0]) == {
         "channels": [{"channel_id": ch_id["channel_id"], "name": "first channel"}]
     }
 
 
 def test_two_channels(data_set_listall):
-    ch_id1 = channels_create_v1(data_set_listall[0]["auth_user_id"], "first channel", True)
-    ch_id2 = channels_create_v1(data_set_listall[1]["auth_user_id"], "second channel", False)
-    assert channels_listall_v1(data_set_listall[0]["auth_user_id"]) == {
+    ch_id1 = channels_create_v1(data_set_listall[0], "first channel", True)
+    ch_id2 = channels_create_v1(data_set_listall[1], "second channel", False)
+    assert channels_listall_v1(data_set_listall[0]) == {
         "channels": [
             {"channel_id": ch_id1["channel_id"], "name": "first channel"},
             {"channel_id": ch_id2["channel_id"], "name": "second channel"},
@@ -190,21 +192,21 @@ def test_same_channel_name(data_set):
 
 
 def test_multiple_members(data_set_listall):
-    ch_id1 = channels_create_v1(data_set_listall[0]["auth_user_id"], "first channel", True)
-    channel_join_v1(data_set_listall[1]["auth_user_id"], ch_id1["channel_id"])
-    assert channels_listall_v1(data_set_listall[0]["auth_user_id"]) == {
+    ch_id1 = channels_create_v1(data_set_listall[0], "first channel", True)
+    channel_join_v1(data_set_listall[1], ch_id1["channel_id"])
+    assert channels_listall_v1(data_set_listall[0]) == {
         "channels": [{"channel_id": ch_id1["channel_id"], "name": "first channel"}]
     }
 
 
 def test_mixed(data_set_listall):
-    ch_id1 = channels_create_v1(data_set_listall[0]["auth_user_id"], "first channel", True)
-    ch_id2 = channels_create_v1(data_set_listall[1]["auth_user_id"], "second channel", True)
-    ch_id3 = channels_create_v1(data_set_listall[2]["auth_user_id"], "third channel", False)
-    channel_join_v1(data_set_listall[3]["auth_user_id"], ch_id2["channel_id"])
-    channel_join_v1(data_set_listall[4]["auth_user_id"], ch_id2["channel_id"])
-    channel_join_v1(data_set_listall[5]["auth_user_id"], ch_id2["channel_id"])
-    assert channels_listall_v1(data_set_listall[0]["auth_user_id"]) == {
+    ch_id1 = channels_create_v1(data_set_listall[0], "first channel", True)
+    ch_id2 = channels_create_v1(data_set_listall[1], "second channel", True)
+    ch_id3 = channels_create_v1(data_set_listall[2], "third channel", False)
+    channel_join_v1(data_set_listall[3], ch_id2["channel_id"])
+    channel_join_v1(data_set_listall[4], ch_id2["channel_id"])
+    channel_join_v1(data_set_listall[5], ch_id2["channel_id"])
+    assert channels_listall_v1(data_set_listall[0]) == {
         "channels": [
             {"channel_id": ch_id1["channel_id"], "name": "first channel"},
             {"channel_id": ch_id2["channel_id"], "name": "second channel"},
@@ -215,3 +217,15 @@ def test_mixed(data_set_listall):
 
 def test_no_channels(data_set_listall):
     assert channels_listall_v1(data_set_listall[0]) == {'channels': []}
+
+
+def test_not_auth_user_id():
+    clear_v1()
+    with pytest.raises(AccessError):
+        assert channels_listall_v1(1)
+
+
+
+
+
+
