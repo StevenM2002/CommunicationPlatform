@@ -55,15 +55,15 @@ def channels_listall_v1(auth_user_id):
         Returns {"channels": []} on condition there are no channels made
 
     """
-    initial_object = data_store.get()
+    data = data_store.get()
     # Check auth_user_id 
-    valid = any(True for user in initial_object["users"] if user["u_id"] == auth_user_id)
+    valid = any(True for user in data["users"] if user["u_id"] == auth_user_id)
     if not valid:
         raise AccessError("Invalid user_id")
     # Get all channels
     channels = [
         {"channel_id": channel["channel_id"], "name": channel["name"]} 
-        for channel in initial_object["channels"]
+        for channel in data["channels"]
     ]
     return {"channels": channels}
 
