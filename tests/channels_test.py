@@ -106,7 +106,7 @@ def test_two_channels(data_set):
 """
 channels_listall_v1(auth_user_id)
 
-return {'channels': [{'channel_id': 1,'name': 'My Channel',}],}
+return {'channels': [{'channel_id': "",'name': "",}],}
 
 Provide a list of all channels, including private channels, (and their associated details)
 
@@ -133,6 +133,7 @@ def data_set_listall():
         "sixthid@gmail.com", "password", "firstname", "lastname"
     )
     return (auth_id0, auth_id1, auth_id2, auth_id3, auth_id4, auth_id5)
+
 
 def test_one_channel_public(data_set_listall):
     ch_id = channels_create_v1(data_set_listall[0]["auth_user_id"], "first channel", True)

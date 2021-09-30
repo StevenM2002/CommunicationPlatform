@@ -35,25 +35,26 @@ def channels_list_v1(auth_user_id):
 
 
 
-'''
-Returns a list of channel ids and channel names of all channels
-, both private and public provided an auth_user_id
 
-Arguments:
-    auth_user_id (int)    - an id generated from a user registration
-
-Exceptions:
-    InputError  - N/A
-    AccessError - N/A
-
-Return Value:
-    Returns {"channels": [{"channel_id": channel_id, "name": channel_name}, {}...]} 
-    on condition that there is at least one channel made
-
-    Returns {"channels": []} on condition there are no channels made
-
-'''
 def channels_listall_v1(auth_user_id):
+    """
+    Returns a list of channel ids and channel names of all channels
+    , both private and public provided an auth_user_id
+
+    Arguments:
+        auth_user_id (int)    - a registered id of a user 
+
+    Exceptions:
+        InputError  - N/A
+        AccessError - N/A
+
+    Return Value:
+        Returns {"channels": [{"channel_id": channel_id, "name": channel_name}, {}...]} 
+        on condition that there is at least one channel made
+
+        Returns {"channels": []} on condition there are no channels made
+
+    """
     initial_object = data_store.get()
     channels = [
         {"channel_id": channel["channel_id"], "name": channel["name"]} 
