@@ -1,6 +1,7 @@
 from src.data_store import data_store
 from src.error import InputError, AccessError
 
+
 def channels_list_v1(auth_user_id):
     """
     Given an auth_user_id, return a list of channels and corresponding name and ids that
@@ -25,6 +26,7 @@ def channels_list_v1(auth_user_id):
             if members == auth_user_id:
                 channels.append(chan_info)
     return {"channels": channels}
+
 
 def channels_listall_v1(auth_user_id):
     return {
