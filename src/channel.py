@@ -117,8 +117,6 @@ def channel_details_v1(auth_user_id, channel_id):
     return {key: value for key, value in found_channel.items() if key != "channel_id"}
 
 
-
-
 def channel_messages_v1(auth_user_id, channel_id, start):
     return {
         "messages": [

@@ -34,8 +34,6 @@ def channels_list_v1(auth_user_id):
     return {"channels": channels}
 
 
-
-
 def channels_listall_v1(auth_user_id):
     """
     Returns a list of channel ids and channel names of all channels
@@ -49,10 +47,7 @@ def channels_listall_v1(auth_user_id):
         AccessError - is raised when parameter auth_user_id is not in the data
 
     Return Value:
-        Returns {"channels": [{"channel_id": channel_id, "name": channel_name}, {}...]} 
-        on condition that there is at least one channel made
-
-        Returns {"channels": []} on condition there are no channels made
+        Returns {"channels": [{"channel_id": channel_id, "name": channel_name}]}
 
     """
     data = data_store.get()
