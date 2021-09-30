@@ -115,13 +115,13 @@ def test_not_admin(data_set):
 
 
 def test_not_in_channels(data_set):
-    assert channels_list_v1(data_set[0]["auth_user_id"]) == None
+    assert channels_list_v1(data_set[0]["auth_user_id"]) == {"channels": []}
     channels_create_v1(data_set[1]["auth_user_id"], "first_channel", True)
-    assert channels_list_v1(data_set[0]["auth_user_id"]) == None
+    assert channels_list_v1(data_set[0]["auth_user_id"]) == {"channels": []}
     channels_create_v1(data_set[2]["auth_user_id"], "second_channel", False)
-    assert channels_list_v1(data_set[0]["auth_user_id"]) == None
+    assert channels_list_v1(data_set[0]["auth_user_id"]) == {"channels": []}
     channels_create_v1(data_set[1]["auth_user_id"], "third_channel", True)
-    assert channels_list_v1(data_set[0]["auth_user_id"]) == None
+    assert channels_list_v1(data_set[0]["auth_user_id"]) == {"channels": []}
 
 
 def test_same_channel_name(data_set):

@@ -2,22 +2,29 @@ from src.data_store import data_store
 from src.error import InputError, AccessError
 
 def channels_list_v1(auth_user_id):
+    """
+    Given an auth_user_id, return a list of channels and corresponding name and ids that
+    the auth_user_id is a member of, both public and private.
+
+    Arguments:
+        auth_user_id (integer) - id of a user who is registered
+
+    Exceptions:
+        InputError - N/A
+        AccessError - N/A
+
+    Return Value:
+        Returns return {"channels": [{"channel_id": channel_id, "name": channel_name}]}
+        upon succesful creation of channel
+    """
     initial_object = data_store.get()
-    # If no channels then return None
-    if len(initial_object["channels"]) == 0:
-        return None
     channels = []
-    for channel, _ in enumerate(initial_object["channels"]):
-        channels_list = initial_object["channels"][channel]
-        ch_id = channels_list["channel_id"]
-        ch_name = channels_list["name"]
-        for members, _ in enumerate(channels_list["all_members"]):
-            if channels_list["all_members"][members] == auth_user_id:
-                channels.append({"channel_id": ch_id, "name": ch_name})
-    if len(channels) == 0:
-        return None
-    else:
-        return {"channels": channels}
+    for channel in initial_object["channels"]:
+        chan_info = {"channel_id": channel["channel_id"], "name": channel["name"]}
+        for members in channel["all_members"]:
+            if members == auth_user_id:
+                channels.append(chan_info)
+    return {"channels": channels}
 
 def channels_listall_v1(auth_user_id):
     return {
