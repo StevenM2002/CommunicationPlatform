@@ -223,9 +223,3 @@ def test_not_auth_user_id():
     clear_v1()
     with pytest.raises(AccessError):
         assert channels_listall_v1(1)
-
-
-
-
-
-
