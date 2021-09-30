@@ -3,14 +3,35 @@ from src.error import InputError, AccessError
 
 
 def channels_list_v1(auth_user_id):
-    return {
-        "channels": [
-            {
-                "channel_id": 1,
-                "name": "My Channel",
-            }
-        ],
-    }
+    """
+    Given an auth_user_id, return a list of channels and corresponding name and ids that
+    the auth_user_id is a member of, both public and private.
+
+    Arguments:
+        auth_user_id (integer) - id of a user who is registered
+
+    Exceptions:
+        InputError - N/A
+        AccessError - N/A
+
+    Return Value:
+        Returns {"channels": [{"channel_id": channel_id, "name": channel_name}]}
+    """
+    data = data_store.get()
+    # Checks if auth_user_id is in database
+    valid = any(True for user in data["users"] if user["u_id"] == auth_user_id)
+    if not valid:
+        raise AccessError("Invalid user_id")
+
+    # Iterate through channels and if auth_user_id is part of channel, add it to the
+    # return value
+    channels = []
+    for channel in data["channels"]:
+        chan_info = {"channel_id": channel["channel_id"], "name": channel["name"]}
+        for members in channel["all_members"]:
+            if members == auth_user_id:
+                channels.append(chan_info)
+    return {"channels": channels}
 
 
 def channels_listall_v1(auth_user_id):
