@@ -148,3 +148,8 @@ def test_mixed_channels(data_set):
             {"channel_id": chan_id3["channel_id"], "name": "second_channel"},
         ]
     }
+
+def test_not_auth_id():
+    clear_v1()
+    with pytest.raises(AccessError):
+        assert channels_list_v1(1)

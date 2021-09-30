@@ -17,9 +17,16 @@ def channels_list_v1(auth_user_id):
     Return Value:
         Returns {"channels": [{"channel_id": channel_id, "name": channel_name}]}
     """
-    initial_object = data_store.get()
+    data = data_store.get()
+    # Checks if auth_user_id is in database
+    valid = any(True for user in data["users"] if user["u_id"] == auth_user_id)
+    if not valid:
+        raise AccessError("Invalid user_id")
+
+    # Iterate through channels and if auth_user_id is part of channel, add it to the
+    # return value
     channels = []
-    for channel in initial_object["channels"]:
+    for channel in data["channels"]:
         chan_info = {"channel_id": channel["channel_id"], "name": channel["name"]}
         for members in channel["all_members"]:
             if members == auth_user_id:
