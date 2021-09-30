@@ -1,7 +1,6 @@
 from src.data_store import data_store
 from src.error import InputError, AccessError
 
-
 def channels_list_v1(auth_user_id):
     initial_object = data_store.get()
     # If no channels then return None
