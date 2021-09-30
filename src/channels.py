@@ -15,8 +15,7 @@ def channels_list_v1(auth_user_id):
         AccessError - N/A
 
     Return Value:
-        Returns return {"channels": [{"channel_id": channel_id, "name": channel_name}]}
-        upon succesful creation of channel
+        Returns {"channels": [{"channel_id": channel_id, "name": channel_name}]}
     """
     initial_object = data_store.get()
     channels = []
