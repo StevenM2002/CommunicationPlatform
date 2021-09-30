@@ -19,7 +19,7 @@ def channel_invite_v1(auth_user_id, channel_id, u_id):
             - u_id does not refer to a valid user
             - u_id refers to a user who is already a member of the channel
         AccessError - Occurs when:
-            - channel_id is valid and the authorised user is not a member 
+            - channel_id is valid and the authorised user is not a member
             of the channel
 
     Return Value:
@@ -40,8 +40,7 @@ def channel_invite_v1(auth_user_id, channel_id, u_id):
         raise InputError("channel_id does not refer to a valid channel")
 
     # loop through user_list to check u_id corresponds to an actual user
-    valid_user = any(True for each_user in user_list if each_user["u_id"] == \
-    u_id)
+    valid_user = any(True for each_user in user_list if each_user["u_id"] == u_id)
     if not valid_user:
         raise InputError("u_id does not refer to a valid user")
 
@@ -68,27 +67,54 @@ def channel_invite_v1(auth_user_id, channel_id, u_id):
 
 
 def channel_details_v1(auth_user_id, channel_id):
-    return {
-        "name": "Hayden",
-        "owner_members": [
-            {
-                "u_id": 1,
-                "email": "example@gmail.com",
-                "name_first": "Hayden",
-                "name_last": "Jacobs",
-                "handle_str": "haydenjacobs",
+    """Finds a channel given an auth_user_id and a channel id, and returns
+    the details of the channel
+
+    Arguments:
+        auth_user_id (integer) - unique id of user
+        channel_id (integer) - unique id of channel
+
+    Exceptions:
+        InputError - Occurs when:
+            - channel_id does not refer to a valid channel
+        AccessError - Occurs when:
+            - channel_id is valid and the authorised user is not a member
+              of the channel
+
+    Return Value:
+        Returns {channel_name, owner_members, and all _members}"""
+    # Importing the data_store
+    store = data_store.get()
+    users = store["users"]
+    channels = store["channels"]
+
+    # Checks whether the channel_id is used
+    valid = any(True for channel in channels if channel["channel_id"] == channel_id)
+    if not valid:
+        raise InputError("Channel_id not found")
+
+    # Finds the given channel, and saves the given data to a dictionary
+    found_channel = [
+        channel for channel in channels if channel["channel_id"] == channel_id
+    ][0]
+
+    # Checks whether auth_user_id is a member of the channel
+    is_member = any(
+        True for user in found_channel["all_members"] if user == auth_user_id
+    )
+    if not is_member:
+        raise AccessError("User is not a member of the channel")
+
+    # Loops through the tuple containing "owner_members" and "all_members,"
+    # finding the user from the user_id and adding it to the corresponding list
+    for member_key in ("owner_members", "all_members"):
+        for i, user_id in enumerate(found_channel[member_key]):
+            member_user = [user for user in users if user["u_id"] == user_id][0]
+            found_channel[member_key][i] = {
+                key: value for key, value in member_user.items() if key != "password"
             }
-        ],
-        "all_members": [
-            {
-                "u_id": 1,
-                "email": "example@gmail.com",
-                "name_first": "Hayden",
-                "name_last": "Jacobs",
-                "handle_str": "haydenjacobs",
-            }
-        ],
-    }
+
+    return {key: value for key, value in found_channel.items() if key != "channel_id"}
 
 
 def channel_messages_v1(auth_user_id, channel_id, start):
@@ -119,7 +145,7 @@ def channel_join_v1(auth_user_id, channel_id):
             - channel_id does not refer to a valid channel
             - the authorised user is already a member of the channel
         AccessError - Occurs when:
-            - channel_id refers to a channel that is private and the authorised 
+            - channel_id refers to a channel that is private and the authorised
             user is not already a channel member and is not a global owner
 
     Return Value:
@@ -151,8 +177,7 @@ def channel_join_v1(auth_user_id, channel_id):
                 channel"
             )
     # makes sure the channel is not private
-    if not to_add_to["is_public"] and to_add["u_id"] != \
-    channels["owner_members"]:
+    if not to_add_to["is_public"] and to_add["u_id"] != channels["owner_members"]:
         raise AccessError(
             "channel_id refers to a channel that is private and \
             the authorised user is not a global owner"

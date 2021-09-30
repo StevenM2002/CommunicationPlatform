@@ -52,6 +52,7 @@ def channels_create_v1(auth_user_id, name, is_public):
 
     if not valid:
         raise AccessError("Invalid user_id")
+
     # Checks for if the name is valid
     if len(name) < 1 or len(name) > 20:
         raise InputError("Invalid Name")
