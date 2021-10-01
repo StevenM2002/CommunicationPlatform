@@ -1,7 +1,9 @@
 from src.data_store import data_store
-from src.error import InputError, AccessError
+from src.error import InputError
+from src.other import validate_auth_id
 
 
+@validate_auth_id
 def channels_list_v1(auth_user_id):
     """
     Given an auth_user_id, return a list of channels and corresponding name and ids that
@@ -18,10 +20,6 @@ def channels_list_v1(auth_user_id):
         Returns {"channels": [{"channel_id": channel_id, "name": channel_name}]}
     """
     data = data_store.get()
-    # Checks if auth_user_id is in database
-    valid = any(True for user in data["users"] if user["u_id"] == auth_user_id)
-    if not valid:
-        raise AccessError("Invalid user_id")
 
     # Iterate through channels and if auth_user_id is part of channel, add it to the
     # return value
@@ -34,6 +32,7 @@ def channels_list_v1(auth_user_id):
     return {"channels": channels}
 
 
+@validate_auth_id
 def channels_listall_v1(auth_user_id):
     """
     Returns a list of channel ids and channel names of all channels
@@ -51,10 +50,6 @@ def channels_listall_v1(auth_user_id):
 
     """
     data = data_store.get()
-    # Check auth_user_id 
-    valid = any(True for user in data["users"] if user["u_id"] == auth_user_id)
-    if not valid:
-        raise AccessError("Invalid user_id")
     # Get all channels
     channels = [
         {"channel_id": channel["channel_id"], "name": channel["name"]} 
@@ -63,6 +58,7 @@ def channels_listall_v1(auth_user_id):
     return {"channels": channels}
 
 
+@validate_auth_id
 def channels_create_v1(auth_user_id, name, is_public):
     """Creates a new channel in the data_store when given an auth_user_id,
     name, and is_public identifier, returning the channel_id.
@@ -83,14 +79,7 @@ def channels_create_v1(auth_user_id, name, is_public):
 
     # Retrieves the data store, and the channel dictionary
     store = data_store.get()
-    users = store["users"]
     channels = store["channels"]
-
-    # Determines if the auth_user_id is valid by checking for it in users
-    valid = any(True for user in users if user["u_id"] == auth_user_id)
-
-    if not valid:
-        raise AccessError("Invalid user_id")
 
     # Checks for if the name is valid
     if len(name) < 1 or len(name) > 20:

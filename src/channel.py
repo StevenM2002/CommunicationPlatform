@@ -1,7 +1,9 @@
+from src.other import validate_auth_id
 from src.data_store import data_store
 from src.error import AccessError, InputError
 
 
+@validate_auth_id
 def channel_invite_v1(auth_user_id, channel_id, u_id):
     """
     Invites a user with ID u_id to join a channel with ID channel_id. Once
@@ -66,6 +68,7 @@ def channel_invite_v1(auth_user_id, channel_id, u_id):
     return {}
 
 
+@validate_auth_id
 def channel_details_v1(auth_user_id, channel_id):
     """Finds a channel given an auth_user_id and a channel id, and returns
     the details of the channel
@@ -117,6 +120,7 @@ def channel_details_v1(auth_user_id, channel_id):
     return {key: value for key, value in found_channel.items() if key != "channel_id"}
 
 
+@validate_auth_id
 def channel_messages_v1(auth_user_id, channel_id, start):
     return {
         "messages": [
@@ -132,6 +136,7 @@ def channel_messages_v1(auth_user_id, channel_id, start):
     }
 
 
+@validate_auth_id
 def channel_join_v1(auth_user_id, channel_id):
     """Given a channel_id of a channel that the authorised user can join,
     adds them to that channel.
