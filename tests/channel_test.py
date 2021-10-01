@@ -237,7 +237,7 @@ def test_channel_invite():
     channel_invite_v1(auth_id, c_id, u_id)
     #this function below will throw an access error if u_id is not a member
     #of the channel
-        channel_details_v1(u_id, c_id)
+    channel_details_v1(u_id, c_id)
 
 
 
