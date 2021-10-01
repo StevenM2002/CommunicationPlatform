@@ -78,31 +78,6 @@ def test_work_with_stub(data_set):
     assert channels_list_v1(data_set[0]["auth_user_id"]) == {
         "channels": [{"channel_id": chan_id1["channel_id"], "name": "first channel"}]
     }
-
-
-def test_one_channel_public(data_set):
-    chan_id1 = channels_create_v1(data_set[0]["auth_user_id"], "one_channel", True)
-    assert channels_list_v1(data_set[0]["auth_user_id"]) == {
-        "channels": [{"channel_id": chan_id1["channel_id"], "name": "one_channel"}]
-    }
-
-
-def test_one_channel_private(data_set):
-    chan_id1 = channels_create_v1(data_set[0]["auth_user_id"], "one_channel", False)
-    assert channels_list_v1(data_set[0]["auth_user_id"]) == {
-        "channels": [{"channel_id": chan_id1["channel_id"], "name": "one_channel"}]
-    }
-
-
-def test_two_channels(data_set):
-    chan_id1 = channels_create_v1(data_set[0]["auth_user_id"], "first_channel", True)
-    chan_id2 = channels_create_v1(data_set[0]["auth_user_id"], "second_channel", False)
-    assert channels_list_v1(data_set[0]["auth_user_id"]) == {
-        "channels": [
-            {"channel_id": chan_id1["channel_id"], "name": "first_channel"},
-            {"channel_id": chan_id2["channel_id"], "name": "second_channel"},
-        ]
-    }
 """
 channels_listall_v1(auth_user_id)
 
