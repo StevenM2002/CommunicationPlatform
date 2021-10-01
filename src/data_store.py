@@ -1,48 +1,34 @@
-"""
-data_store.py
-
-This contains a definition for a Datastore class which you should use to store your data.
-You don't need to understand how it works at this point, just how to use it :)
-
-The data_store variable is global, meaning that so long as you import it into any
-python file in src, you can access its contents.
-
-Example usage:
-
-    from data_store import data_store
-
-    store = data_store.get()
-    print(store) # Prints { 'names': ['Nick', 'Emily', 'Hayden', 'Rob'] }
-
-    names = store['names']
-
-    names.remove('Rob')
-    names.append('Jake')
-    names.sort()
-
-    print(store) # Prints { 'names': ['Emily', 'Hayden', 'Jake', 'Nick'] }
-    data_store.set(store)
-"""
-
 from copy import deepcopy
 
-initial_object = {"users": [], "channels": []}
+INITIAL_OBJECT = {"users": [], "channels": []}
 
 
 class Datastore:
+    """Datastore class used to store data for Streams."""
+
     def __init__(self):
-        self.__store = deepcopy(initial_object)
+        self.__store = deepcopy(INITIAL_OBJECT)
 
     def get(self):
+        """Get the dictionary of the data base.
+
+        Return Value:
+            Returns datastore (dictionary)"""
         return self.__store
 
     def set(self, store):
+        """Get the dictionary of the data base.
+
+        Arguments:
+            store (dictionary) - new data base dictionary
+
+        Exceptions:
+            TypeError - Occurs when:
+                - store is not a dictionary"""
         if not isinstance(store, dict):
             raise TypeError("store must be of type dictionary")
         self.__store = store
 
-
-print("Loading Datastore...")
 
 global data_store
 data_store = Datastore()
