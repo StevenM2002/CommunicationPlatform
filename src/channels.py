@@ -35,14 +35,32 @@ def channels_list_v1(auth_user_id):
 
 
 def channels_listall_v1(auth_user_id):
-    return {
-        "channels": [
-            {
-                "channel_id": 1,
-                "name": "My Channel",
-            }
-        ],
-    }
+    """
+    Returns a list of channel ids and channel names of all channels
+    , both private and public provided an auth_user_id
+
+    Arguments:
+        auth_user_id (int)    - a registered id of a user 
+
+    Exceptions:
+        InputError  - N/A
+        AccessError - is raised when parameter auth_user_id is not in the data
+
+    Return Value:
+        Returns {"channels": [{"channel_id": channel_id, "name": channel_name}]}
+
+    """
+    data = data_store.get()
+    # Check auth_user_id 
+    valid = any(True for user in data["users"] if user["u_id"] == auth_user_id)
+    if not valid:
+        raise AccessError("Invalid user_id")
+    # Get all channels
+    channels = [
+        {"channel_id": channel["channel_id"], "name": channel["name"]} 
+        for channel in data["channels"]
+    ]
+    return {"channels": channels}
 
 
 def channels_create_v1(auth_user_id, name, is_public):
