@@ -370,6 +370,16 @@ def test_message_user_not_member():
         assert channel_messages_v1(auth_id1, channel_id, 0)
 
 
+def test_no_messages():
+    clear_v1()
+    auth_id = auth_register_v1("random@gmail.com", "password", "joel", "bryla")[
+        "auth_user_id"
+    ]
+    channel_id = channels_create_v1(auth_id, "test channel", True)["channel_id"]
+    with pytest.raises(InputError):
+        assert channel_messages_v1(auth_id, channel_id, 0)
+
+
 def test_message_id_greater():
     clear_v1()
     auth_id = auth_register_v1("random@gmail.com", "password", "joel", "bryla")[
