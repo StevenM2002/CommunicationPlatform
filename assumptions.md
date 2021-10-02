@@ -3,3 +3,5 @@
 - Assumes that, for channels_create, channel_ids are created incrementally, beginning at 0 (for example, the first created channel has an id of 0, with the second having an id of 1, and so on)
 - All users will be a member of a public channel when it is created.
 - When there are no channels matching, channels_listall_v1 and channels_list_v1 will return an empty list of in a dictionary of form {"channels": []}
+- Messages in a channel are given an increasing id starting from 0 as more messages are sent.
+- When there are no messages in a channel an InputError is raised

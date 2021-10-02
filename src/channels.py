@@ -39,7 +39,7 @@ def channels_listall_v1(auth_user_id):
     , both private and public provided an auth_user_id
 
     Arguments:
-        auth_user_id (int)    - a registered id of a user 
+        auth_user_id (int)    - a registered id of a user
 
     Exceptions:
         InputError  - N/A
@@ -52,7 +52,7 @@ def channels_listall_v1(auth_user_id):
     data = data_store.get()
     # Get all channels
     channels = [
-        {"channel_id": channel["channel_id"], "name": channel["name"]} 
+        {"channel_id": channel["channel_id"], "name": channel["name"]}
         for channel in data["channels"]
     ]
     return {"channels": channels}
@@ -99,6 +99,7 @@ def channels_create_v1(auth_user_id, name, is_public):
             "owner_members": [auth_user_id],
             "all_members": [auth_user_id],
             "is_public": is_public,
+            "messages": [],
         }
     )
 

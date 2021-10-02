@@ -117,22 +117,49 @@ def channel_details_v1(auth_user_id, channel_id):
                 key: value for key, value in member_user.items() if key != "password"
             }
 
-    return {key: value for key, value in found_channel.items() if key != "channel_id"}
+    return {
+        key: value
+        for key, value in found_channel.items()
+        if key not in ("channel_id", "messages")
+    }
 
 
 @validate_auth_id
 def channel_messages_v1(auth_user_id, channel_id, start):
+    """Get the messages from a channels.
+
+    Arguments:
+        auth_user_id (integer) - id of user requesting messages
+        channel_id (integer) - id of channel to get messages from
+        start (integer) - index of first message to start from
+
+    Exceptions:
+        AccessError - Occurs when:
+            - channel_id is valid and the authorised user is not a member of the channel
+        InputError - Occurs when:
+            - channel_id does not refer to a valid channel
+            - start is greater than the total number of messages in the channel
+
+    Returns:
+        Returns {messages, start, end}"""
+    # channel is set to the channel that matches the given channel_id if
+    # none match then it is set to False
+    channels = data_store.get()["channels"]
+    channel = next(
+        (channel for channel in channels if channel["channel_id"] == channel_id), False
+    )
+    if not channel:
+        raise InputError("No channel matching channel id")
+    if not auth_user_id in channel["all_members"]:
+        raise AccessError("User is not a member of this channel")
+    messages = len(channel["messages"]) - 1
+    if start > messages:
+        raise InputError("Start message id is greater than latest message id")
+
     return {
-        "messages": [
-            {
-                "message_id": 1,
-                "u_id": 1,
-                "message": "Hello world",
-                "time_created": 1582426789,
-            }
-        ],
-        "start": 0,
-        "end": 50,
+        "messages": channel["messages"][start : start + 50],
+        "start": start,
+        "end": start + 50 if start + 50 < messages else -1,
     }
 
 
