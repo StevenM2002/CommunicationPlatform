@@ -131,6 +131,7 @@ def channel_messages_v1(auth_user_id, channel_id, start):
     Arguments:
         auth_user_id (integer) - id of user requesting messages
         channel_id (integer) - id of channel to get messages from
+        start (integer) - index of first message to start from
 
     Exceptions:
         AccessError - Occurs when:
@@ -141,6 +142,8 @@ def channel_messages_v1(auth_user_id, channel_id, start):
 
     Returns:
         Returns {messages, start, end}"""
+    # channel is set to the channel that matches the given channel_id if
+    # none match then it is set to False
     channels = data_store.get()["channels"]
     channel = next(
         (channel for channel in channels if channel["channel_id"] == channel_id), False
