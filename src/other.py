@@ -12,6 +12,7 @@ from src.error import AccessError
 def clear_v1():
     """Clear the datastore class object to the value of INITIAL_OBJECT."""
     data_store.set(deepcopy(INITIAL_OBJECT))
+    return {}
 
 
 def validate_auth_id(func):
