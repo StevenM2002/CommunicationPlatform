@@ -209,7 +209,7 @@ def channel_join_v1(auth_user_id, channel_id):
                 channel"
             )
     # makes sure the channel is not private
-    if not to_add_to["is_public"] and to_add["u_id"] != channels["owner_members"]:
+    if not to_add_to["is_public"]:
         raise AccessError(
             "channel_id refers to a channel that is private and \
             the authorised user is not a global owner"
