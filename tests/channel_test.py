@@ -1,7 +1,12 @@
 import pytest
 
 from src.error import InputError, AccessError
-from src.channel import channel_details_v1, channel_join_v1, channel_invite_v1
+from src.channel import (
+    channel_details_v1,
+    channel_join_v1,
+    channel_invite_v1,
+    channel_messages_v1,
+)
 from src.channels import channels_create_v1
 from src.other import clear_v1
 from src.auth import auth_register_v1
@@ -335,3 +340,71 @@ def test_join_priv_channel():
     c_id = channels_create_v1(owner_id, "Test", False)["channel_id"]
     with pytest.raises(AccessError):
         assert channel_join_v1(auth_id, c_id)
+
+
+def test_message_invalid_auth():
+    clear_v1()
+    with pytest.raises(AccessError):
+        assert channel_messages_v1(-1, 0, 0)
+
+
+def test_message_no_channels():
+    clear_v1()
+    auth_id = auth_register_v1("random@gmail.com", "password", "joel", "bryla")[
+        "auth_user_id"
+    ]
+    with pytest.raises(InputError):
+        assert channel_messages_v1(auth_id, 1, 0)
+
+
+def test_message_user_not_member():
+    clear_v1()
+    auth_id1 = auth_register_v1("random@gmail.com", "password", "joel", "bryla")[
+        "auth_user_id"
+    ]
+    auth_id2 = auth_register_v1("example@gmail.com", "password", "lewis", "bandas")[
+        "auth_user_id"
+    ]
+    channel_id = channels_create_v1(auth_id2, "test channel", False)["channel_id"]
+    with pytest.raises(AccessError):
+        assert channel_messages_v1(auth_id1, channel_id, 0)
+
+
+def test_message_id_greater():
+    clear_v1()
+    auth_id = auth_register_v1("random@gmail.com", "password", "joel", "bryla")[
+        "auth_user_id"
+    ]
+    channel_id = channels_create_v1(auth_id, "test channel", True)["channel_id"]
+    data = data_store.get()
+    messages = data["channels"][channel_id]["messages"]
+    messages.append(
+        {
+            "message_id": 0,
+            "u_id": auth_id,
+            "message": "Hello world",
+            "time_created": 1582426789,
+        }
+    )
+    data_store.set(data)
+    with pytest.raises(InputError):
+        assert channel_messages_v1(auth_id, channel_id, 1)
+
+
+def test_one_message():
+    clear_v1()
+    auth_id = auth_register_v1("random@gmail.com", "password", "joel", "bryla")[
+        "auth_user_id"
+    ]
+    channel_id = channels_create_v1(auth_id, "test channel", True)["channel_id"]
+    data = data_store.get()
+    messages = data["channels"][channel_id]["messages"]
+    message = {
+        "message_id": 0,
+        "u_id": auth_id,
+        "message": "Hello world",
+        "time_created": 1582426789,
+    }
+    messages.append(message)
+    data_store.set(data)
+    assert channel_messages_v1(auth_id, channel_id, 0) == {"messages": [message], "start": 0, "end": -1}
