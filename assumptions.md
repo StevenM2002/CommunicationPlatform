@@ -6,3 +6,4 @@
 - Messages in a channel are given an increasing id starting from 0 as more messages are sent.
 - When there are no messages in a channel an InputError is raised
 - if handle is empty string as all non valid first and last name set handle to number starting from 0, 1, 2, ...
+- In both 'channel_join_v1' and 'channel_invite_v1', it is assumed that auth_user_id refers to a valid user
