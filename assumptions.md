@@ -1,8 +1,6 @@
-- When clearing `data_store` in `clear_v1` it may contain keys other than `users` and `channels`.
-- user dictionaries will contain email, password, name_first, name_last, u_id and handle_str
-- Assumes that, for channels_create, channel_ids are created incrementally, beginning at 0 (for example, the first created channel has an id of 0, with the second having an id of 1, and so on)
-- All users will be a member of a public channel when it is created.
+- All users can join a public channel, but are not initially in it, A global owner can join a channel regardless of whether it is public or private
 - When there are no channels matching, channels_listall_v1 and channels_list_v1 will return an empty list of in a dictionary of form {"channels": []}
-- Messages in a channel are given an increasing id starting from 0 as more messages are sent.
 - When there are no messages in a channel an InputError is raised
 - if handle is empty string as all non valid first and last name set handle to number starting from 0, 1, 2, ...
+- Assumes that the global owner is the first user registered by 'auth_register_v1'
+- mulitple channels can have the same name but different id's
