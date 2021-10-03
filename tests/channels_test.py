@@ -72,9 +72,14 @@ def data_set_listall():
     auth_id5 = auth_register_v1(
         "sixthid@gmail.com", "password", "firstname", "lastname"
     )
-    return (auth_id0["auth_user_id"], auth_id1["auth_user_id"], 
-            auth_id2["auth_user_id"], auth_id3["auth_user_id"], 
-            auth_id4["auth_user_id"], auth_id5["auth_user_id"])
+    return (
+        auth_id0["auth_user_id"],
+        auth_id1["auth_user_id"],
+        auth_id2["auth_user_id"],
+        auth_id3["auth_user_id"],
+        auth_id4["auth_user_id"],
+        auth_id5["auth_user_id"],
+    )
 
 
 def test_one_channel_public_listall(data_set_listall):
@@ -127,7 +132,7 @@ def test_mixed_listall(data_set_listall):
 
 
 def test_no_channels_listall(data_set_listall):
-    assert channels_listall_v1(data_set_listall[0]) == {'channels': []}
+    assert channels_listall_v1(data_set_listall[0]) == {"channels": []}
 
 
 def test_not_auth_user_id_listall():
@@ -135,7 +140,8 @@ def test_not_auth_user_id_listall():
     with pytest.raises(AccessError):
         assert channels_listall_v1(1)
 
-# Following tests are for list channels auth_id is in 
+
+# Following tests are for list channels auth_id is in
 @pytest.fixture
 def data_set_list():
     clear_v1()
@@ -153,8 +159,11 @@ def data_set_list():
     )
     return (auth_id0, auth_id1, auth_id2, auth_id3)
 
+
 def test_work_with_stub_list(data_set_list):
-    chan_id1 = channels_create_v1(data_set_list[0]["auth_user_id"], "first channel", True)
+    chan_id1 = channels_create_v1(
+        data_set_list[0]["auth_user_id"], "first channel", True
+    )
     assert channels_list_v1(data_set_list[0]["auth_user_id"]) == {
         "channels": [{"channel_id": chan_id1["channel_id"], "name": "first channel"}]
     }
@@ -168,15 +177,21 @@ def test_one_channel_public_list(data_set_list):
 
 
 def test_one_channel_private_list(data_set_list):
-    chan_id1 = channels_create_v1(data_set_list[0]["auth_user_id"], "one_channel", False)
+    chan_id1 = channels_create_v1(
+        data_set_list[0]["auth_user_id"], "one_channel", False
+    )
     assert channels_list_v1(data_set_list[0]["auth_user_id"]) == {
         "channels": [{"channel_id": chan_id1["channel_id"], "name": "one_channel"}]
     }
 
 
 def test_two_channels_list(data_set_list):
-    chan_id1 = channels_create_v1(data_set_list[0]["auth_user_id"], "first_channel", True)
-    chan_id2 = channels_create_v1(data_set_list[0]["auth_user_id"], "second_channel", False)
+    chan_id1 = channels_create_v1(
+        data_set_list[0]["auth_user_id"], "first_channel", True
+    )
+    chan_id2 = channels_create_v1(
+        data_set_list[0]["auth_user_id"], "second_channel", False
+    )
     assert channels_list_v1(data_set_list[0]["auth_user_id"]) == {
         "channels": [
             {"channel_id": chan_id1["channel_id"], "name": "first_channel"},
@@ -186,7 +201,9 @@ def test_two_channels_list(data_set_list):
 
 
 def test_not_admin_list(data_set_list):
-    chan_id1 = channels_create_v1(data_set_list[0]["auth_user_id"], "first_channel", True)
+    chan_id1 = channels_create_v1(
+        data_set_list[0]["auth_user_id"], "first_channel", True
+    )
     channel_join_v1(data_set_list[1]["auth_user_id"], chan_id1["channel_id"])
     assert channels_list_v1(data_set_list[1]["auth_user_id"]) == {
         "channels": [{"channel_id": chan_id1["channel_id"], "name": "first_channel"}]
@@ -204,8 +221,12 @@ def test_not_in_channels_list(data_set_list):
 
 
 def test_same_channel_name_list(data_set_list):
-    chan_id1 = channels_create_v1(data_set_list[0]["auth_user_id"], "first_channel", True)
-    chan_id2 = channels_create_v1(data_set_list[0]["auth_user_id"], "first_channel", False)
+    chan_id1 = channels_create_v1(
+        data_set_list[0]["auth_user_id"], "first_channel", True
+    )
+    chan_id2 = channels_create_v1(
+        data_set_list[0]["auth_user_id"], "first_channel", False
+    )
     assert channels_list_v1(data_set_list[0]["auth_user_id"]) == {
         "channels": [
             {"channel_id": chan_id1["channel_id"], "name": "first_channel"},
@@ -215,9 +236,15 @@ def test_same_channel_name_list(data_set_list):
 
 
 def test_mixed_channels_list(data_set_list):
-    chan_id1 = channels_create_v1(data_set_list[0]["auth_user_id"], "first_channel", True)
-    chan_id2 = channels_create_v1(data_set_list[0]["auth_user_id"], "second_channel", False)
-    chan_id3 = channels_create_v1(data_set_list[1]["auth_user_id"], "second_channel", True)
+    chan_id1 = channels_create_v1(
+        data_set_list[0]["auth_user_id"], "first_channel", True
+    )
+    chan_id2 = channels_create_v1(
+        data_set_list[0]["auth_user_id"], "second_channel", False
+    )
+    chan_id3 = channels_create_v1(
+        data_set_list[1]["auth_user_id"], "second_channel", True
+    )
     channel_join_v1(data_set_list[0]["auth_user_id"], chan_id3["channel_id"])
     channels_create_v1(data_set_list[2]["auth_user_id"], "fourth_channel", False)
     channels_create_v1(data_set_list[3]["auth_user_id"], "fifth_channel", True)
@@ -229,15 +256,8 @@ def test_mixed_channels_list(data_set_list):
         ]
     }
 
+
 def test_not_auth_id_list():
     clear_v1()
     with pytest.raises(AccessError):
         assert channels_list_v1(1)
-
-
-
-
-
-
-
-
