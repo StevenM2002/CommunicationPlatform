@@ -15,7 +15,7 @@ data structure:
             "handle_str": handle,
         },
         ...
-    ]
+    ],
     "channels":[
         {
             "channel_id": channel_id,
@@ -26,7 +26,8 @@ data structure:
             "messages": [],
         },
         ...
-    ]
+    ],
+    "global_owners": [auth_user_id],
 }
 
     Typical usage example:
@@ -49,7 +50,7 @@ data structure:
 """
 from copy import deepcopy
 
-INITIAL_OBJECT = {"users": [], "channels": []}
+INITIAL_OBJECT = {"users": [], "channels": [], "global_owners": []}
 
 
 class Datastore:

@@ -200,8 +200,6 @@ def channel_join_v1(auth_user_id, channel_id):
         Returns {} if join is successful
     """
     store = data_store.get()
-    # find first user corresponding to auth_user_id
-    user = first(lambda u: u["u_id"] == auth_user_id, store["users"])
 
     # find first channel matching channel_id if none found set to empty dict
     channel = first(lambda c: c["channel_id"] == channel_id, store["channels"], {})
@@ -213,7 +211,7 @@ def channel_join_v1(auth_user_id, channel_id):
         if member == auth_user_id:
             raise InputError("user is already a member of the channel")
     # makes sure the channel is not private
-    if not channel["is_public"]:
+    if not channel["is_public"] and auth_user_id not in store["global_owners"]:
         raise AccessError(
             "channel_id refers to a channel that is private and the \
             authorised user is not a global owner"

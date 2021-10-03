@@ -425,3 +425,20 @@ def test_one_message():
         "start": 0,
         "end": -1,
     }
+
+
+def test_global_owner_permissions():
+    clear_v1()
+
+    global_owner = auth_register_v1(
+        "email1@email.com", "password2", "firstverylongname", "lastname"
+    )["auth_user_id"]
+    user_id1 = auth_register_v1(
+        "email2@email.com", "password3", "firstverylongname", "lastname"
+    )["auth_user_id"]
+
+    channel_public = channels_create_v1(user_id1, "test", True)["channel_id"]
+    channel_join_v1(global_owner, channel_public)
+
+    channel_private = channels_create_v1(user_id1, "test1", False)["channel_id"]
+    channel_join_v1(global_owner, channel_private)

@@ -12,7 +12,7 @@ def test_users():
     data = data_store.get()
     assert len(data["channels"]) == 0
     assert len(data["users"]) == 0
-    assert len(data) == 2
+    assert len(data) == 3
 
 
 def test_channels():
@@ -23,7 +23,7 @@ def test_channels():
     data = data_store.get()
     assert len(data["channels"]) == 0
     assert len(data["users"]) == 0
-    assert len(data) == 2
+    assert len(data) == 3
 
 
 def test_channels_and_users():
@@ -35,7 +35,7 @@ def test_channels_and_users():
     data = data_store.get()
     assert len(data["channels"]) == 0
     assert len(data["users"]) == 0
-    assert len(data) == 2
+    assert len(data) == 3
 
 
 def test_other_key():
@@ -46,7 +46,7 @@ def test_other_key():
     data = data_store.get()
     assert len(data["channels"]) == 0
     assert len(data["users"]) == 0
-    assert len(data) == 2
+    assert len(data) == 3
 
 
 def test_set_non_dict():

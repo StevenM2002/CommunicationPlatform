@@ -2,7 +2,8 @@
 import pytest
 
 from src.auth import auth_login_v1, auth_register_v1
-from src.data_store import data_store
+from src.channel import channel_details_v1, channel_join_v1
+from src.channels import channels_create_v1
 from src.other import clear_v1
 from src.error import InputError
 
@@ -65,8 +66,6 @@ def test_existing_email():
     clear_v1()
 
     auth_register_v1("wow@wow.com", "password", "first", "last")
-    store = data_store.get()
-    print(store)
     with pytest.raises(InputError):
         assert auth_register_v1(
             "wow@wow.com", "password2", "thewfirstname", "thelastname"
@@ -84,7 +83,10 @@ def test_existing_handle():
         "auth_user_id"
     ]
 
-    users = data_store.get()["users"]
+    test_channel = channels_create_v1(user_id0, "test", True)["channel_id"]
+    channel_join_v1(user_id1, test_channel)
+
+    users = channel_details_v1(user_id0, test_channel)["all_members"]
     for user in users:
         if user["u_id"] == user_id0:
             assert user["handle_str"] == "firstlast0"
@@ -126,7 +128,10 @@ def test_max_length_handle():
         "email2@email.com", "password3", "firstverylongname", "lastname"
     )["auth_user_id"]
 
-    users = data_store.get()["users"]
+    test_channel = channels_create_v1(user_id0, "test", True)["channel_id"]
+    channel_join_v1(user_id1, test_channel)
+
+    users = channel_details_v1(user_id0, test_channel)["all_members"]
     for user in users:
         if user["u_id"] == user_id0:
             assert user["handle_str"] == "firstverylongnamelas0"
