@@ -5,3 +5,4 @@
 - When there are no channels matching, channels_listall_v1 and channels_list_v1 will return an empty list of in a dictionary of form {"channels": []}
 - Messages in a channel are given an increasing id starting from 0 as more messages are sent.
 - When there are no messages in a channel an InputError is raised
+- if handle is empty string as all non valid first and last name set handle to number starting from 0, 1, 2, ...
