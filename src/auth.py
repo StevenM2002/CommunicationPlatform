@@ -85,8 +85,13 @@ def auth_register_v1(email, password, name_first, name_last):
     user_id = max(users, key=lambda x: x["u_id"])["u_id"] + 1 if len(users) > 0 else 0
 
     # create handle, concatenate, and check for multiples and add number
-    handle = f"{name_first.lower()}{name_last.lower()}"[:20]
-    handle = create_handle(handle, len(handle))
+    handle = f"{name_first.lower()}{name_last.lower()}"
+    handle = re.sub(r"\W+", "", handle)
+    handle = handle[:20]
+
+    handle = (
+        create_handle(handle, len(handle)) if len(handle) > 0 else create_handle("0", 0)
+    )
 
     if len(users) == 0:
         store["global_owners"].append(user_id)

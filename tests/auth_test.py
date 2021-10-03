@@ -120,7 +120,9 @@ def test_multiple_id():
 def test_max_length_handle():
     clear_v1()
 
-    auth_register_v1("email@email.com", "password", "firstverylongname", "lastname")
+    user_id2 = auth_register_v1(
+        "email@email.com", "password", "firstverylongname", "lastname"
+    )
     user_id0 = auth_register_v1(
         "email1@email.com", "password2", "firstverylongname", "lastname"
     )["auth_user_id"]
@@ -137,3 +139,32 @@ def test_max_length_handle():
             assert user["handle_str"] == "firstverylongnamelas0"
         if user["u_id"] == user_id1:
             assert user["handle_str"] == "firstverylongnamelas1"
+        if user["u_id"] == user_id2:
+            assert user["handle_str"] == "firstverylongnamelas"
+
+
+def test_non_alphanumeric_handle():
+    clear_v1()
+
+    user_id0 = auth_register_v1("email@email.com", "password", "hello👍?!", "//@!wow")[
+        "auth_user_id"
+    ]
+    user_id1 = auth_register_v1("email2@email.com", "password", "👍?!", "//@!")[
+        "auth_user_id"
+    ]
+    user_id2 = auth_register_v1("email3@email.com", "password", "👍?!", "//@!")[
+        "auth_user_id"
+    ]
+
+    test_channel = channels_create_v1(user_id0, "test", True)["channel_id"]
+    channel_join_v1(user_id1, test_channel)
+    channel_join_v1(user_id2, test_channel)
+
+    users = channel_details_v1(user_id0, test_channel)["all_members"]
+    for user in users:
+        if user["u_id"] == user_id0:
+            assert user["handle_str"] == "hellowow"
+        if user["u_id"] == user_id1:
+            assert user["handle_str"] == "0"
+        if user["u_id"] == user_id2:
+            assert user["handle_str"] == "1"
