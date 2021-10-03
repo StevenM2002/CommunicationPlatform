@@ -88,6 +88,9 @@ def auth_register_v1(email, password, name_first, name_last):
     handle = f"{name_first.lower()}{name_last.lower()}"[:20]
     handle = create_handle(handle, len(handle))
 
+    if len(users) == 0:
+        store["global_owners"].append(user_id)
+
     # add to user list
     users.append(
         {
