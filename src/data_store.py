@@ -1,3 +1,52 @@
+"""Responsible for storing all the data in the Streams databse.
+
+This contains a definition for the Datastore class which stores all the data
+for the Streams database. This database can be accessed using the data_store
+variable which is an instance of the Datastore class. It follows the following
+data structure:
+{
+    "users": [
+        {
+            "u_id": user_id,
+            "email": email,
+            "password": password,
+            "name_first": name_first,
+            "name_last": name_last,
+            "handle_str": handle,
+        },
+        ...
+    ]
+    "channels":[
+        {
+            "channel_id": channel_id,
+            "name": name,
+            "owner_members": [auth_user_id],
+            "all_members": [auth_user_id],
+            "is_public": is_public,
+            "messages": [],
+        },
+        ...
+    ]
+}
+
+    Typical usage example:
+
+    from data_store import data_store
+
+    store = data_store.get()
+    users = store["users"]
+
+    rob = {
+        "u_id": 23,
+        "email": "rob@gmail.com",
+        "password": "password",
+        "name_first": "rob",
+        "name_last": "scallon",
+        "handle_str": "robscallon",
+    }
+    users.append(rob)
+    data_store.set(users)
+"""
 from copy import deepcopy
 
 INITIAL_OBJECT = {"users": [], "channels": []}
@@ -30,5 +79,4 @@ class Datastore:
         self.__store = store
 
 
-global data_store
 data_store = Datastore()

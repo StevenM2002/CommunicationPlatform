@@ -1,3 +1,4 @@
+"""Tests for functions from src/channel.py"""
 import pytest
 
 from src.error import InputError, AccessError
@@ -16,24 +17,29 @@ from src.data_store import data_store
 @pytest.fixture
 def setup_public():
     clear_v1()
-    # Creates a user with id 0
-    auth_register_v1("jon.doe@gmail.com", "rabbits", "Jon", "Doe")
-    # Creates a public channel
-    channels_create_v1(0, "public_channel", 1)
+    # create a user with
+    user_id = auth_register_v1("jon.doe@gmail.com", "rabbits", "Jon", "Doe")[
+        "auth_user_id"
+    ]
+    # create a public channel
+    channels_create_v1(user_id, "public_channel", True)
 
 
 @pytest.fixture
 def setup_private():
     clear_v1()
-    # Creates a user with id 0
-    auth_register_v1("jon.doe@gmail.com", "rabbits", "Jon", "Doe")
-    # Creates a private channel
-    channels_create_v1(0, "private_channel", 0)
+    # creates a user
+    user_id = auth_register_v1("jon.doe@gmail.com", "rabbits", "Jon", "Doe")[
+        "auth_user_id"
+    ]
+    # create a private channel
+    channels_create_v1(user_id, "private_channel", False)
 
 
 # Channel Details Tests
 # Input channel_id is invalid
 def test_invalid_channel_id(setup_public):
+    print(data_store.get())
     with pytest.raises(InputError):
         channel_details_v1(0, 10)
 
@@ -229,8 +235,6 @@ def test_multiple_channels(setup_public):
     }
 
 
-
-
 # channel invite tests
 def test_channel_invite():
     clear_v1()
@@ -240,10 +244,9 @@ def test_channel_invite():
     auth_id = auth_dict["auth_user_id"]
     c_id = channels_create_v1(auth_id, "Test", False)["channel_id"]
     channel_invite_v1(auth_id, c_id, u_id)
-    #this function below will throw an access error if u_id is not a member
-    #of the channel
+    # this function below will throw an access error if u_id is not a member
+    # of the channel
     channel_details_v1(u_id, c_id)
-
 
 
 def test_invite_invalid_channel():
@@ -302,8 +305,8 @@ def test_channel_join():
     ]
     c_id = channels_create_v1(owner_id, "Test", True)["channel_id"]
     channel_join_v1(auth_id, c_id)
-    #this function below will throw an access error if u_id is not a member
-    #of the channel
+    # this function below will throw an access error if u_id is not a member
+    # of the channel
     channel_details_v1(auth_id, c_id)
 
 
@@ -417,4 +420,8 @@ def test_one_message():
     }
     messages.append(message)
     data_store.set(data)
-    assert channel_messages_v1(auth_id, channel_id, 0) == {"messages": [message], "start": 0, "end": -1}
+    assert channel_messages_v1(auth_id, channel_id, 0) == {
+        "messages": [message],
+        "start": 0,
+        "end": -1,
+    }

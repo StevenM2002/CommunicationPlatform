@@ -1,3 +1,9 @@
+"""Interfaces for managaing channels
+
+Contains functions for listing channels public or private and creating a new
+channel. Each of these functions are decorated with validate_auth_id to ensure
+that auth_user_id is valid before running code inside the functions.
+"""
 from src.data_store import data_store
 from src.error import InputError
 from src.other import validate_auth_id
@@ -5,92 +11,90 @@ from src.other import validate_auth_id
 
 @validate_auth_id
 def channels_list_v1(auth_user_id):
-    """
-    Given an auth_user_id, return a list of channels and corresponding name and ids that
-    the auth_user_id is a member of, both public and private.
+    """List all public channels.
+
+    Giving ids and names of channels.
 
     Arguments:
-        auth_user_id (integer) - id of a user who is registered
+        auth_user_id (int) - id of a user who is registered
 
     Exceptions:
-        InputError - N/A
-        AccessError - N/A
+        AccessError - Occurs when:
+            - auth_user_id does not belong to a user
 
     Return Value:
         Returns {"channels": [{"channel_id": channel_id, "name": channel_name}]}
     """
-    data = data_store.get()
+    store = data_store.get()
 
-    # Iterate through channels and if auth_user_id is part of channel, add it to the
-    # return value
+    # iterate through channels if auth_user_id is a member of the channel add
+    # channel to the return value
     channels = []
-    for channel in data["channels"]:
+    for channel in store["channels"]:
         chan_info = {"channel_id": channel["channel_id"], "name": channel["name"]}
         for members in channel["all_members"]:
             if members == auth_user_id:
                 channels.append(chan_info)
+
     return {"channels": channels}
 
 
 @validate_auth_id
-def channels_listall_v1(auth_user_id):
-    """
-    Returns a list of channel ids and channel names of all channels
-    , both private and public provided an auth_user_id
+def channels_listall_v1(auth_user_id):  # pylint: disable=unused-argument
+    """List all public and private channels.
+
+    Giving ids and names of channels.
 
     Arguments:
-        auth_user_id (int)    - a registered id of a user
+        auth_user_id (int) - a registered id of a user
 
     Exceptions:
-        InputError  - N/A
-        AccessError - is raised when parameter auth_user_id is not in the data
+        AccessError - Occurs when:
+            - auth_user_id does not belong to a user
 
     Return Value:
         Returns {"channels": [{"channel_id": channel_id, "name": channel_name}]}
-
     """
-    data = data_store.get()
-    # Get all channels
+    store = data_store.get()
+    # get all channels including private channels
     channels = [
         {"channel_id": channel["channel_id"], "name": channel["name"]}
-        for channel in data["channels"]
+        for channel in store["channels"]
     ]
     return {"channels": channels}
 
 
 @validate_auth_id
 def channels_create_v1(auth_user_id, name, is_public):
-    """Creates a new channel in the data_store when given an auth_user_id,
-    name, and is_public identifier, returning the channel_id.
+    """Create a new channel where auth_user_id is the owner.
 
     Arguments:
-        auth_user_id (integer) - unique id of user
-        name (string) - name of user
-        is_public (boolean) - whether the given channel is to be public or private
+        auth_user_id (int) - unique id of user
+        name (str) - name of user
+        is_public (bool) - whether channel is public or private
 
     Exceptions:
         InputError - Occurs when:
-            - name is less than 1 character in length, or longer than 20 characters
+            - name is less than 1 character or longer than 20 characters
         AccessError - Occurs when:
-            - the input auth_user_id does not belong to any user in the data store
+            - auth_user_id does not belong to a user in the data store
 
     Return Value:
         Returns {channel_id} upon succesful creation of channel"""
 
-    # Retrieves the data store, and the channel dictionary
+    # retrieves the data store, and the channel dictionary
     store = data_store.get()
     channels = store["channels"]
 
-    # Checks for if the name is valid
+    # checks for if the name is valid
     if len(name) < 1 or len(name) > 20:
-        raise InputError("Invalid Name")
+        raise InputError("invalid Name")
 
-    # Sets channel_id as the next highest number in the channel list
-    channel_id = (
-        max(channels, key=lambda x: x["channel_id"])["channel_id"] + 1
-        if len(channels) > 0
-        else 0
-    )
+    # sets channel_id as the next highest number in the channel list
+    if len(channels) > 0:
+        channel_id = max(channels, key=lambda c: c["channel_id"])["channel_id"] + 1
+    else:
+        channel_id = 0
 
     channels.append(
         {
@@ -103,7 +107,7 @@ def channels_create_v1(auth_user_id, name, is_public):
         }
     )
 
-    # Sets the data store
+    # update data store with changes
     data_store.set(store)
     return {
         "channel_id": channel_id,
