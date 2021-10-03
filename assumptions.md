@@ -4,5 +4,4 @@
 - if handle is empty string as all non valid first and last name set handle to number starting from 0, 1, 2, ...
 - In both 'channel_join_v1' and 'channel_invite_v1', it is assumed that auth_user_id refers to a valid user
 - Assumes that the global owner is the first user registered by 'auth_register_v1'
-- user dictionaries only contains keys "u_id", "email", "password", "name_first", "name_last" and "handle_str"
 - mulitple channels can have the same name but different id's
