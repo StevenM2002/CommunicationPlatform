@@ -1,0 +1,6 @@
+- All users can join a public channel, but are not initially in it, A global owner can join a channel regardless of whether it is public or private
+- When there are no channels matching, channels_listall_v1 and channels_list_v1 will return an empty list of in a dictionary of form {"channels": []}
+- When there are no messages in a channel an InputError is raised
+- if handle is empty string as all non valid first and last name set handle to number starting from 0, 1, 2, ...
+- Assumes that the global owner is the first user registered by 'auth_register_v1'
+- mulitple channels can have the same name but different id's
