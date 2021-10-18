@@ -5,6 +5,8 @@ from flask import Flask, request
 from flask_cors import CORS
 from src.error import InputError
 from src import config
+from src.channels import channels_listall_v1, channels_list_v1
+from src.auth import auth_register_v1
 
 def quit_gracefully(*args):
     '''For coverage'''
@@ -38,6 +40,18 @@ def echo():
     return dumps({
         'data': data
     })
+
+@APP.route("/channels/listall/v2", methods=["GET"])
+def channels_listall_v2():
+    # Need to do auth the token and recieve a token?
+    data = request.args.get("data")
+    return dumps(channels_listall_v1(int(data)))
+    
+@APP.route("/channels/list/v2", methods=["GET"])
+def channels_list_v2():
+    auth_register_v1("a@a.com", "password", "name_first", "name_last")
+    data = request.args.get("data")
+    return dumps(channels_list_v1(int(data)))
 
 #### NO NEED TO MODIFY BELOW THIS POINT
 
