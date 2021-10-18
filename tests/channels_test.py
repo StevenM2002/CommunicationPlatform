@@ -5,7 +5,9 @@ from src.other import clear_v1
 from src.auth import auth_register_v1
 from src.channel import channel_join_v1
 from src.channels import channels_list_v1, channels_listall_v1, channels_create_v1
-
+import requests
+import json
+from src.config import url
 
 @pytest.fixture
 def clear_and_register():
@@ -261,3 +263,16 @@ def test_not_auth_id_list():
     clear_v1()
     with pytest.raises(AccessError):
         assert channels_list_v1(1)
+
+def test_no_channels():
+    # Need to update the flask datastore with new auth_id aswell as it is only updating it
+    # locally currently.
+    auth_id1 = auth_register_v1("a@a.com", "password", "first", "last")["auth_user_id"]
+    response = requests.get(url + "channels/list/v2", params={"data": auth_id1})
+    #print(response.json())
+    assert json.loads(response.text) == {"channels": []}
+
+
+
+
+
