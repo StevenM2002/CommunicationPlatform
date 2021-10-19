@@ -7,7 +7,8 @@ from src.channel import channel_join_v1
 from src.channels import channels_list_v1, channels_listall_v1, channels_create_v1
 import requests
 import json
-from src.config import url
+from src import config
+
 """
 @pytest.fixture
 def clear_and_register():
@@ -264,32 +265,95 @@ def test_not_auth_id_list():
     with pytest.raises(AccessError):
         assert channels_list_v1(1)
 """
+
+
 @pytest.fixture
 def list_data_v2():
     requests.delete(config.url + "clear/v1")
-    token0 = requests.post(url + "auth/register/v2", data={
-            "email":"a1@a.com", "password":"abcdef", "name_first":"f", "name_last":"l"
-        }).json()["token"]
+    token0 = requests.post(
+        config.url + "auth/register/v2",
+        data={
+            "email": "user1@mail.com",
+            "password": "password",
+            "name_first": "first",
+            "name_last": "last",
+        },
+    ).json()["token"]
 
-    token1 = requests.post(url + "auth/register/v2", data={
-            "email":"a2@a.com", "password":"abcdef", "name_first":"f", "name_last":"l"
-        }).json()["token"]
+    token1 = requests.post(
+        config.url + "auth/register/v2",
+        data={
+            "email": "user2@mail.com",
+            "password": "password",
+            "name_first": "first",
+            "name_last": "last",
+        },
+    ).json()["token"]
 
-    token2 = requests.post(url + "auth/register/v2", data={
-            "email":"a3@a.com", "password":"abcdef", "name_first":"f", "name_last":"l"
-        }).json()["token"]
+    token2 = requests.post(
+        config.url + "auth/register/v2",
+        data={
+            "email": "user3@mail.com",
+            "password": "password",
+            "name_first": "first",
+            "name_last": "last",
+        },
+    ).json()["token"]
     return [token0, token1, token2]
+
+
 def test_no_channels_listv2(list_data_v2):
     # Use requests.post or requests.delete and stuff to give data
-    payload = requests.get(url + "channels/list/v2", params={"data": list_data_v2[0]})
+    payload = requests.get(config.url + "channels/list/v2", params={"data": list_data_v2[0]})
+    assert payload.json() == {"channels": []}
+    requests.post(config.url + "channels/create/v2", params={list_data_v2[1], "chan1", True})
+    payload = requests.get(config.url + "channels/list/v2", params={"data": list_data_v2[0]})
     assert payload.json() == {"channels": []}
 
-def test_one_channel_listv2(list_data_v2):
-    chan_id1 = requests.post(url + "channels/create/v2", params={list_data_v2[0], "chan1", True})
-    payload = requests.get(url + "channels/list/v2", params={"data": list_data_v2[0]})
+
+def test_one_channel_public_listv2(list_data_v2):
+    chan_id0 = requests.post(
+        config.url + "channels/create/v2", params={list_data_v2[0], "chan0", True}
+    )
+    payload = requests.get(config.url + "channels/list/v2", params={"data": list_data_v2[0]})
     assert payload.json() == {
-        "channels": [{"channel_id": chan_id1["channel_id"], "name": "chan1"}]
+        "channels": [{"channel_id": chan_id0["channel_id"], "name": "chan0"}]
     }
 
 
+def test_one_channel_priv_listv2(list_data_v2):
+    chan_id0 = requests.post(
+        config.url + "channels/create/v2", params={list_data_v2[0], "chan0", False}
+    )
+    payload = requests.get(config.url + "channels/list/v2", params={"data": list_data_v2[0]})
+    assert payload.json() == {
+        "channels": [{"channel_id": chan_id0["channel_id"], "name": "chan0"}]
+    }
 
+
+def test_two_channels_listv2(list_data_v2):
+    chan_id0 = requests.post(
+        config.url + "channels/create/v2", params={list_data_v2[0], "chan0", False}
+    )
+    chan_id1 = requests.post(
+        config.url + "channels/create/v2", params={list_data_v2[0], "chan1", True}
+    )
+    payload = requests.get(config.url + "channels/list/v2", params={"data": list_data_v2[0]})
+    assert payload.json() == {
+        "channels": [
+            {"channel_id": chan_id0["channel_id"], "name": "chan0"},
+            {"channel_id": chan_id1["channel_id"], "name": "chan1"},
+        ]
+    }
+    
+def test_not_admin_listv2(list_data_v2):
+    chan_id0 = requests.post(
+        config.url + "channels/create/v2", params={list_data_v2[0], "chan0", False}
+    )
+    requests.post(
+        config.url + "channel/join/v2", params={list_data_v2[1], chan_id0["channel_id"]}
+    )    
+    payload = requests.get(config.url + "channels/list/v2", params={"data": list_data_v2[0]})
+    assert payload.json() == {
+        "channels": [{"channel_id": chan_id0["channel_id"], "name": "chan0"}]
+    }
