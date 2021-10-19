@@ -38,10 +38,10 @@ def setup_public():
     user_id = r.json()['auth_user_id']
     token = response.json()['token']
     token_id = response.json()['auth_user_id']
-    # create a private channel
+    # create a public channel
     response = requests.post(config.url + 'channels/create/v2', 
         json={
-            'token': token, 'name': 'public_channel', 'is_public': False
+            'token': token, 'name': 'public_channel', 'is_public': True
         }
     )
     channel_id = response.json()['channel_id']
@@ -70,10 +70,10 @@ def setup_private():
     user_token = r.json()['token']
     token = response.json()['token']
     token_id = response.json()['auth_user_id']
-    # create a public channel
+    # create a private channel
     response = requests.post(config.url + 'channels/create/v2', 
         json={
-            'token': token, 'name': 'public_channel', 'is_public': True
+            'token': token, 'name': 'public_channel', 'is_public': False
         }
     )
     channel_id = response.json()['channel_id']
