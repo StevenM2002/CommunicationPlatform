@@ -5,9 +5,9 @@ channel. Each of these functions are decorated with validate_auth_id to ensure
 that auth_user_id is valid before running code inside the functions.
 """
 from src.data_store import data_store
-from src.error import InputError
+from src.error import InputError, AccessError
 from src.other import validate_auth_id
-
+from src.auth import JWT_SECRET
 
 @validate_auth_id
 def channels_list_v1(auth_user_id):
@@ -26,7 +26,6 @@ def channels_list_v1(auth_user_id):
         Returns {"channels": [{"channel_id": channel_id, "name": channel_name}]}
     """
     store = data_store.get()
-
     # iterate through channels if auth_user_id is a member of the channel add
     # channel to the return value
     channels = []
@@ -112,3 +111,35 @@ def channels_create_v1(auth_user_id, name, is_public):
     return {
         "channel_id": channel_id,
     }
+
+def channels_list_v2(token):
+    # Token contains {"u_id": int, "session_id": int} in body and 
+    # secret as from src.auth import JWT_SECRET
+    store = data_store.get()
+    payload = jwt.decode(token, key=JWT_SECRET, algorithms=["HS256"])
+    # Check that token info is good and if it is then do channels_list_v1
+    for users in store["users"]:
+        if payload["session_id"] in users["session_id"] and payload["u_id"] in users["u_id"]:
+            return channels_list_v1(payload["u_id"])
+    raise AccessError("invalid token")
+
+def channels_listall_v2(token):
+    store = data_store.get()
+    payload = jwt.decode(token, key=JWT_SECRET, algorithms=["HS256"])
+    # Check that token info is good
+    for users in store["users"]:
+        if payload["session_id"] in users["session_id"] and payload["u_id"] in users["u_id"]:
+                return channels_listall_v1(payload["u_id"])
+    raise AccessError("invalid token")
+
+
+
+
+
+
+
+
+
+
+
+
