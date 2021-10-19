@@ -312,9 +312,8 @@ def test_channel_join():
 
 def test_join_invalid_channel():
     clear_v1()
-    u_dict = auth_register_v1("random@gmail.com", "password", "joel", "bryla")
+    auth_register_v1("random@gmail.com", "password", "joel", "bryla")
     auth_dict = auth_register_v1("example@gmail.com", "password", "lewis", "bandas")
-    u_id = u_dict["auth_user_id"]
     auth_id = auth_dict["auth_user_id"]
     with pytest.raises(InputError):
         assert channel_join_v1(auth_id, 1)
