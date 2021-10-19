@@ -17,6 +17,7 @@ ensure that auth_user_id is valid before running code inside the functions.
 from src.data_store import data_store
 from src.error import AccessError, InputError
 from src.other import validate_auth_id, first
+from src.channels import validate_token
 
 
 @validate_auth_id
@@ -81,8 +82,7 @@ def channel_invite_v1(auth_user_id, channel_id, u_id):
     return {}
 
 
-@validate_auth_id
-def channel_details_v1(auth_user_id, channel_id):
+def channel_details_v2(token, channel_id):
     """Get name, visibility, owners and members of a channel.
 
     Arguments:
@@ -103,7 +103,8 @@ def channel_details_v1(auth_user_id, channel_id):
     store = data_store.get()
     users = store["users"]
     channels = store["channels"]
-
+    u_information = validate_token(token, users)
+    auth_user_id = u_information["u_id"]
     # checks whether the channel_id is used
     valid = any(True for channel in channels if channel["channel_id"] == channel_id)
     if not valid:
