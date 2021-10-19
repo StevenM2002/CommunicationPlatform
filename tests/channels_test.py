@@ -264,14 +264,32 @@ def test_not_auth_id_list():
     with pytest.raises(AccessError):
         assert channels_list_v1(1)
 """
-def test_no_channels():
-    # Need to update the flask datastore with new auth_id aswell as it is only updating it
-    # locally currently.
+@pytest.fixture
+def list_data_v2():
+    requests.delete(config.url + "clear/v1")
+    token0 = requests.post(url + "auth/register/v2", data={
+            "email":"a1@a.com", "password":"abcdef", "name_first":"f", "name_last":"l"
+        }).json()["token"]
+
+    token1 = requests.post(url + "auth/register/v2", data={
+            "email":"a2@a.com", "password":"abcdef", "name_first":"f", "name_last":"l"
+        }).json()["token"]
+
+    token2 = requests.post(url + "auth/register/v2", data={
+            "email":"a3@a.com", "password":"abcdef", "name_first":"f", "name_last":"l"
+        }).json()["token"]
+    return [token0, token1, token2]
+def test_no_channels_listv2(list_data_v2):
     # Use requests.post or requests.delete and stuff to give data
-    auth_id1 = requests.post(url + "auth/register/v2",
-        data={"email":"a@a.com", "password":"abcdef", "name_first":"f", "name_last":"l"}).json()
-    payload = requests.get(url + "channels/list/v2", params={"data": auth_id1["auth_user_id"]})
+    payload = requests.get(url + "channels/list/v2", params={"data": list_data_v2[0]})
     assert payload.json() == {"channels": []}
+
+def test_one_channel_listv2(list_data_v2):
+    chan_id1 = requests.post(url + "channels/create/v2", params={list_data_v2[0], "chan1", True})
+    payload = requests.get(url + "channels/list/v2", params={"data": list_data_v2[0]})
+    assert payload.json() == {
+        "channels": [{"channel_id": chan_id1["channel_id"], "name": "chan1"}]
+    }
 
 
 
