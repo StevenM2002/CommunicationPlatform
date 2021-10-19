@@ -65,7 +65,7 @@ def channels_listall_v1(auth_user_id):  # pylint: disable=unused-argument
 
 
 @validate_auth_id
-def channels_create_v1(auth_user_id, name, is_public):
+def channels_create_v2(auth_user_id, name, is_public):
     """Create a new channel where auth_user_id is the owner.
 
     Arguments:

@@ -7,47 +7,95 @@ from src.channel import channel_join_v1
 from src.channels import channels_list_v1, channels_listall_v1, channels_create_v1
 
 
+BASE_URL = "127.0.0.1:8080"
+OK = 200
+INPUT_ERROR = 400
+ACCESS_ERROR = 403
+
+
 @pytest.fixture
 def clear_and_register():
-    clear_v1()
+    # Clears the data store
+    requests.delete(f"{BASE_URL}/clear/v1")
     # Creates a user with id 0
-    auth_register_v1("jon.doe@gmail.com", "rabbits", "Jon", "Doe")
+    user_token = requests.post(
+        f"{BASE_URL}/auth/registers/v2",
+        json={
+            "email": "jon.doe@gmail.com",
+            "password": "rabbits",
+            "name_first": "Jon",
+            "name_last": "Doe",
+        },
+    )
 
 
 # Channel Create Tests
 # Input name is an empty string (input error)
 def test_create_empty(clear_and_register):
-    with pytest.raises(InputError):
-        assert channels_create_v1(0, "", True)
+    response = requests.get(
+        f"{BASE_URL}/channels/create/v2",
+        json={"token": user_token, "name": "", "is_public": True},
+    )
+    assert reponse.status_code == INPUT_ERROR
 
 
 # Input name is greater than 20 characters (input error)
 def test_create_large(clear_and_register):
-    with pytest.raises(InputError):
-        channels_create_v1(0, "abcdefghijklmnopqrstuvwxyz", True)
+    response = requests.get(
+        f"{BASE_URL}/channels/create/v2",
+        json={
+            "token": user_token,
+            "name": "abcdefghijklmnopqrstuvwxyz",
+            "is_public": True,
+        },
+    )
+    assert response.status_code == INPUT_ERROR
 
 
 # Invalid user_auth_id (access error)
 def test_create_inval_auth(clear_and_register):
-    with pytest.raises(AccessError):
-        channels_create_v1("zhyuasf", "channel", True)
+    response = requests.get(
+        f"{BASE_URL}/channels/create/v2",
+        json={"token": "akshufiaubdgv", "name": "channel", "is_public": True},
+    )
+    assert response.status_code == ACCESS_ERROR
 
 
 # Valid input name is used with a public chat
 def test_create_valid_public(clear_and_register):
-    assert channels_create_v1(0, "channel", True) == {"channel_id": 0}
+    response = requests.get(
+        f"{BASE_URL}/channels/create/v2",
+        json={"token": user_token, "name": "channel", "is_public": True},
+    )
+    assert response.status_code == OK
+    assert response == {"channel_id": 0}
 
 
 # Valid input name is used with a private chat
 def test_create_valid_private(clear_and_register):
-    assert channels_create_v1(0, "channel", False) == {"channel_id": 0}
+    response = requests.get(
+        f"{BASE_URL}/channels/create/v2",
+        json={"token": user_token, "name": "channel", "is_public": False},
+    )
+    assert response.status_code == OK
+    assert response == {"channel_id": 0}
 
 
 # Multiple channels created by the same user with identical channel names,
 # making sure different channel IDs are created by the function
 def test_create_multiple(clear_and_register):
-    assert channels_create_v1(0, "channel", False) == {"channel_id": 0}
-    assert channels_create_v1(0, "channel", False) == {"channel_id": 1}
+    first_response = requests.get(
+        f"{BASE_URL}/channels/create/v2",
+        json={"token": user_token, "name": "channel", "is_public": True},
+    )
+    second_response = requests.get(
+        f"{BASE_URL}/channels/create/v2", 
+        json={"token": user_token, "name": "second_channel", "is_public": True}
+    })
+    assert first_response.status_code == OK
+    assert first_response == {"channel_id": 0}
+    assert second_response.status_code == OK
+    assert second_response.status_code == {"channel_id": 1}
 
 
 # Following tests are for listall channels func

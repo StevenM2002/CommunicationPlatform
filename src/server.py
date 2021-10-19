@@ -3,10 +3,10 @@ from json import dumps
 from flask import Flask
 from flask_cors import CORS
 from src import config
-from src.other import clear_v1
+from src.channels import channels_create_v2
 
 
-def quit_gracefully(*_):
+def quit_gracefully(*args):
     """For coverage"""
     exit(0)
 
@@ -36,6 +36,20 @@ APP.register_error_handler(Exception, defaultHandler)
 def clear():
     clear_v1()
     return {}
+
+
+# Example
+@APP.route("/echo", methods=["GET"])
+def echo():
+    data = request.args.get("data")
+    if data == "echo":
+        raise InputError(description='Cannot echo "echo"')
+    return dumps({"data": data})
+
+
+@APP.route("/channels/create/v2", methods=["POST"])
+def create_channel_v2():
+    data = request.get_json()
 
 
 if __name__ == "__main__":
