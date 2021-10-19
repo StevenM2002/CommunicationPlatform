@@ -441,4 +441,4 @@ def test_logout():
             "token": token,
         },
     )
-    assert r.status_code != 200
+    assert r.status_code == 400
