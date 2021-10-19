@@ -32,7 +32,7 @@ APP.config["TRAP_HTTP_EXCEPTIONS"] = True
 APP.register_error_handler(Exception, defaultHandler)
 
 
-@APP.route("/clear", methods=["DELETE"])
+@APP.route("/clear/v1", methods=["DELETE"])
 def clear():
     clear_v1()
     return {}
