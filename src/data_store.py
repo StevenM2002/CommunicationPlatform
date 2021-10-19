@@ -13,6 +13,7 @@ data structure:
             "name_first": name_first,
             "name_last": name_last,
             "handle_str": handle,
+            "session_id": [int],
         },
         ...
     ],
