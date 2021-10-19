@@ -39,10 +39,11 @@ def setup_public():
         f"{BASE_URL}/channels/create/v2",
         json={"token": user_token, "name": "public_channel", "is_public": True},
     )
+    return user_token, json()["token"]
 
 
 @pytest.fixture
-def setup_public():
+def setup_private():
     # Clears the data store
     requests.delete(f"{BASE_URL}/clear/v1")
     # Creates a user with id 0
@@ -59,13 +60,14 @@ def setup_public():
         f"{BASE_URL}/channels/create/v2",
         json={"token": user_token, "name": "public_channel", "is_public": False},
     )
+    return user_token.json()["token"]
 
 
 # Channel Details Tests
 # Input channel_id is invalid
 def test_invalid_channel_id(setup_public):
     response = requests.get(
-        f"{BASE_URL}/channel/details/v2", json={"token": user_token, "channel_id": 10}
+        f"{BASE_URL}/channel/details/v2", json={"token": setup_public, "channel_id": 10}
     )
     assert response.status_code == INPUT_ERROR
 
@@ -93,7 +95,7 @@ def test_not_member(setup_private):
     )
     response = requests.get(
         f"{BASE_URL}/channel/details/v2",
-        json={"token": new_token, "channel_id": 0},
+        json={"token": setup_private, "channel_id": 0},
     )
     assert response.status_code == INPUT_ERROR
 
@@ -102,7 +104,7 @@ def test_not_member(setup_private):
 def test_valid_inputs(setup_public):
     response = requests.get(
         f"{BASE_URL}/channel/details/v2",
-        json={"token": token, "channel_id": 0},
+        json={"token": setup_public, "channel_id": 0},
     )
     assert response.status_code == OK
     assert response == {
@@ -141,11 +143,12 @@ def test_valid_multiple(setup_public):
         },
     )
     requests.post(
-        f"{BASE_URL}/channel/join/v2", json={token: new_token, "channel_id": 0}
+        f"{BASE_URL}/channel/join/v2",
+        json={"token": new_token.json()["token"], "channel_id": 0},
     )
     response = requests.get(
         f"{BASE_URL}/channel/details/v2",
-        json={"token": token, "channel_id": 0},
+        json={"token": setup_public, "channel_id": 0},
     )
     assert response.status_code == OK
     assert response == {
@@ -192,7 +195,7 @@ def test_valid_private(setup_private):
     )
     response = requests.get(
         f"{BASE_URL}/channel/details/v2",
-        json={"token": token, "channel_id": 0},
+        json={"token": setup_private, "channel_id": 0},
     )
     assert response.status_code == OK
     assert response == {
@@ -232,29 +235,31 @@ def test_multiple_channels(setup_public):
     )
     requests.get(
         f"{BASE_URL}/channels/create/v2",
-        json={"token": user_token, "name": "second_channel", "is_public": True},
+        json={"token": setup_public, "name": "second_channel", "is_public": True},
     )
     requests.get(
         f"{BASE_URL}/channels/create/v2",
-        json={"token": user_token, "name": "private_channel", "is_public": False},
+        json={"token": setup_public, "name": "private_channel", "is_public": False},
     )
     requests.post(
-        f"{BASE_URL}/channel/join/v2", json={token: new_token, "channel_id": 0}
+        f"{BASE_URL}/channel/join/v2",
+        json={"token": new_token.json["token"], "channel_id": 0},
     )
     requests.post(
-        f"{BASE_URL}/channel/join/v2", json={token: new_token, "channel_id": 1}
+        f"{BASE_URL}/channel/join/v2",
+        json={"token": new_token.json["token"], "channel_id": 1},
     )
     first_response = requests.get(
         f"{BASE_URL}/channel/details/v2",
-        json={"token": token, "channel_id": 0},
+        json={"token": setup_public, "channel_id": 0},
     )
     second_response = requests.get(
         f"{BASE_URL}/channel/details/v2",
-        json={"token": token, "channel_id": 1},
+        json={"token": setup_public, "channel_id": 1},
     )
     third_response = requests.get(
         f"{BASE_URL}/channel/details/v2",
-        json={"token": token, "channel_id": 2},
+        json={"token": setup_public, "channel_id": 2},
     )
     assert first_response == {
         "name": "public_channel",

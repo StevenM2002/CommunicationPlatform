@@ -1,4 +1,4 @@
-"""Interfaces for managaing channels
+"""Interfaces for managing channels
 
 Contains functions for listing channels public or private and creating a new
 channel. Each of these functions are decorated with validate_auth_id to ensure
