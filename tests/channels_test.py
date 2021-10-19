@@ -5,6 +5,7 @@ from src.other import clear_v1
 from src.auth import auth_register_v1
 from src.channel import channel_join_v1
 from src.channels import channels_list_v1, channels_listall_v1, channels_create_v1
+import json
 
 
 BASE_URL = "127.0.0.1:8080"

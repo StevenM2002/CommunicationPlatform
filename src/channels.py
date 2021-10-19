@@ -7,6 +7,10 @@ that auth_user_id is valid before running code inside the functions.
 from src.data_store import data_store
 from src.error import InputError
 from src.other import validate_auth_id
+import json
+import re
+import jwt
+import hashlib
 
 
 @validate_auth_id
@@ -64,12 +68,11 @@ def channels_listall_v1(auth_user_id):  # pylint: disable=unused-argument
     return {"channels": channels}
 
 
-@validate_auth_id
-def channels_create_v2(auth_user_id, name, is_public):
+def channels_create_v2(token, name, is_public):
     """Create a new channel where auth_user_id is the owner.
 
     Arguments:
-        auth_user_id (int) - unique id of user
+        token (str) - unique token of session
         name (str) - name of user
         is_public (bool) - whether channel is public or private
 
@@ -81,14 +84,16 @@ def channels_create_v2(auth_user_id, name, is_public):
 
     Return Value:
         Returns {channel_id} upon succesful creation of channel"""
-
     # retrieves the data store, and the channel dictionary
     store = data_store.get()
     channels = store["channels"]
 
+    # Checks if the given token is valid
+    validate_token(token, store["users"])
+
     # checks for if the name is valid
     if len(name) < 1 or len(name) > 20:
-        raise InputError("invalid Name")
+        raise InputError(description="invalid Name")
 
     # sets channel_id as the next highest number in the channel list
     if len(channels) > 0:
@@ -112,3 +117,26 @@ def channels_create_v2(auth_user_id, name, is_public):
     return {
         "channel_id": channel_id,
     }
+
+
+def validate_token(token, users):
+    """Decodes the token and determines if it points to a valid user's session
+
+    Args:
+        token (str) - An encoded JWT token
+
+    Returns:
+        u_information (dict) - A boolean declaring if token is valid
+    """
+    u_information = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    valid = any(True for user in users if users["u_id"] == u_information["u_id"])
+    found_user = [user for user in users if users["u_id"] == u_information["u_id"]][0]
+    if valid:
+        valid = any(
+            True
+            for session in found_user["session_id"]
+            if session == u_information["session_id"]
+        )
+    if not valid:
+        raise AccessError(description="Invalid Token")
+    return u_information
