@@ -357,3 +357,33 @@ def test_not_admin_listv2(list_data_v2):
     assert payload.json() == {
         "channels": [{"channel_id": chan_id0["channel_id"], "name": "chan0"}]
     }
+
+def test_multiple_people_in_channel_listv2(list_data_v2):
+    chan_id0 = requests.post(
+        config.url + "channels/create/v2", params={list_data_v2[0], "chan0", False}
+    )
+    requests.post(
+        config.url + "channel/join/v2", params={list_data_v2[1], chan_id0["channel_id"]}
+    )
+    requests.post(
+        config.url + "channel/join/v2", params={list_data_v2[2], chan_id0["channel_id"]}
+    )    
+    payload = requests.get(config.url + "channels/list/v2", params={"data": list_data_v2[2]})
+    assert payload.json() == {
+        "channels": [{"channel_id": chan_id0["channel_id"], "name": "chan0"}]
+    }
+
+def test_user_not_in_multiple_channels(list_data_v2):
+    chan_id0 = requests.post(
+        config.url + "channels/create/v2", params={list_data_v2[0], "chan0", False}
+    )            
+    chan_id1 = requests.post(
+        config.url + "channels/create/v2", params={list_data_v2[1], "chan1", False}
+    )   
+    chan_id2 = requests.post(
+        config.url + "channels/create/v2", params={list_data_v2[2], "chan2", False}
+    )   
+    payload = requests.get(config.url + "channels/list/v2", params={"data": list_data_v2[2]})    
+    assert payload.json() == {
+        "channels": [{"channel_id": chan_id2["channel_id"], "name": "chan2"}]
+    }
