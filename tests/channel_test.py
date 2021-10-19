@@ -105,9 +105,9 @@ def test_not_member(setup_private):
     )
     response = requests.get(
         f"{config.url}/channel/details/v2",
-        params={"token": setup_private, "channel_id": 0},
+        params={"token": new_token.json()["token"], "channel_id": 0},
     )
-    assert response.status_code == INPUT_ERROR
+    assert response.status_code == ACCESS_ERROR
 
 
 # Both inputs are valid
@@ -116,8 +116,9 @@ def test_valid_inputs(setup_public):
         f"{config.url}/channel/details/v2",
         params={"token": setup_public, "channel_id": 0},
     )
+    print(response)
     assert response.status_code == OK
-    assert response == {
+    assert response.json() == {
         "name": "public_channel",
         "is_public": True,
         "owner_members": [
@@ -161,7 +162,7 @@ def test_valid_multiple(setup_public):
         params={"token": setup_public, "channel_id": 0},
     )
     assert response.status_code == OK
-    assert response == {
+    assert response.json() == {
         "name": "public_channel",
         "is_public": True,
         "owner_members": [
@@ -208,7 +209,7 @@ def test_valid_private(setup_private):
         params={"token": setup_private, "channel_id": 0},
     )
     assert response.status_code == OK
-    assert response == {
+    assert response.json() == {
         "name": "private_channel",
         "is_public": False,
         "owner_members": [
@@ -271,7 +272,7 @@ def test_multiple_channels(setup_public):
         f"{config.url}/channel/details/v2",
         params={"token": setup_public, "channel_id": 2},
     )
-    assert first_response == {
+    assert first_response.json() == {
         "name": "public_channel",
         "is_public": True,
         "owner_members": [
@@ -300,7 +301,7 @@ def test_multiple_channels(setup_public):
             },
         ],
     }
-    assert second_response == {
+    assert second_response.json() == {
         "name": "second_channel",
         "is_public": True,
         "owner_members": [
@@ -329,7 +330,7 @@ def test_multiple_channels(setup_public):
             },
         ],
     }
-    assert third_response == {
+    assert third_response.json() == {
         "name": "private_channel",
         "is_public": False,
         "owner_members": [
