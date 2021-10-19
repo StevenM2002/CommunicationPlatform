@@ -268,8 +268,6 @@ def test_no_channels():
     # Need to update the flask datastore with new auth_id aswell as it is only updating it
     # locally currently.
     # Use requests.post or requests.delete and stuff to give data
-    # Token contains {"u_id": int, "session_id": int} in body and 
-    # secret as from src.auth import JWT_SECRET
     auth_id1 = requests.post(url + "auth/register/v2",
         data={"email":"a@a.com", "password":"abcdef", "name_first":"f", "name_last":"l"}).json()
     payload = requests.get(url + "channels/list/v2", params={"data": auth_id1["auth_user_id"]})
