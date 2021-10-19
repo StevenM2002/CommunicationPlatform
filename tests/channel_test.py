@@ -12,6 +12,7 @@ from src.channels import channels_create_v1
 from src.other import clear_v1
 from src.auth import auth_register_v1
 from src.data_store import data_store
+import json
 
 
 BASE_URL = "127.0.0.1:8080"

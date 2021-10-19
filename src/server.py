@@ -50,6 +50,7 @@ def echo():
 @APP.route("/channels/create/v2", methods=["POST"])
 def create_channel_v2():
     data = request.get_json()
+    return dumps(channels_create_v2(data["token"], data["name"], data["is_public"]))
 
 
 if __name__ == "__main__":
