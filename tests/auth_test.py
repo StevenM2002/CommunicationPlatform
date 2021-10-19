@@ -412,3 +412,33 @@ def test_non_alphanumeric_handle():
             assert user["handle_str"] == "0"
         if user["u_id"] == user2["auth_user_id"]:
             assert user["handle_str"] == "1"
+
+
+def test_logout():
+    requests.delete(config.url + "clear/v1")
+
+    r = requests.post(
+        config.url + "auth/register/v2",
+        json={
+            "email": "wow@wow.com",
+            "password": "awesome",
+            "name_first": "first",
+            "name_last": "last",
+        },
+    )
+    assert r.status_code == 200
+    token = r.json()["token"]
+
+    r = requests.post(
+        config.url + "auth/logout/v1",
+        json={"token": token},
+    )
+    assert r.status_code == 200
+
+    r = requests.post(
+        config.url + "channels/list/v2",
+        json={
+            "token": token,
+        },
+    )
+    assert r.status_code != 200
