@@ -5,6 +5,7 @@ channel. Each of these functions are decorated with validate_auth_id to ensure
 that auth_user_id is valid before running code inside the functions.
 """
 from src.data_store import data_store
+from src.auth import JWT_SECRET
 from src.error import InputError
 from src.other import validate_auth_id
 import json
