@@ -433,7 +433,7 @@ def test_no_channels_listallv2(listall_data_v2):
     assert payload.json() == {"channels": []}
 
 def test_one_channel_public_listallv2(listall_data_v2):
-    requests.post(
+    chan_id0 = requests.post(
         config.url + "channels/create/v2", params={listall_data_v2[0], "chan0", True}
     )
     payload = requests.get(config.url + "channels/listall/v2", params={"data": listall_data_v2[0]})
@@ -442,7 +442,7 @@ def test_one_channel_public_listallv2(listall_data_v2):
     }
 
 def test_one_channel_private_listallv2(listall_data_v2):
-    requests.post(
+    chan_id0 = requests.post(
         config.url + "channels/create/v2", params={listall_data_v2[0], "chan0", False}
     )
     payload = requests.get(config.url + "channels/listall/v2", params={"data": listall_data_v2[0]})
@@ -451,20 +451,22 @@ def test_one_channel_private_listallv2(listall_data_v2):
     }
 
 def test_many_channels_listallv2(listall_data_v2):
-    requests.post(
+    chan_id0 = requests.post(
         config.url + "channels/create/v2", params={listall_data_v2[0], "chan0", True}
     )
-    requests.post(
+    chan_id1 = requests.post(
         config.url + "channels/create/v2", params={listall_data_v2[1], "chan1", False}
     )
-    requests.post(
+    chan_id2 = requests.post(
         config.url + "channels/create/v2", params={listall_data_v2[2], "chan2", False}
     )
     payload = requests.get(config.url + "channels/listall/v2", params={"data": listall_data_v2[1]})
     assert payload.json() == {
-        "channels": [{"channel_id": chan_id0["channel_id"], "name": "chan0"}],
-        "channels": [{"channel_id": chan_id1["channel_id"], "name": "chan1"}],
-        "channels": [{"channel_id": chan_id2["channel_id"], "name": "chan2"}]
+        "channels": [
+            {"channel_id": chan_id0["channel_id"], "name": "chan0"},
+            {"channel_id": chan_id1["channel_id"], "name": "chan1"},
+            {"channel_id": chan_id2["channel_id"], "name": "chan2"}
+        ]
     }
 
 def test_user_is_not_owner(listall_data_v2):
