@@ -6,7 +6,8 @@ from flask_cors import CORS
 from src.error import InputError
 from src import config
 from src.channels import channels_listall_v1, channels_list_v1
-from src.auth import auth_register_v1
+from src.auth import auth_register_v1, JWT_SECRET
+from src.data_store import data_store
 
 def quit_gracefully(*args):
     '''For coverage'''
@@ -44,14 +45,15 @@ def echo():
 @APP.route("/channels/listall/v2", methods=["GET"])
 def channels_listall_v2():
     # Need to do auth the token and recieve a token?
-    data = request.args.get("data")
-    return dumps(channels_listall_v1(int(data)))
+    token = request.args.get("data")
+    return dumps(channels_listall_v2(token))
     
 @APP.route("/channels/list/v2", methods=["GET"])
 def channels_list_v2():
-    auth_register_v1("a@a.com", "password", "name_first", "name_last")
-    data = request.args.get("data")
-    return dumps(channels_list_v1(int(data)))
+    # Take out auth id from token and pass into list function
+    #x = request.get_json() to get token
+    token = request.args.get("data")
+    return dumps(channels_list_v2(token))
 
 #### NO NEED TO MODIFY BELOW THIS POINT
 
