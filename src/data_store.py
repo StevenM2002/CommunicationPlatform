@@ -49,15 +49,26 @@ data structure:
     data_store.set(users)
 """
 from copy import deepcopy
+from json import dump, load
+from pathlib import Path
+from threading import Event, Thread
 
 INITIAL_OBJECT = {"users": [], "channels": [], "global_owners": []}
+DATA_STORE_FILE = "datastore.json"
+WRITE_INTERVAL = 30
 
 
 class Datastore:
     """Datastore class used to store data for Streams."""
 
     def __init__(self):
-        self.__store = deepcopy(INITIAL_OBJECT)
+        if Path(DATA_STORE_FILE).is_file():
+            try:
+                self.__store = load(open(DATA_STORE_FILE))
+            except:
+                self.__store = deepcopy(INITIAL_OBJECT)
+        else:
+            self.__store = deepcopy(INITIAL_OBJECT)
 
     def get(self):
         """Get the dictionary of the data base.
@@ -80,4 +91,29 @@ class Datastore:
         self.__store = store
 
 
+def every(interval):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            stopped = Event()
+
+            def loop():
+                while not stopped.wait(interval):
+                    func(*args, **kwargs)
+
+            t = Thread(target=loop)
+            t.daemon = True
+            t.start()
+            return stopped
+
+        return wrapper
+
+    return decorator
+
+
+@every(WRITE_INTERVAL)
+def save_data_store():
+    dump(data_store.get(), open(DATA_STORE_FILE, "w"))
+
+
 data_store = Datastore()
+save_data_store()
