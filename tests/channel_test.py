@@ -8,14 +8,14 @@ from src.channel import (
     channel_invite_v1,
     channel_messages_v1,
 )
-from src.channels import channels_create_v1
+from src.channels import channels_create_v2
 from src.other import clear_v1
-from src.auth import auth_register_v1
+from src.auth import auth_register_v2
 from src.data_store import data_store
 import json
+import requests
 
-
-BASE_URL = "127.0.0.1:8080"
+BASE_URL = "http://127.0.0.1:8080"
 OK = 200
 INPUT_ERROR = 400
 ACCESS_ERROR = 403

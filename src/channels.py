@@ -6,12 +6,13 @@ that auth_user_id is valid before running code inside the functions.
 """
 from src.data_store import data_store
 from src.auth import JWT_SECRET
-from src.error import InputError
+from src.error import InputError, AccessError
 from src.other import validate_auth_id
 import json
 import re
 import jwt
 import hashlib
+from jwt import DecodeError
 
 
 @validate_auth_id
@@ -90,7 +91,8 @@ def channels_create_v2(token, name, is_public):
     channels = store["channels"]
 
     # Checks if the given token is valid
-    validate_token(token, store["users"])
+    u_information = validate_token(token, store["users"])
+    auth_user_id = u_information["u_id"]
 
     # checks for if the name is valid
     if len(name) < 1 or len(name) > 20:
@@ -129,13 +131,17 @@ def validate_token(token, users):
     Returns:
         u_information (dict) - A boolean declaring if token is valid
     """
-    u_information = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-    valid = any(True for user in users if users["u_id"] == u_information["u_id"])
-    found_user = [user for user in users if users["u_id"] == u_information["u_id"]][0]
+    try:
+        u_information = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    except DecodeError as Error:
+        raise AccessError(description="Invalid token")
+    valid = any(True for user in users if user["u_id"] == u_information["u_id"])
+    found_user = [user for user in users if user["u_id"] == u_information["u_id"]][0]
+    print(found_user)
     if valid:
         valid = any(
             True
-            for session in found_user["session_id"]
+            for session in found_user["session_ids"]
             if session == u_information["session_id"]
         )
     if not valid:
