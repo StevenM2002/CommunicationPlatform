@@ -195,7 +195,7 @@ def test_valid_multiple(setup_public):
 
 # Checking for private channels, only the owner is included
 def test_valid_private(setup_private):
-    new_token = requests.post(
+    requests.post(
         f"{config.url}/auth/register/v2",
         json={
             "email": "jane.citizen@gmail.com",

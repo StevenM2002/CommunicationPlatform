@@ -1,3 +1,4 @@
+import re
 from src.data_store import data_store
 from src.auth import JWT_SECRET
 from src.error import InputError, AccessError
@@ -21,7 +22,7 @@ def all_users(token):
     store = data_store.get()
 
     # Validating the input token
-    u_information = validate_token(token, store["users"])
+    validate_token(token, store["users"])
 
     # Returning the list of users
     users = [
@@ -52,10 +53,28 @@ def user_profile(token, u_id):
         Returns {name_first, name_last, email, handle_str}
 
     """
-    return user
+    # Loading the data store
+    store = data_store.get()
+    users = store["users"]
+
+    # Validating the input token
+    validate_token(token, users)
+
+    # Finding the correct user
+    found_user = [user for user in users if user["u_id"] == int(u_id)]
+
+    # Check to ensure a valid user has been found
+    if len(found_user) == 0:
+        raise InputError(description="User Not Found")
+
+    return {
+        key: value
+        for key, value in found_user[0].items()
+        if key not in ("session_ids", "password")
+    }
 
 
-def user_setname(token, name_first, name_last):
+def user_set_name(token, name_first, name_last):
     """Returns a list of all users when given a valid token
 
     Arguments:
@@ -72,6 +91,23 @@ def user_setname(token, name_first, name_last):
         Returns {}
 
     """
+    # Loading the data store
+    store = data_store.get()
+    users = store["users"]
+
+    # Validating the token
+    u_information = validate_token(token, users)
+
+    # Checks the length of the given strings, returning input errors if not
+    for name in (name_first, name_last):
+        if len(name) < 1 or len(name) > 50:
+            raise InputError(description="Invalid Length of Name")
+
+    # Changes the values in the dictionary
+    found_user = [user for user in users if user["u_id"] == u_information["u_id"]][0]
+    found_user["name_first"] = name_first
+    found_user["name_last"] = name_last
+
     return {}
 
 
@@ -92,10 +128,29 @@ def user_set_email(token, email):
         Returns {}
 
     """
+    # Loading the data store
+    store = data_store.get()
+    users = store["users"]
+
+    # Validating the token
+    u_information = validate_token(token, users)
+
+    # Checks if the given email fits the correct regex
+    if not re.fullmatch(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$", email):
+        raise InputError(description="invalid email")
+
+    # Checks if the email address is being used
+    invalid = any(True for user in users if user["email"] == email)
+    if invalid:
+        raise InputError(description="Email already in use")
+
+    # Changes the values in the dictionary
+    found_user = [user for user in users if user["u_id"] == u_information["u_id"]][0]
+    found_user["email"] = email
     return {}
 
 
-def user_set_handle(token, handle):
+def user_set_handle(token, handle_str):
     """Returns a list of all users when given a valid token
 
     Arguments:
@@ -113,4 +168,27 @@ def user_set_handle(token, handle):
         Returns {}
 
     """
+    # Loading the data store
+    store = data_store.get()
+    users = store["users"]
+
+    # Validating the token
+    u_information = validate_token(token, users)
+
+    # Checking that the length of the handle is valid
+    if len(handle_str) < 3 or len(handle_str) > 20:
+        raise InputError(description="Handle is of invalid length")
+
+    # Checking that handle only has alphanumeric
+    if not handle_str.isalnum():
+        raise InputError(description="Handle contains non alphanumeric characters")
+
+    # Checks if the handle is being used
+    invalid = any(True for user in users if user["handle_str"] == handle_str)
+    if invalid:
+        raise InputError(description="Handle already in use")
+
+    # Changes the values in the dictionary
+    found_user = [user for user in users if user["u_id"] == u_information["u_id"]][0]
+    found_user["handle_str"] = handle_str
     return {}
