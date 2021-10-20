@@ -137,7 +137,6 @@ def validate_token(token, users):
         raise AccessError(description="Invalid token") from Error
     valid = any(True for user in users if user["u_id"] == u_information["u_id"])
     found_user = [user for user in users if user["u_id"] == u_information["u_id"]][0]
-    print(found_user)
     if valid:
         valid = any(
             True
