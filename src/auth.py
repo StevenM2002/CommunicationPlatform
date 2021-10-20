@@ -8,12 +8,22 @@ This contains the functions for registering and logging into a user's account.
     auth_id = auth_register_v1("mark@gmail.com", "password123")
 """
 import re
+import jwt
+import hashlib
+import random
+from string import printable
 
 from src.data_store import data_store
 from src.error import InputError
 
+JWT_SECRET = "".join(random.choice(printable) for i in range(50))
 
-def auth_login_v1(email, password):
+"""jwt structure
+{"u_id": int, "session_id": int}
+"""
+
+
+def auth_login_v2(email, password):
     """Returns the auth_user_id of a registered user.
 
     Arguments:
@@ -31,14 +41,40 @@ def auth_login_v1(email, password):
 
     store = data_store.get()
     users = store["users"]
+
+    hashed_password = hashlib.sha256(password.encode()).hexdigest()
+
     for user in users:
         # check for correct email and password pair
-        if user["email"] == email and user["password"] == password:
-            return {"auth_user_id": user["u_id"]}
-    raise InputError("email and or password was incorrect")
+        if user["email"] == email and user["password"] == hashed_password:
+            # if correct user generate token
+            token_data = {
+                "u_id": user["u_id"],
+                "session_id": max(user["session_ids"]) + 1,
+            }
+            token = jwt.encode(token_data, JWT_SECRET, algorithm="HS256")
+
+            return {"auth_user_id": user["u_id"], "token": token}
+
+    raise InputError(description="email and or password was incorrect")
 
 
-def auth_register_v1(email, password, name_first, name_last):
+def auth_logout_v1(token):
+    # retreive token's data
+    token_data = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+
+    store = data_store.get()
+    users = store["users"]
+    for user in users:
+        # check for matching user_id
+        if user["u_id"] == token_data["u_id"]:
+            if token_data["session_id"] in user["session_ids"]:
+                user["session_ids"].remove(token_data["session_id"])
+            return {}
+    return {}
+
+
+def auth_register_v2(email, password, name_first, name_last):
     """Create a new Streams account for a user.
 
     Given a user's first and last name, email address, and password and return
@@ -66,20 +102,20 @@ def auth_register_v1(email, password, name_first, name_last):
 
     # password, email and name validity checks
     if len(password) < 6:
-        raise InputError("password must be 6 or more characters long")
+        raise InputError(description="password must be 6 or more characters long")
     if len(name_first) < 1 or len(name_first) > 50:
-        raise InputError("first name must be between 1 and 50 characters")
+        raise InputError(description="first name must be between 1 and 50 characters")
     if len(name_last) < 1 or len(name_last) > 50:
-        raise InputError("last name must be between 1 and 50 characters")
+        raise InputError(description="last name must be between 1 and 50 characters")
     if not re.fullmatch(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$", email):
-        raise InputError("invalid email")
+        raise InputError(description="invalid email")
 
     store = data_store.get()
     users = store["users"]
     # check for existing email
     for user in users:
         if user["email"] == email:
-            raise InputError("email already belongs to a user")
+            raise InputError(description="email already belongs to a user")
 
     # make new user id, maximum current id + 1
     user_id = max(users, key=lambda x: x["u_id"])["u_id"] + 1 if len(users) > 0 else 0
@@ -96,6 +132,8 @@ def auth_register_v1(email, password, name_first, name_last):
     if len(users) == 0:
         store["global_owners"].append(user_id)
 
+    password = hashlib.sha256(password.encode()).hexdigest()
+
     # add to user list
     users.append(
         {
@@ -105,11 +143,15 @@ def auth_register_v1(email, password, name_first, name_last):
             "name_first": name_first,
             "name_last": name_last,
             "handle_str": handle,
+            "session_ids": [1],
         }
     )
     data_store.set(store)
 
-    return {"auth_user_id": user_id}
+    token_data = {"u_id": user_id, "session_id": 1}
+    token = jwt.encode(token_data, JWT_SECRET, algorithm="HS256")
+
+    return {"auth_user_id": user_id, "token": token}
 
 
 def create_handle(handle, base_length):
