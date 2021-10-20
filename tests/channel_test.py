@@ -486,7 +486,7 @@ def dataset_addownersv1():
     return ({"r": (reg0, reg1, reg2)}, {"c": (chan_id0, chan_id1)})
 
 def test_add_1_owner_addownerv1(dataset_addownersv1):
-    response = requests.post(
+    requests.post(
         config.url + "channel/addowner/v1",
         json={
             "token": dataset_addownersv1["r"][0]["token"],
@@ -494,7 +494,14 @@ def test_add_1_owner_addownerv1(dataset_addownersv1):
             "u_id": dataset_addownersv1["r"][2]["auth_user_id"]
         }
     )
-
+    response = requests.get(
+        config.url + "channel/details/v2", 
+        params={
+            "token": dataset_addownersv1["r"][2]["token"], 
+            "channel_id": dataset_addownersv1["c"][0]
+        }
+    ).json()
+    assert dataset_addownersv1["r"][2]["auth_user_id"] in response["owner_members"]
 
 
 
