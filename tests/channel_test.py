@@ -1,5 +1,7 @@
 """Tests for functions from src/channel.py"""
 import pytest
+import requests
+from src import config
 
 from src.error import InputError, AccessError
 from src.channel import (
@@ -12,7 +14,6 @@ from src.channels import channels_create_v1
 from src.other import clear_v1
 from src.auth import auth_register_v2 as auth_register_v1
 from src.data_store import data_store
-
 
 @pytest.fixture
 def setup_public():
@@ -441,3 +442,63 @@ def test_global_owner_permissions():
 
     channel_private = channels_create_v1(user_id1, "test1", False)["channel_id"]
     channel_join_v1(global_owner, channel_private)
+
+@pytest.fixture
+def dataset_addownersv1():
+    requests.delete(config.url + "clear/v1")
+    reg0 = requests.post(
+        config.url + "auth/register/v2",
+        json={
+            "email": "user1@mail.com",
+            "password": "password",
+            "name_first": "first",
+            "name_last": "last",
+        },
+    ).json()
+    reg1 = requests.post(
+        config.url + "auth/register/v2",
+        json={
+            "email": "user2@mail.com",
+            "password": "password",
+            "name_first": "first",
+            "name_last": "last",
+        },
+    ).json()
+    reg2 = requests.post(
+        config.url + "auth/register/v2",
+        json={
+            "email": "user3@mail.com",
+            "password": "password",
+            "name_first": "first",
+            "name_last": "last",
+        },
+    ).json()
+
+    chan_id0 = requests.post(
+        config.url + "channels/create/v2",
+        json={"token": reg0["token"], "name": "chan0","is_public": True}
+    ).json()["channel_id"]
+    chan_id1 = requests.post(
+        config.url + "channels/create/v2",
+        json={"token": reg1["token"], "name": "chan1","is_public": True}
+    ).json()["channel_id"]
+    
+    return ({"r": (reg0, reg1, reg2)}, {"c": (chan_id0, chan_id1)})
+
+def test_add_1_owner_addownerv1(dataset_addownersv1):
+    response = requests.post(
+        config.url + "channel/addowner/v1",
+        json={
+            "token": dataset_addownersv1["r"][0]["token"],
+            "channel_id": dataset_addownersv1["c"][0],
+            "u_id": dataset_addownersv1["r"][2]["auth_user_id"]
+        }
+    )
+
+
+
+
+
+
+
+
