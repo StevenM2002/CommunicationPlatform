@@ -1,13 +1,15 @@
 import json
 import requests
-from auth import auth_register_v2
+import pytest
+from src import config
+from src.auth import auth_register_v2
 
 OK = 200
 INPUT_ERROR = 400
 ACCESS_ERROR = 403
 
 
-@pytest_fixture
+@pytest.fixture
 def new_users():
     # Clears the data store
     requests.delete(f"{config.url}/clear/v1")
@@ -15,7 +17,7 @@ def new_users():
     user = requests.post(
         f"{config.url}/auth/register/v2",
         json={
-            "email": "mario@gmail.com@gmail.com",
+            "email": "mario@gmail.com",
             "password": "itsameeee",
             "name_first": "Mario",
             "name_last": "Plumber",
@@ -51,11 +53,16 @@ def new_users():
         },
     )
     return user_token
+
+
 # user/all/v1 tests
 # Checks that an invalid token will return an Access Error
 def test_all_invalid_token(new_users):
-    response = requests.get(f"{config.url}/user/all/v1", params={"token" = "awsfkhbaeikfnkjasn"})
+    response = requests.get(
+        f"{config.url}/user/all/v1", params={"token": "awsfkhbaeikfnkjasn"}
+    )
     assert response.status_code == ACCESS_ERROR
+
 
 # Checks that when one user is entered the correct list is returned
 def test_all_single_user():
@@ -76,35 +83,34 @@ def test_all_single_user():
 
 # Checks that when multiple users are added the correct list is returned
 def test_all_valid_users(new_users):
-    response = requests.get(f"{config.url}/user/all/v1", params={new_users})
+    response = requests.get(f"{config.url}/user/all/v1", params={"token": new_users})
     assert response.status_code == OK
-    assert response.json(){
+    assert response.json() == {
         [
             {
-            "email": "mario@gmail.com",
-            "name_first": "Mario",
-            "name_last": "Plumber",
-            "handle_str": "marioplumber",
-
-        },
-        {
-            "email": "luigi@gmail.com",
-            "name_first": "Luigi",
-            "name_last": "Plumber",
-            "handle_str": "luigiplumber"
-        },
-        {
-            "email": "Peach@gmail.com",
-            "name_first": "Princess",
-            "name_last": "Peach",
-            "handle_str": "princesspeach"
-        },
-        {
-            "email": "bowser@gmail.com",
-            "name_first": "Bowser",
-            "name_last": "Turtle",
-            "handle_str": "bowserturtle"
-        }
+                "email": "mario@gmail.com",
+                "name_first": "Mario",
+                "name_last": "Plumber",
+                "handle_str": "marioplumber",
+            },
+            {
+                "email": "luigi@gmail.com",
+                "name_first": "Luigi",
+                "name_last": "Plumber",
+                "handle_str": "luigiplumber",
+            },
+            {
+                "email": "Peach@gmail.com",
+                "name_first": "Princess",
+                "name_last": "Peach",
+                "handle_str": "princesspeach",
+            },
+            {
+                "email": "bowser@gmail.com",
+                "name_first": "Bowser",
+                "name_last": "Turtle",
+                "handle_str": "bowserturtle",
+            },
         ]
     }
 
@@ -113,56 +119,45 @@ def test_all_valid_users(new_users):
 # Checks if the channel_id doesn't point to a valid user, an input error is raised
 def test_profile_invalid_user(new_users):
     response = requests.get(
-        f"{config.url}/user/profile/v1", 
-        params={
-                "token": new_users, 
-                "u_id": 20
-                })
+        f"{config.url}/user/profile/v1", params={"token": new_users, "u_id": 20}
+    )
     assert response.status_code == INPUT_ERROR
 
 
 # Checks if an invalid token is inserted, an access error is returned
 def test_profile_invalid_token(new_users):
     response = requests.get(
-        f"{config.url}/user/profile/v1", 
-        params={
-            "token" = "awsfkhbaeikfnkjasn", 
-            "channel_id": 0
-            })
+        f"{config.url}/user/profile/v1",
+        params={"token": "awsfkhbaeikfnkjasn", "channel_id": 0},
+    )
     assert response.status_code == ACCESS_ERROR
 
 
 # Checks that when a valid profile is input, the correct user's profile is output
 def test_profile_valid_id(new_users):
     response = requests.get(
-        f"{config.url}/user/profile/v1", 
-        params={
-                "token": new_users, 
-                "u_id": 1
-                })
+        f"{config.url}/user/profile/v1", params={"token": new_users, "u_id": 1}
+    )
     assert response.status_code == OK
     assert response.json() == {
         "email": "luigi@gmail.com",
         "name_first": "Luigi",
         "name_last": "Plumber",
-        "handle_str": "luigiplumber"
+        "handle_str": "luigiplumber",
     }
 
 
 # Checks if a one calls themselves, it still returns the user information
 def test_profile_valid_id(new_users):
     response = requests.get(
-        f"{config.url}/user/profile/v1", 
-        params={
-                "token": new_users, 
-                "u_id": 0
-                })
+        f"{config.url}/user/profile/v1", params={"token": new_users, "u_id": 0}
+    )
     assert response.status_code == OK
     assert response.json() == {
         "email": "mario@gmail.com",
         "name_first": "Mario",
         "name_last": "Plumber",
-        "handle_str": "marioplumber"
+        "handle_str": "marioplumber",
     }
 
 
@@ -170,92 +165,77 @@ def test_profile_valid_id(new_users):
 # Checks that an invalid token returns an Access Error
 def test_setname_invalid_id(new_users):
     response = requests.put(
-        f"{config.url}/user/profile/setname/v1", 
+        f"{config.url}/user/profile/setname/v1",
         json={
-            "token": "asdhujbfgsdshjadng", 
-            "name_first": "toad", 
-            "name_last": "mushroom"
-            }
-        )
+            "token": "asdhujbfgsdshjadng",
+            "name_first": "toad",
+            "name_last": "mushroom",
+        },
+    )
     assert response.status_code == ACCESS_ERROR
 
 
 # Checks that a short first name returns an input error
 def test_setname_short_first(new_users):
     response = requests.put(
-        f"{config.url}/user/profile/setname/v1", 
-        json={
-            "token":"asdhujbfgsdshjadng", 
-            "name_first": "", 
-            "name_last": "mushroom"
-            }
-        )
+        f"{config.url}/user/profile/setname/v1",
+        json={"token": "asdhujbfgsdshjadng", "name_first": "", "name_last": "mushroom"},
+    )
     assert response.status_code == INPUT_ERROR
 
 
 # Checks that a short last name returns an input error
 def test_setname_short_last(new_users):
     response = requests.put(
-        f"{config.url}/user/profile/setname/v1", 
-        json={
-            "token": new_users, 
-            "name_first": "toad", 
-            "name_last": ""
-            }
-        )
+        f"{config.url}/user/profile/setname/v1",
+        json={"token": new_users, "name_first": "toad", "name_last": ""},
+    )
     assert response.status_code == INPUT_ERROR
 
 
 # Checks that a long last name returns an input error
 def test_setname_short_last(new_users):
     response = requests.put(
-        f"{config.url}/user/profile/setname/v1", 
+        f"{config.url}/user/profile/setname/v1",
         json={
-            "token": new_users, 
-            "name_first": "qwertyuiopasdfghjklzxcvbnmqwertyuiopasdfghjklzxcvbnm", 
-            "name_last": "mushroom"
-            }
-        )
+            "token": new_users,
+            "name_first": "qwertyuiopasdfghjklzxcvbnmqwertyuiopasdfghjklzxcvbnm",
+            "name_last": "mushroom",
+        },
+    )
     assert response.status_code == INPUT_ERROR
 
 
 # Checks that a long last name returns an input error
 def test_setname_short_last(new_users):
     response = requests.put(
-        f"{config.url}/user/profile/setname/v1", 
+        f"{config.url}/user/profile/setname/v1",
         json={
-            "token": new_users, 
-            "name_first": "toad", 
-            "name_last": "qwertyuiopasdfghjklzxcvbnmqwertyuiopasdfghjklzxcvbnm"
-            }
-        )
+            "token": new_users,
+            "name_first": "toad",
+            "name_last": "qwertyuiopasdfghjklzxcvbnmqwertyuiopasdfghjklzxcvbnm",
+        },
+    )
     assert response.status_code == INPUT_ERROR
 
 
 # Checks that a valid input creates the expected change
 def test_setname_valid(new_users):
     response = requests.put(
-        f"{config.url}/user/profile/setname/v1", 
-        json={
-            "token": new_users, 
-            "name_first": "Toad", 
-            "name_last": "Mushroom"
-            }
-        )
+        f"{config.url}/user/profile/setname/v1",
+        json={"token": new_users, "name_first": "Toad", "name_last": "Mushroom"},
+    )
     assert response.status_code == OK
     assert reponse.json() == {}
     new_response = requests.get(
-        f"{config.url}/user/profile/v1", 
-        params={
-                "token": new_users, 
-                "u_id": 0
-                })
+        f"{config.url}/user/profile/v1", params={"token": new_users, "u_id": 0}
+    )
     assert response.status_code == OK
     assert response.json() == {
         "email": "mario@gmail.com",
         "name_first": "Toad",
         "name_last": "Mushroom",
-        "handle_str": "marioplumber"
+        "handle_str": "marioplumber",
     }
 
 
@@ -263,62 +243,59 @@ def test_setname_valid(new_users):
 # Checks that an invalid token returns an Access Error
 def test_setname_invalid_id(new_users):
     response = requests.put(
-        f"{config.url}/user/profile/setname/v1", 
+        f"{config.url}/user/profile/setname/v1",
         json={
-            "token": "asdhujbfgsdshjadng", 
-            "email": "toad@gmail.com", 
-            }
-        )
+            "token": "asdhujbfgsdshjadng",
+            "email": "toad@gmail.com",
+        },
+    )
     assert response.status_code == ACCESS_ERROR
 
 
 # Checks that an invalid email returns an Input Error
 def test_setemail_invalid_email(new_users):
     response = requests.put(
-        f"{config.url}/user/profile/setname/v1", 
+        f"{config.url}/user/profile/setname/v1",
         json={
-            "token": new_users, 
-            "email": "toadedoesntlikeemails", 
-            }
-        )
+            "token": new_users,
+            "email": "toadedoesntlikeemails",
+        },
+    )
     assert response.status_code == INPUT_ERROR
 
 
 # Checks that a duplicate email returns an Input Error
 def test_setemail_duplicate_email(new_users):
     response = requests.put(
-        f"{config.url}/user/profile/setname/v1", 
+        f"{config.url}/user/profile/setname/v1",
         json={
-            "token": new_users, 
-            "email": "bowser@gmail.com", 
-            }
-        )
+            "token": new_users,
+            "email": "bowser@gmail.com",
+        },
+    )
     assert response.status_code == INPUT_ERROR
 
 
 # Checks that a valid email returns the correct output
 def test_setemail_valid(new_users):
     response = requests.put(
-        f"{config.url}/user/profile/setname/v1", 
+        f"{config.url}/user/profile/setname/v1",
         json={
-            "token": new_users, 
-            "email": "toad@gmail.com", 
-            }
-        )
+            "token": new_users,
+            "email": "toad@gmail.com",
+        },
+    )
     assert response.status_code == OK
     assert response.json() == {}
     new_response = requests.get(
-        f"{config.url}/user/profile/v1", 
-        params={
-                "token": new_users, 
-                "u_id": 0
-                })
+        f"{config.url}/user/profile/v1", params={"token": new_users, "u_id": 0}
+    )
     assert response.status_code == OK
     assert response.json() == {
         "email": "toad@gmail.com",
         "name_first": "Mario",
         "name_last": "Plumber",
-        "handle_str": "marioplumber"
+        "handle_str": "marioplumber",
     }
 
 
@@ -326,83 +303,81 @@ def test_setemail_valid(new_users):
 # Checks that an invalid token returns an Access Error
 def test_sethandle_invalid_id(new_users):
     response = requests.put(
-        f"{config.url}/user/profile/setname/v1", 
+        f"{config.url}/user/profile/setname/v1",
         json={
-            "token": "asdhujbfgsdshjadng", 
-            "handle_str": "toadmushroom", 
-            }
-        )
+            "token": "asdhujbfgsdshjadng",
+            "handle_str": "toadmushroom",
+        },
+    )
     assert response.status_code == ACCESS_ERROR
 
 
 # Checks that a short handle returns an Input Error
 def test_sethandle_short(new_users):
     response = requests.put(
-        f"{config.url}/user/profile/setname/v1", 
+        f"{config.url}/user/profile/setname/v1",
         json={
-            "token": new_users, 
-            "email": "ab", 
-            }
-        )
+            "token": new_users,
+            "email": "ab",
+        },
+    )
     assert response.status_code == INPUT_ERROR
 
 
 # Checks that a long handle returns an Input Error
 def test_sethandle_short(new_users):
     response = requests.put(
-        f"{config.url}/user/profile/setname/v1", 
+        f"{config.url}/user/profile/setname/v1",
         json={
-            "token": new_users, 
-            "email": "qwertyuiopasdfghjklzxcvbnm", 
-            }
-        )
+            "token": new_users,
+            "email": "qwertyuiopasdfghjklzxcvbnm",
+        },
+    )
     assert response.status_code == INPUT_ERROR
 
 
 # Checks that a handle doesn't contain non alpha-numeric characters
 def test_sethandle_alphanumeric(new_users):
     response = requests.put(
-        f"{config.url}/user/profile/setname/v1", 
+        f"{config.url}/user/profile/setname/v1",
         json={
-            "token": new_users, 
-            "email": "toaddon'tlike??", 
-            }
-        )
+            "token": new_users,
+            "email": "toaddon'tlike??",
+        },
+    )
     assert response.status_code == INPUT_ERROR
 
 
 # Checks that handle is in use, returning an Inpur Error
 def test_sethandle_duplicate(new_users):
     response = requests.put(
-        f"{config.url}/user/profile/setname/v1", 
+        f"{config.url}/user/profile/setname/v1",
         json={
-            "token": new_users, 
-            "email": "luigiplumber", 
-            }
-        )
+            "token": new_users,
+            "email": "luigiplumber",
+        },
+    )
     assert response.status_code == INPUT_ERROR
+
 
 # Checks that a valid email returns the correct output
 def test_sethandle_valid(new_users):
     response = requests.put(
-        f"{config.url}/user/profile/setname/v1", 
+        f"{config.url}/user/profile/setname/v1",
         json={
-            "token": new_users, 
-            "handle_str": "toadmushroom", 
-            }
-        )
+            "token": new_users,
+            "handle_str": "toadmushroom",
+        },
+    )
     assert response.status_code == OK
     assert response.json() == {}
     new_response = requests.get(
-        f"{config.url}/user/profile/v1", 
-        params={
-                "token": new_users, 
-                "u_id": 0
-                })
+        f"{config.url}/user/profile/v1", params={"token": new_users, "u_id": 0}
+    )
     assert response.status_code == OK
     assert response.json() == {
         "email": "mario@gmail.com",
         "name_first": "Mario",
         "name_last": "Plumber",
-        "handle_str": "toadmushroom"
+        "handle_str": "toadmushroom",
     }
