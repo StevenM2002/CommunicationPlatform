@@ -272,17 +272,16 @@ def list_data_v2():
     requests.delete(config.url + "clear/v1")
     token0 = requests.post(
         config.url + "auth/register/v2",
-        data={
+        json={
             "email": "user1@mail.com",
             "password": "password",
             "name_first": "first",
             "name_last": "last",
         },
     ).json()["token"]
-
     token1 = requests.post(
         config.url + "auth/register/v2",
-        data={
+        json={
             "email": "user2@mail.com",
             "password": "password",
             "name_first": "first",
@@ -292,7 +291,7 @@ def list_data_v2():
 
     token2 = requests.post(
         config.url + "auth/register/v2",
-        data={
+        json={
             "email": "user3@mail.com",
             "password": "password",
             "name_first": "first",
@@ -305,6 +304,7 @@ def list_data_v2():
 def test_no_channels_listv2(list_data_v2):
     # Use requests.post or requests.delete and stuff to give data
     payload = requests.get(config.url + "channels/list/v2", params={"data": list_data_v2[0]})
+    print(json.loads(payload.text))
     assert payload.json() == {"channels": []}
     requests.post(config.url + "channels/create/v2", params={list_data_v2[1], "chan1", True})
     payload = requests.get(config.url + "channels/list/v2", params={"data": list_data_v2[0]})
@@ -373,7 +373,7 @@ def test_multiple_people_in_channel_listv2(list_data_v2):
         "channels": [{"channel_id": chan_id0["channel_id"], "name": "chan0"}]
     }
 
-def test_user_not_in_multiple_channels(list_data_v2):
+def test_user_not_in_multiple_channels_listv2(list_data_v2):
     requests.post(
         config.url + "channels/create/v2", params={list_data_v2[0], "chan0", False}
     )            
@@ -388,19 +388,16 @@ def test_user_not_in_multiple_channels(list_data_v2):
         "channels": [{"channel_id": chan_id2["channel_id"], "name": "chan2"}]
     }
 
-def test_incorrect_token(list_data_v2):
-    requests.post(
-        config.url + "channels/create/v2", params={list_data_v2[0], "chan0", False}
-    )
-    with pytest.raises(AccessError):
-        assert requests.get(config.url + "channels/list/v2", params={"data": "not.the.token"})
+def test_invalid_token_listv2(list_data_v2):
+    response = requests.get(config.url + "channels/list/v2", params={"data": "not.the.token"})
+    assert response.status_code == 403
 
 @pytest.fixture
 def listall_data_v2():
     requests.delete(config.url + "clear/v1")
     token0 = requests.post(
         config.url + "auth/register/v2",
-        data={
+        json={
             "email": "user0@mail.com",
             "password": "password",
             "name_first": "first",
@@ -409,7 +406,7 @@ def listall_data_v2():
     ).json()["token"]
     token1 = requests.post(
         config.url + "auth/register/v2",
-        data={
+        json={
             "email": "user1@mail.com",
             "password": "password",
             "name_first": "first",
@@ -418,7 +415,7 @@ def listall_data_v2():
     ).json()["token"]
     token2 = requests.post(
         config.url + "auth/register/v2",
-        data={
+        json={
             "email": "user2@mail.com",
             "password": "password",
             "name_first": "first",
@@ -469,7 +466,7 @@ def test_many_channels_listallv2(listall_data_v2):
         ]
     }
 
-def test_user_is_not_owner(listall_data_v2):
+def test_user_is_not_owner_listallv2(listall_data_v2):
     chan_id0 = requests.post(
         config.url + "channels/create/v2", params={listall_data_v2[0], "chan0", True}
     )
@@ -481,11 +478,11 @@ def test_user_is_not_owner(listall_data_v2):
         "channels": [{"channel_id": chan_id0["channel_id"], "name": "chan0"}]
     }
 
-def test_invalid_token(listall_data_v2):
-    requests.post(
-        config.url + "channels/create/v2", params={listall_data_v2[0], "chan0", True}
-    )
-    with pytest.raises(AccessError):
-        assert requests.get(config.url + "channels/listall/v2", params={"data": "not.the.token"})
+def test_invalid_token_listallv2(listall_data_v2):
+    #requests.post(
+    #    config.url + "channels/create/v2", params={listall_data_v2[0], "chan0", True}
+    #)
+    response = requests.get(config.url + "channels/listall/v2", params={"data": "not.valid.token"})
+    assert response.status_code == 403
 
 
