@@ -2,7 +2,7 @@ import signal
 from json import dumps
 from flask import Flask, request
 from flask_cors import CORS
-from src.channels import channels_listall_v1, channels_list_v1
+from src.channels import channels_listall_v2, channels_list_v2
 from src import config, auth, dm
 from src.other import clear_v1
 
@@ -97,16 +97,13 @@ def clear():
     return {}
 
 @APP.route("/channels/listall/v2", methods=["GET"])
-def channels_listall_v2():
-    # Need to do auth the token and recieve a token?
+def channels_listingall():
     token = request.args.get("data")
     return dumps(channels_listall_v2(token))
     
 @APP.route("/channels/list/v2", methods=["GET"])
-def channels_list_v2():
-    # Take out auth id from token and pass into list function
-    #x = request.get_json() to get token
-    token = request.args.get("data")
+def channels_listing():
+    token = request.args.get("data")  
     return dumps(channels_list_v2(token))
 
 #### NO NEED TO MODIFY BELOW THIS POINT
