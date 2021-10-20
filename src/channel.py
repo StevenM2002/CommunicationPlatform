@@ -18,6 +18,8 @@ from src.data_store import data_store
 from src.error import AccessError, InputError
 from src.other import validate_auth_id, first
 
+EXCLUDE_LIST = ["password", "session_ids"]
+
 
 @validate_auth_id
 def channel_invite_v1(auth_user_id, channel_id, u_id):
@@ -127,7 +129,9 @@ def channel_details_v1(auth_user_id, channel_id):
         for i, user_id in enumerate(found_channel[member_key]):
             member_user = [user for user in users if user["u_id"] == user_id][0]
             found_channel[member_key][i] = {
-                key: value for key, value in member_user.items() if key != "password"
+                key: value
+                for key, value in member_user.items()
+                if key not in EXCLUDE_LIST
             }
 
     # return found_channel excluding for channel_id and messages keys
