@@ -7,6 +7,7 @@ from src.channel import channel_details_v2
 from src import config, auth
 from src.other import clear_v1
 from src.error import InputError, AccessError
+from src.user import all_users
 
 
 def quit_gracefully(*args):
@@ -85,6 +86,12 @@ def get_channel_details():
     token = request.args.get("token")
     channel_id = request.args.get("channel_id")
     return dumps(channel_details_v2(token, channel_id))
+
+
+@APP.route("/user/all/v1", methods=["GET"])
+def get_all_users():
+    token = request.args.get("token")
+    return dumps(all_users(token))
 
 
 if __name__ == "__main__":

@@ -21,7 +21,7 @@ def all_users(token):
     store = data_store.get()
 
     # Validating the input token
-    u_information = validate_token(token, users)
+    u_information = validate_token(token, store["users"])
 
     # Returning the list of users
     users = [

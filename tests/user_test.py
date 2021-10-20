@@ -70,49 +70,59 @@ def test_all_single_user():
     token = requests.post(
         f"{config.url}/auth/register/v2",
         json={
-            "email": "mario@gmail.com@gmail.com",
+            "email": "mario@gmail.com",
             "password": "itsameeee",
             "name_first": "Mario",
             "name_last": "Plumber",
         },
     ).json()["token"]
     response = requests.get(f"{config.url}/user/all/v1", params={"token": token})
-    assert reponse.status_code == OK
-    assert reponse.json() == []
+    assert response.status_code == OK
+    assert response.json() == [
+        {
+            "u_id": 0,
+            "email": "mario@gmail.com",
+            "name_first": "Mario",
+            "name_last": "Plumber",
+            "handle_str": "marioplumber",
+        }
+    ]
 
 
 # Checks that when multiple users are added the correct list is returned
 def test_all_valid_users(new_users):
     response = requests.get(f"{config.url}/user/all/v1", params={"token": new_users})
     assert response.status_code == OK
-    assert response.json() == {
-        [
-            {
-                "email": "mario@gmail.com",
-                "name_first": "Mario",
-                "name_last": "Plumber",
-                "handle_str": "marioplumber",
-            },
-            {
-                "email": "luigi@gmail.com",
-                "name_first": "Luigi",
-                "name_last": "Plumber",
-                "handle_str": "luigiplumber",
-            },
-            {
-                "email": "Peach@gmail.com",
-                "name_first": "Princess",
-                "name_last": "Peach",
-                "handle_str": "princesspeach",
-            },
-            {
-                "email": "bowser@gmail.com",
-                "name_first": "Bowser",
-                "name_last": "Turtle",
-                "handle_str": "bowserturtle",
-            },
-        ]
-    }
+    assert response.json() == [
+        {
+            "u_id": 0,
+            "email": "mario@gmail.com",
+            "name_first": "Mario",
+            "name_last": "Plumber",
+            "handle_str": "marioplumber",
+        },
+        {
+            "u_id": 1,
+            "email": "luigi@gmail.com",
+            "name_first": "Luigi",
+            "name_last": "Plumber",
+            "handle_str": "luigiplumber",
+        },
+        {
+            "u_id": 2,
+            "email": "Peach@gmail.com",
+            "name_first": "Princess",
+            "name_last": "Peach",
+            "handle_str": "princesspeach",
+        },
+        {
+            "u_id": 3,
+            "email": "bowser@gmail.com",
+            "name_first": "Bowser",
+            "name_last": "Turtle",
+            "handle_str": "bowserturtle",
+        },
+    ]
 
 
 # user/profile/v1 tests
