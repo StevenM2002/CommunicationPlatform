@@ -64,7 +64,7 @@ def test_create(dm_users):
 
 
 def test_list(dm_create):
-    dm_id, dm_users = dm_create
+    dm_users = dm_create[1]
 
     r = requests.get(f"{config.url}dm/list/v1", json={"token": dm_users[0]["token"]})
 
@@ -327,7 +327,7 @@ def test_invalid_dm_id(dm_users):
 
 def test_create_mutiple_dm(dm_users):
     ids = []
-    for i in range(10):
+    for _ in range(10):
         r = requests.post(
             f"{config.url}dm/create/v1",
             json={
