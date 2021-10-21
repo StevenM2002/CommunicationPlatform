@@ -239,8 +239,8 @@ def channel_addowner_v1(token, channel_id, u_id):
     store = data_store.get()
     try:
         payload = jwt.decode(token, key=JWT_SECRET, algorithms=["HS256"])
-    except:
-        raise AccessError("invalid token")
+    except Exception as e:
+        raise AccessError("invalid token") from e
 
     for users in store["users"]:
         if users["u_id"] == payload["u_id"]:
@@ -277,8 +277,9 @@ def channel_addowner_v1(token, channel_id, u_id):
 
     raise AccessError("does not have owner perms")
 
+
 def channel_removeowner_v1(token, channel_id, u_id):
-    '''
+    """
     Input err when:
     channel_id does not refer to a valid channel
     u_id does not refer to a valid user
@@ -288,12 +289,12 @@ def channel_removeowner_v1(token, channel_id, u_id):
     Access err when:
     channel_id is valid and the authorised user does not have owner permissions in the channel
         AKA token_uid needs to be either a global owner and a user in channel or a channel owner
-    '''
+    """
     store = data_store.get()
     try:
         payload = jwt.decode(token, key=JWT_SECRET, algorithms=["HS256"])
-    except:
-        raise AccessError("invalid token")
+    except Exception as e:
+        raise AccessError("invalid token") from e
 
     for users in store["users"]:
         if users["u_id"] == payload["u_id"]:
@@ -319,15 +320,16 @@ def channel_removeowner_v1(token, channel_id, u_id):
             if u_id not in channel["owner_members"]:
                 raise InputError("u_id not an owner")
             if len(channel["owner_members"] == 0):
-                raise InputError["cannot remove only channel owner"]
+                raise InputError("cannot remove only channel owner")
             if (payload["u_id"] in channel["all_members"] and is_global_owner) or (
                 payload["u_id"] in channel["global_owners"]
             ):
                 channel["owner_members"].remove(u_id)
                 data_store.set(store)
                 return {}
-    
+
     raise AccessError("does not have owner perms")
+
 
 def channel_leave_v1(token, channel_id):
     """
@@ -352,26 +354,24 @@ def channel_leave_v1(token, channel_id):
     store = data_store.get()
     try:
         payload = jwt.decode(token, key=JWT_SECRET, algorithms=["HS256"])
-    except:
-        raise AccessError("invalid token")
+    except Exception as e:
+        raise AccessError("invalid token") from e
 
     all_chan_ids = [chans["channel_id"] for chans in store["channels"]]
     if channel_id not in all_chan_ids:
         raise InputError("channel_id not valid")
 
-    the_channel = None
+    # the_channel = None
     for channels in store["channels"]:
         if channel_id == channels["channel_id"]:
-            the_channel == channels
-            if payload["u_id"] not in channel["all_members"]:
+            # the_channel == channels
+            if payload["u_id"] not in channels["all_members"]:
                 raise AccessError("user not member in channel")
-
-    the_channel["all_members"].remove(u_id)
-    try:
-        the_channel["owner_members"].remove(u_id)
-    except ValueError:
-        pass
-
-
-
-
+            else:
+                channels["all_members"].remove(payload["u_id"])
+                try:
+                    channels["owner_members"].remove(payload["u_id"])
+                except ValueError:
+                    pass
+    raise AccessError("channel does not exist")
+    
