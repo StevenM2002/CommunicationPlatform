@@ -3,22 +3,14 @@ import pytest
 import requests
 import json
 from src.error import InputError, AccessError
-from src.channel import (
-    channel_details_v1,
-    channel_join_v1,
-    channel_invite_v1,
-    channel_messages_v1,
-)
-from src.channels import channels_create_v1
 from src.other import clear_v1
-from src.auth import auth_register_v1
 from src.data_store import data_store
-from src import config
+from src import config 
 import requests 
 
+@pytest.fixture
 def setup_public():
     requests.delete(config.url + "clear/v1")
-
     response = requests.post(config.url + 'auth/register/v2', 
         json={
         "email": "jon.doe@gmail.com", 
@@ -36,6 +28,7 @@ def setup_public():
         }
     )
     user_id = r.json()['auth_user_id']
+    user_token = r.json()['token']
     token = response.json()['token']
     token_id = response.json()['auth_user_id']
     # create a public channel
@@ -45,11 +38,20 @@ def setup_public():
         }
     )
     channel_id = response.json()['channel_id']
-    return {'user_id': user_id, 'channel_id': channel_id, 'token_id': token_id}
-
+    return {'user_id': user_id, 'channel_id': channel_id, 'token_id': token_id,\
+        'token': token, 'user_token': user_token}
+@pytest.fixture
 def setup_private():
     requests.delete(config.url + "clear/v1")
-
+    resp = requests.post(config.url + 'auth/register/v2', 
+        json={
+        "email": "gon.goe@dmail.com", 
+        "password": "barrits", 
+        "name_first": "Noj", 
+        "name_last":"Eod"
+        }
+    )
+    global_token = resp.json()['token']
     response = requests.post(config.url + 'auth/register/v2', 
         json={
         "email": "jon.doe@gmail.com", 
@@ -78,13 +80,14 @@ def setup_private():
     )
     channel_id = response.json()['channel_id']
     return {'user_id': user_id, 'channel_id': channel_id, 'token_id': token_id,\
-        'user_token': user_token}
+        'user_token': user_token, 'token': token, 'global_token': global_token}
 # channel invite tests
-def test_channel_invite():
-    data = setup_public()
+def test_channel_invite(setup_public):
+    data = setup_public
     u_id = data['user_id']
     channel_id = data['channel_id']
     token = data['token']
+    user_token = data['user_token']
     response = requests.post(config.url + 'channel/invite/v2', 
         json = {
             'token': token,
@@ -95,13 +98,14 @@ def test_channel_invite():
     assert response.status_code == 200
     response = requests.get(config.url + 'channel/details/v2', 
         json= {
-            'token': token,
+            'token': user_token,
             'channel_id': channel_id
         }
+  
     )
     assert response.status_code == 200
-def test_invite_invalid_channel():
-    data = setup_public()
+def test_invite_invalid_channel(setup_public):
+    data = setup_public
     u_id = data['user_id']
     channel_id = data['channel_id'] + 1
     token = data['token']
@@ -112,11 +116,11 @@ def test_invite_invalid_channel():
             'u_id': u_id
         }
     )
-    assert response.status_code == 400
+    assert response.status_code == InputError.code
 
-def test_invite_invalid_user():
-    data = setup_public()
-    u_id = data['user_id'] + data['token_id']
+def test_invite_invalid_user(setup_public):
+    data = setup_public
+    u_id = data['user_id'] + data['token_id'] + 1
     channel_id = data['channel_id']
     token = data['token']
     response = requests.post(config.url + 'channel/invite/v2', 
@@ -126,20 +130,21 @@ def test_invite_invalid_user():
             'u_id': u_id
         }
     )
-    assert response.status_code == 400
+    assert response.status_code == InputError.code
 
-def test_invite_auth_not_member():
-    data = setup_public()
+def test_invite_auth_not_member(setup_public):
+    data = setup_public
     u_id = data['user_id']
     channel_id = data['channel_id']
     r = requests.post(config.url + 'auth/register/v2', 
         json={
         "email": "lbandas@gmail.com", 
-        "password": "pword", 
+        "password": "password", 
         "name_first": "Lewis", 
         "name_last":"Bandas"
         }
     )
+    assert r.status_code == 200
     fake_token = r.json()['token']
     response = requests.post(config.url + 'channel/invite/v2', 
         json= {
@@ -148,11 +153,11 @@ def test_invite_auth_not_member():
             'u_id': u_id
         }
     )
-    assert response.status_code == 400
+    assert response.status_code == AccessError.code
 
 
-def test_invite_already_member():
-    data = setup_public()
+def test_invite_already_member(setup_public):
+    data = setup_public
     u_id = data['user_id']
     channel_id = data['channel_id']
     token = data['token']
@@ -170,12 +175,12 @@ def test_invite_already_member():
             'u_id': u_id
         }
     )
-    assert response.status_code == 400
+    assert response.status_code == InputError.code
 
 # channel join tests
-def test_channel_join():
-    data = setup_public()
-    token = data['token']
+def test_channel_join(setup_public):
+    data = setup_public
+    token = data['user_token']
     channel_id = data['channel_id']
     response = requests.post(config.url + 'channel/join/v2', 
         json= {
@@ -192,9 +197,9 @@ def test_channel_join():
     )
     assert response.status_code == 200
 
-def test_join_invalid_channel():
-    data = setup_public()
-    token = data['token']
+def test_join_invalid_channel(setup_public):
+    data = setup_public
+    token = data['user_token']
     channel_id = data['channel_id'] + 1
     response = requests.post(config.url + 'channel/join/v2', 
         json= {
@@ -202,13 +207,13 @@ def test_join_invalid_channel():
             'channel_id': channel_id
         }
     )
-    assert response.status_code == 400
+    assert response.status_code == InputError.code
 
 
 
-def test_join_already_member():
-    data = setup_public()
-    token = data['token']
+def test_join_already_member(setup_public):
+    data = setup_public
+    token = data['user_token']
     channel_id = data['channel_id']
     response = requests.post(config.url + 'channel/join/v2', 
         json= {
@@ -222,11 +227,10 @@ def test_join_already_member():
             'channel_id': channel_id
         }
     )
-    assert response.status_code == 400
+    assert response.status_code == InputError.code
 
-def test_join_priv_channel():
-    data = setup_private()
-    data = setup_private()
+def test_join_priv_channel(setup_private):
+    data = setup_private
     fake_token = data['user_token']
     channel_id = data['channel_id']
     response = requests.post(config.url + 'channel/join/v2', 
@@ -235,24 +239,24 @@ def test_join_priv_channel():
             'channel_id': channel_id
         }
     )
-    assert response.status_code == 400
+    assert response.status_code == AccessError.code
 
 
 
-def test_join_global_owner():
-    data = setup_private()
-    token = data['token']
+def test_join_global_owner(setup_private):
+    data = setup_private
+    global_token = data['global_token']
     channel_id = data['channel_id']
     response = requests.post(config.url + 'channel/join/v2', 
         json= {
-            'token': token,
+            'token': global_token,
             'channel_id': channel_id
         }
     )
     assert response.status_code == 200
     response = requests.get(config.url + 'channel/details/v2', 
         json= {
-            'token': token,
+            'token': global_token,
             'channel_id': channel_id
         }
     )
