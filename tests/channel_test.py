@@ -23,7 +23,7 @@ ACCESS_ERROR = 403
 
 
 @pytest.fixture
-def setup_public():
+def setup_public_channel():
     # Clears the data store
     requests.delete(f"{config.url}/clear/v1")
     # Creates a user with id 0
@@ -48,7 +48,7 @@ def setup_public():
 
 
 @pytest.fixture
-def setup_private():
+def setup_private_channel():
     # Clears the data store
     requests.delete(f"{config.url}/clear/v1")
     # Creates a user with id 0
@@ -74,17 +74,17 @@ def setup_private():
 
 # Channel Details Tests
 # Input channel_id is invalid
-def test_invalid_channel_id(setup_public):
+def test_invalid_channel_id(setup_public_channel):
     response = requests.get(
         f"{config.url}/channel/details/v2",
-        params={"token": setup_public, "channel_id": 10},
+        params={"token": setup_public_channel, "channel_id": 10},
     )
     print(response)
     assert response.status_code == INPUT_ERROR
 
 
 # Input auth_user_id is invalid
-def test_invalid_user_id(setup_public):
+def test_invalid_user_id(setup_public_channel):
     response = requests.get(
         f"{config.url}/channel/details/v2",
         params={"token": "asdfvbcasweuyfvh", "channel_id": 0},
@@ -93,7 +93,7 @@ def test_invalid_user_id(setup_public):
 
 
 # User is not a member of the channel
-def test_not_member(setup_private):
+def test_not_member(setup_private_channel):
     # Initialises a new member that isn't a member of the new private channel
     new_token = requests.post(
         f"{config.url}/auth/register/v2",
@@ -112,10 +112,10 @@ def test_not_member(setup_private):
 
 
 # Both inputs are valid
-def test_valid_inputs(setup_public):
+def test_valid_inputs(setup_public_channel):
     response = requests.get(
         f"{config.url}/channel/details/v2",
-        params={"token": setup_public, "channel_id": 0},
+        params={"token": setup_public_channel, "channel_id": 0},
     )
     print(response)
     assert response.status_code == OK
@@ -144,7 +144,7 @@ def test_valid_inputs(setup_public):
 
 
 # Checking access for multiple users
-def test_valid_multiple(setup_public):
+def test_valid_multiple(setup_public_channel):
     new_token = requests.post(
         f"{config.url}/auth/register/v2",
         json={
@@ -160,7 +160,7 @@ def test_valid_multiple(setup_public):
     )
     response = requests.get(
         f"{config.url}/channel/details/v2",
-        params={"token": setup_public, "channel_id": 0},
+        params={"token": setup_public_channel, "channel_id": 0},
     )
     assert response.status_code == OK
     assert response.json() == {
@@ -195,7 +195,7 @@ def test_valid_multiple(setup_public):
 
 
 # Checking for private channels, only the owner is included
-def test_valid_private(setup_private):
+def test_valid_private(setup_private_channel):
     requests.post(
         f"{config.url}/auth/register/v2",
         json={
@@ -207,7 +207,7 @@ def test_valid_private(setup_private):
     )
     response = requests.get(
         f"{config.url}/channel/details/v2",
-        params={"token": setup_private, "channel_id": 0},
+        params={"token": setup_private_channel, "channel_id": 0},
     )
     assert response.status_code == OK
     assert response.json() == {
@@ -235,7 +235,7 @@ def test_valid_private(setup_private):
 
 
 # Check if it works for new channels
-def test_multiple_channels(setup_public):
+def test_multiple_channels(setup_public_channel):
     new_token = requests.post(
         f"{config.url}/auth/register/v2",
         json={
@@ -247,11 +247,11 @@ def test_multiple_channels(setup_public):
     )
     requests.post(
         f"{config.url}/channels/create/v2",
-        json={"token": setup_public, "name": "second_channel", "is_public": True},
+        json={"token": setup_public_channel, "name": "second_channel", "is_public": True},
     )
     requests.post(
         f"{config.url}/channels/create/v2",
-        json={"token": setup_public, "name": "private_channel", "is_public": False},
+        json={"token": setup_public_channel, "name": "private_channel", "is_public": False},
     )
     requests.post(
         f"{config.url}/channel/join/v2",
@@ -263,15 +263,15 @@ def test_multiple_channels(setup_public):
     )
     first_response = requests.get(
         f"{config.url}/channel/details/v2",
-        params={"token": setup_public, "channel_id": 0},
+        params={"token": setup_public_channel, "channel_id": 0},
     )
     second_response = requests.get(
         f"{config.url}/channel/details/v2",
-        params={"token": setup_public, "channel_id": 1},
+        params={"token": setup_public_channel, "channel_id": 1},
     )
     third_response = requests.get(
         f"{config.url}/channel/details/v2",
-        params={"token": setup_public, "channel_id": 2},
+        params={"token": setup_public_channel, "channel_id": 2},
     )
     assert first_response.json() == {
         "name": "public_channel",
