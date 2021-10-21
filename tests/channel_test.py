@@ -9,12 +9,13 @@ from src.channel import (
     channel_join_v1,
     channel_invite_v1,
     channel_messages_v1,
-    channel_addowner_v1
+    channel_addowner_v1,
 )
 from src.channels import channels_create_v1
 from src.other import clear_v1
 from src.auth import auth_register_v2 as auth_register_v1
 from src.data_store import data_store
+
 
 @pytest.fixture
 def setup_public():
@@ -444,6 +445,7 @@ def test_global_owner_permissions():
     channel_private = channels_create_v1(user_id1, "test1", False)["channel_id"]
     channel_join_v1(global_owner, channel_private)
 
+
 @pytest.fixture
 def dataset_addownersv1():
     requests.delete(config.url + "clear/v1")
@@ -474,17 +476,18 @@ def dataset_addownersv1():
             "name_last": "last",
         },
     ).json()
-    '''
+
     chan_id0 = requests.post(
         config.url + "channels/create/v2",
-        json={"token": reg0["token"], "name": "chan0","is_public": True}
+        json={"token": reg0["token"], "name": "chan0", "is_public": True},
     ).json()["channel_id"]
     chan_id1 = requests.post(
         config.url + "channels/create/v2",
-        json={"token": reg1["token"], "name": "chan1","is_public": True}
+        json={"token": reg1["token"], "name": "chan1", "is_public": True},
     ).json()["channel_id"]
-    '''
-    return ({"r": (reg0, reg1, reg2)})#, {"c": (chan_id0, chan_id1)})
+
+    return ({"r": (reg0, reg1, reg2)}, {"c": (chan_id0, chan_id1)})
+
 
 def test_add_1_owner_addownerv1(dataset_addownersv1):
     requests.post(
@@ -492,17 +495,18 @@ def test_add_1_owner_addownerv1(dataset_addownersv1):
         json={
             "token": dataset_addownersv1["r"][0]["token"],
             "channel_id": dataset_addownersv1["c"][0],
-            "u_id": dataset_addownersv1["r"][2]["auth_user_id"]
-        }
+            "u_id": dataset_addownersv1["r"][2]["auth_user_id"],
+        },
     )
     response = requests.get(
-        config.url + "channel/details/v2", 
+        config.url + "channel/details/v2",
         params={
-            "token": dataset_addownersv1["r"][2]["token"], 
-            "channel_id": dataset_addownersv1["c"][0]
-        }
+            "token": dataset_addownersv1["r"][2]["token"],
+            "channel_id": dataset_addownersv1["c"][0],
+        },
     ).json()
     assert dataset_addownersv1["r"][2]["auth_user_id"] in response["owner_members"]
+
 
 def test_no_channels_addowner(dataset_addownersv1):
     response = requests.post(
@@ -510,10 +514,11 @@ def test_no_channels_addowner(dataset_addownersv1):
         json={
             "token": dataset_addownersv1["r"][0]["token"],
             "channel_id": 0,
-            "u_id": dataset_addownersv1["r"][2]["auth_user_id"]
-        }
+            "u_id": dataset_addownersv1["r"][2]["auth_user_id"],
+        },
     )
     assert response.status_code == 400
+
 
 def test_invalid_uid_and_channelid_addowner(dataset_addownersv1):
     response = requests.post(
@@ -521,10 +526,11 @@ def test_invalid_uid_and_channelid_addowner(dataset_addownersv1):
         json={
             "token": dataset_addownersv1["r"][0]["token"],
             "channel_id": 0,
-            "u_id": 4
-        }
+            "u_id": 4,
+        },
     )
     assert response.status_code == 400
+
 
 def test_invalid_token_and_channelid_addowner(dataset_addownersv1):
     response = requests.post(
@@ -532,7 +538,39 @@ def test_invalid_token_and_channelid_addowner(dataset_addownersv1):
         json={
             "token": "not.a.token",
             "channel_id": 0,
-            "u_id": dataset_addownersv1["r"][0]["auth_user_id"]
-        }
+            "u_id": dataset_addownersv1["r"][0]["auth_user_id"],
+        },
     )
     assert response.status_code == 403
+
+
+@pytest.fixture
+def dataset_removeownerv1():
+    requests.delete(config.url + "clear/v1")
+    reg0 = requests.post(
+        config.url + "auth/register/v2",
+        json={
+            "email": "user1@mail.com",
+            "password": "password",
+            "name_first": "first",
+            "name_last": "last",
+        },
+    ).json()
+    chan_id0 = requests.post(
+        config.url + "channels/create/v2",
+        json={"token": reg0["token"], "name": "chan0", "is_public": True},
+    ).json()["channel_id"]
+
+    return ({"r": (reg0)}, {"c": (chan_id0)})
+
+
+def test_remove_only_owner_removeownerv1(dataset_removeownerv1):
+    response = requests.post(
+        config.url + "channel/removeowner/v1",
+        json={
+            "token": dataset_removeownerv1["r"][0]["token"],
+            "channel_id": dataset_removeownerv1["c"][0],
+            "u_id": dataset_removeownerv1["r"][0]["auth_user_id"],
+        },
+    )
+    assert response.status_code == 400
