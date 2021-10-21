@@ -19,6 +19,8 @@ from src.error import AccessError, InputError
 from src.other import validate_auth_id, first
 from src.channels import validate_token
 
+EXCLUDE_LIST = ["password", "session_ids"]
+
 
 @validate_auth_id
 def channel_invite_v1(auth_user_id, channel_id, u_id):
@@ -133,7 +135,7 @@ def channel_details_v2(token, channel_id):
             found_channel[member_key][i] = {
                 key: value
                 for key, value in member_user.items()
-                if key not in ("password", "session_ids")
+                if key not in EXCLUDE_LIST
             }
 
     # return found_channel excluding for channel_id and messages keys
