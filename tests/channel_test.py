@@ -9,6 +9,7 @@ from src.channel import (
     channel_join_v1,
     channel_invite_v1,
     channel_messages_v1,
+    channel_addowner_v1
 )
 from src.channels import channels_create_v1
 from src.other import clear_v1
@@ -473,7 +474,7 @@ def dataset_addownersv1():
             "name_last": "last",
         },
     ).json()
-
+    '''
     chan_id0 = requests.post(
         config.url + "channels/create/v2",
         json={"token": reg0["token"], "name": "chan0","is_public": True}
@@ -482,8 +483,8 @@ def dataset_addownersv1():
         config.url + "channels/create/v2",
         json={"token": reg1["token"], "name": "chan1","is_public": True}
     ).json()["channel_id"]
-    
-    return ({"r": (reg0, reg1, reg2)}, {"c": (chan_id0, chan_id1)})
+    '''
+    return ({"r": (reg0, reg1, reg2)})#, {"c": (chan_id0, chan_id1)})
 
 def test_add_1_owner_addownerv1(dataset_addownersv1):
     requests.post(
@@ -503,9 +504,35 @@ def test_add_1_owner_addownerv1(dataset_addownersv1):
     ).json()
     assert dataset_addownersv1["r"][2]["auth_user_id"] in response["owner_members"]
 
+def test_no_channels_addowner(dataset_addownersv1):
+    response = requests.post(
+        config.url + "channel/addowner/v1",
+        json={
+            "token": dataset_addownersv1["r"][0]["token"],
+            "channel_id": 0,
+            "u_id": dataset_addownersv1["r"][2]["auth_user_id"]
+        }
+    )
+    assert response.status_code == 400
 
+def test_invalid_uid_and_channelid_addowner(dataset_addownersv1):
+    response = requests.post(
+        config.url + "channel/addowner/v1",
+        json={
+            "token": dataset_addownersv1["r"][0]["token"],
+            "channel_id": 0,
+            "u_id": 4
+        }
+    )
+    assert response.status_code == 400
 
-
-
-
-
+def test_invalid_token_and_channelid_addowner(dataset_addownersv1):
+    response = requests.post(
+        config.url + "channel/addowner/v1",
+        json={
+            "token": "not.a.token",
+            "channel_id": 0,
+            "u_id": dataset_addownersv1["r"][0]["auth_user_id"]
+        }
+    )
+    assert response.status_code == 403

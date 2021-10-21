@@ -303,19 +303,27 @@ def list_data_v2():
 
 def test_no_channels_listv2(list_data_v2):
     # Use requests.post or requests.delete and stuff to give data
-    payload = requests.get(config.url + "channels/list/v2", params={"data": list_data_v2[0]})
+    payload = requests.get(
+        config.url + "channels/list/v2", params={"token": list_data_v2[0]}
+    )
     print(json.loads(payload.text))
     assert payload.json() == {"channels": []}
-    requests.post(config.url + "channels/create/v2", params={list_data_v2[1], "chan1", True})
-    payload = requests.get(config.url + "channels/list/v2", params={"data": list_data_v2[0]})
+    requests.post(
+        config.url + "channels/create/v2", params={list_data_v2[1], "chan1", True}
+    ).json()
+    payload = requests.get(
+        config.url + "channels/list/v2", params={"token": list_data_v2[0]}
+    )
     assert payload.json() == {"channels": []}
 
 
 def test_one_channel_public_listv2(list_data_v2):
     chan_id0 = requests.post(
         config.url + "channels/create/v2", params={list_data_v2[0], "chan0", True}
+    ).json()
+    payload = requests.get(
+        config.url + "channels/list/v2", params={"token": list_data_v2[0]}
     )
-    payload = requests.get(config.url + "channels/list/v2", params={"data": list_data_v2[0]})
     assert payload.json() == {
         "channels": [{"channel_id": chan_id0["channel_id"], "name": "chan0"}]
     }
@@ -324,8 +332,10 @@ def test_one_channel_public_listv2(list_data_v2):
 def test_one_channel_priv_listv2(list_data_v2):
     chan_id0 = requests.post(
         config.url + "channels/create/v2", params={list_data_v2[0], "chan0", False}
+    ).json()
+    payload = requests.get(
+        config.url + "channels/list/v2", params={"token": list_data_v2[0]}
     )
-    payload = requests.get(config.url + "channels/list/v2", params={"data": list_data_v2[0]})
     assert payload.json() == {
         "channels": [{"channel_id": chan_id0["channel_id"], "name": "chan0"}]
     }
@@ -334,63 +344,81 @@ def test_one_channel_priv_listv2(list_data_v2):
 def test_two_channels_listv2(list_data_v2):
     chan_id0 = requests.post(
         config.url + "channels/create/v2", params={list_data_v2[0], "chan0", False}
-    )
+    ).json()
     chan_id1 = requests.post(
         config.url + "channels/create/v2", params={list_data_v2[0], "chan1", True}
+    ).json()
+    payload = requests.get(
+        config.url + "channels/list/v2", params={"token": list_data_v2[0]}
     )
-    payload = requests.get(config.url + "channels/list/v2", params={"data": list_data_v2[0]})
     assert payload.json() == {
         "channels": [
             {"channel_id": chan_id0["channel_id"], "name": "chan0"},
-            {"channel_id": chan_id1["channel_id"], "name": "chan1"}
+            {"channel_id": chan_id1["channel_id"], "name": "chan1"},
         ]
     }
-    
+
+
 def test_not_admin_listv2(list_data_v2):
     chan_id0 = requests.post(
         config.url + "channels/create/v2", params={list_data_v2[0], "chan0", False}
-    )
+    ).json()
     requests.post(
         config.url + "channel/join/v2", params={list_data_v2[1], chan_id0["channel_id"]}
-    )    
-    payload = requests.get(config.url + "channels/list/v2", params={"data": list_data_v2[0]})
+    )
+    payload = requests.get(
+        config.url + "channels/list/v2", params={"token": list_data_v2[0]}
+    )
     assert payload.json() == {
         "channels": [{"channel_id": chan_id0["channel_id"], "name": "chan0"}]
     }
 
+
 def test_multiple_people_in_channel_listv2(list_data_v2):
     chan_id0 = requests.post(
         config.url + "channels/create/v2", params={list_data_v2[0], "chan0", False}
-    )
+    ).json()
     requests.post(
         config.url + "channel/join/v2", params={list_data_v2[1], chan_id0["channel_id"]}
     )
     requests.post(
         config.url + "channel/join/v2", params={list_data_v2[2], chan_id0["channel_id"]}
-    )    
-    payload = requests.get(config.url + "channels/list/v2", params={"data": list_data_v2[2]})
+    )
+    payload = requests.get(
+        config.url + "channels/list/v2", params={"token": list_data_v2[2]}
+    )
     assert payload.json() == {
         "channels": [{"channel_id": chan_id0["channel_id"], "name": "chan0"}]
     }
 
+
 def test_user_not_in_multiple_channels_listv2(list_data_v2):
     requests.post(
         config.url + "channels/create/v2", params={list_data_v2[0], "chan0", False}
-    )            
+    ).json()
     requests.post(
         config.url + "channels/create/v2", params={list_data_v2[1], "chan1", False}
-    )   
+    ).json()
     chan_id2 = requests.post(
         config.url + "channels/create/v2", params={list_data_v2[2], "chan2", False}
-    )   
-    payload = requests.get(config.url + "channels/list/v2", params={"data": list_data_v2[2]})    
+    ).json()
+    payload = requests.get(
+        config.url + "channels/list/v2", params={"token": list_data_v2[2]}
+    )
     assert payload.json() == {
         "channels": [{"channel_id": chan_id2["channel_id"], "name": "chan2"}]
     }
 
+
 def test_invalid_token_listv2(list_data_v2):
-    response = requests.get(config.url + "channels/list/v2", params={"data": "not.the.token"})
+    # requests.post(
+    #    config.url + "channels/create/v2", params={list_data_v2[0], "chan0", False}
+    # ).json()
+    response = requests.get(
+        config.url + "channels/list/v2", params={"token": "not.the.token"}
+    )
     assert response.status_code == 403
+
 
 @pytest.fixture
 def listall_data_v2():
@@ -425,64 +453,81 @@ def listall_data_v2():
 
     return [token0, token1, token2]
 
+
 def test_no_channels_listallv2(listall_data_v2):
-    payload = requests.get(config.url + "channels/listall/v2", params={"data": listall_data_v2[0]})
+    payload = requests.get(
+        config.url + "channels/listall/v2", params={"token": listall_data_v2[0]}
+    )
     assert payload.json() == {"channels": []}
+
 
 def test_one_channel_public_listallv2(listall_data_v2):
     chan_id0 = requests.post(
         config.url + "channels/create/v2", params={listall_data_v2[0], "chan0", True}
+    ).json()
+    payload = requests.get(
+        config.url + "channels/listall/v2", params={"token": listall_data_v2[0]}
     )
-    payload = requests.get(config.url + "channels/listall/v2", params={"data": listall_data_v2[0]})
     assert payload.json() == {
         "channels": [{"channel_id": chan_id0["channel_id"], "name": "chan0"}]
     }
+
 
 def test_one_channel_private_listallv2(listall_data_v2):
     chan_id0 = requests.post(
         config.url + "channels/create/v2", params={listall_data_v2[0], "chan0", False}
+    ).json()
+    payload = requests.get(
+        config.url + "channels/listall/v2", params={"token": listall_data_v2[0]}
     )
-    payload = requests.get(config.url + "channels/listall/v2", params={"data": listall_data_v2[0]})
     assert payload.json() == {
         "channels": [{"channel_id": chan_id0["channel_id"], "name": "chan0"}]
     }
+
 
 def test_many_channels_listallv2(listall_data_v2):
     chan_id0 = requests.post(
         config.url + "channels/create/v2", params={listall_data_v2[0], "chan0", True}
-    )
+    ).json()
     chan_id1 = requests.post(
         config.url + "channels/create/v2", params={listall_data_v2[1], "chan1", False}
-    )
+    ).json()
     chan_id2 = requests.post(
         config.url + "channels/create/v2", params={listall_data_v2[2], "chan2", False}
+    ).json()
+    payload = requests.get(
+        config.url + "channels/listall/v2", params={"token": listall_data_v2[1]}
     )
-    payload = requests.get(config.url + "channels/listall/v2", params={"data": listall_data_v2[1]})
     assert payload.json() == {
         "channels": [
             {"channel_id": chan_id0["channel_id"], "name": "chan0"},
             {"channel_id": chan_id1["channel_id"], "name": "chan1"},
-            {"channel_id": chan_id2["channel_id"], "name": "chan2"}
+            {"channel_id": chan_id2["channel_id"], "name": "chan2"},
         ]
     }
+
 
 def test_user_is_not_owner_listallv2(listall_data_v2):
     chan_id0 = requests.post(
         config.url + "channels/create/v2", params={listall_data_v2[0], "chan0", True}
-    )
+    ).json()
     requests.post(
-        config.url + "channels/join/v2", params={listall_data_v2[1], chan_id0["channel_id"]}
+        config.url + "channels/join/v2",
+        params={listall_data_v2[1], chan_id0["channel_id"]},
     )
-    payload = requests.get(config.url + "channels/listall/v2", params={"data": listall_data_v2[1]})
+    payload = requests.get(
+        config.url + "channels/listall/v2", params={"token": listall_data_v2[1]}
+    )
     assert payload.json() == {
         "channels": [{"channel_id": chan_id0["channel_id"], "name": "chan0"}]
     }
 
+
 def test_invalid_token_listallv2(listall_data_v2):
-    #requests.post(
+    # requests.post(
     #    config.url + "channels/create/v2", params={listall_data_v2[0], "chan0", True}
-    #)
-    response = requests.get(config.url + "channels/listall/v2", params={"data": "not.valid.token"})
+    # ).json()
+    response = requests.get(
+        config.url + "channels/listall/v2", params={"token": "not.valid.token"}
+    )
     assert response.status_code == 403
-
-
