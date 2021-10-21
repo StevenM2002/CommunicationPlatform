@@ -14,9 +14,15 @@ from src.user import (
     user_set_email,
     user_set_handle,
 )
+import jwt
+from src.channel import channel_invite_v1, channel_join_v1
+from src.auth import JWT_SECRET
+from src.admin import admin_user_permission_change_v1, admin_user_remove_v1
 
 
 def quit_gracefully(*args):
+
+def quit_gracefully(*_):
     """For coverage"""
     exit(0)
 
@@ -107,15 +113,6 @@ def clear():
     return {}
 
 
-# Example
-@APP.route("/echo", methods=["GET"])
-def echo():
-    data = request.args.get("data")
-    if data == "echo":
-        raise InputError(description='Cannot echo "echo"')
-    return dumps({"data": data})
-
-
 @APP.route("/channels/create/v2", methods=["POST"])
 def create_channel_v2():
     data = request.json
@@ -159,6 +156,32 @@ def set_handle():
     data = request.json
     print(data)
     return dumps(user_set_handle(data["token"], data["handle_str"]))
+
+
+@APP.route("/dm/create/v1", methods=["POST"])
+def dm_create():
+    data = request.json
+    return dumps(dm.dm_create_v1(data["token"], data["u_ids"]))
+
+
+@APP.route('/channel/invite/v2', methods=['POST'])
+def channel_invite_v2():
+    params = request.get_json()
+    token = params['token']
+    channel_id = params['channel_id']
+    u_id = params['u_id']
+    decoded_token = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
+    auth_id = decoded_token['u_id']
+    return dumps(channel_invite_v1(auth_id, channel_id, u_id))
+
+@APP.route('/channel/join/v2', methods=['POST'])
+def channel_join_v2():
+    params = request.get_json()
+    token = params['token']
+    channel_id = params['channel_id']
+    decoded_token = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
+    auth_id = decoded_token['u_id']
+    return dumps(channel_join_v1(auth_id, channel_id))
 
 
 if __name__ == "__main__":
