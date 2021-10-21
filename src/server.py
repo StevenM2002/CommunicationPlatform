@@ -2,11 +2,14 @@ import signal
 from json import dumps
 from flask import Flask, request
 from flask_cors import CORS
+from src.channels import channels_create_v2
+from src.channel import channel_details_v2
 from src import config, auth, dm
 from src.other import clear_v1
+from src.error import InputError, AccessError
 
 
-def quit_gracefully(*_):
+def quit_gracefully(*args):
     """For coverage"""
     exit(0)
 
@@ -95,6 +98,19 @@ def dm_messages():
 def clear():
     clear_v1()
     return {}
+
+
+@APP.route("/channels/create/v2", methods=["POST"])
+def create_channel_v2():
+    data = request.json
+    return dumps(channels_create_v2(data["token"], data["name"], data["is_public"]))
+
+
+@APP.route("/channel/details/v2", methods=["GET"])
+def get_channel_details():
+    token = request.args.get("token")
+    channel_id = request.args.get("channel_id")
+    return dumps(channel_details_v2(token, channel_id))
 
 
 if __name__ == "__main__":

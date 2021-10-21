@@ -17,6 +17,7 @@ ensure that auth_user_id is valid before running code inside the functions.
 from src.data_store import data_store
 from src.error import AccessError, InputError
 from src.other import validate_auth_id, first
+from src.channels import validate_token
 
 EXCLUDE_LIST = ["password", "session_ids"]
 
@@ -83,8 +84,7 @@ def channel_invite_v1(auth_user_id, channel_id, u_id):
     return {}
 
 
-@validate_auth_id
-def channel_details_v1(auth_user_id, channel_id):
+def channel_details_v2(token, channel_id):
     """Get name, visibility, owners and members of a channel.
 
     Arguments:
@@ -105,11 +105,15 @@ def channel_details_v1(auth_user_id, channel_id):
     store = data_store.get()
     users = store["users"]
     channels = store["channels"]
+    u_information = validate_token(token, users)
+    auth_user_id = int(u_information["u_id"])
+    # Forces channel_id to be an integer
+    channel_id = int(channel_id)
 
     # checks whether the channel_id is used
     valid = any(True for channel in channels if channel["channel_id"] == channel_id)
     if not valid:
-        raise InputError("channel_id not found")
+        raise InputError(description="channel_id not found")
 
     # finds the given channel, and saves the given data to a dictionary
     found_channel = [
@@ -121,7 +125,7 @@ def channel_details_v1(auth_user_id, channel_id):
         True for user in found_channel["all_members"] if user == auth_user_id
     )
     if not is_member:
-        raise AccessError("user is not a member of the channel")
+        raise AccessError(description="user is not a member of the channel")
 
     # loops through the tuple containing owner_members and all_members, finding
     # the user from the user_id and adding it to the corresponding list
