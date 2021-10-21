@@ -17,6 +17,8 @@ ensure that auth_user_id is valid before running code inside the functions.
 from src.data_store import data_store
 from src.error import AccessError, InputError
 from src.other import validate_auth_id, first
+from src.auth import JWT_SECRET
+import jwt
 
 EXCLUDE_LIST = ["password", "session_ids"]
 
@@ -225,16 +227,65 @@ def channel_join_v1(auth_user_id, channel_id):
     channel["all_members"].append(auth_user_id)
     return {}
 
+
 def channel_addowner_v1(token, channel_id, u_id):
     # Check token_uid is a global owner in the channel, or a channel owner: Access err
-    # If u_id is not valic: Input err
+    # If u_id is not valid: Input err
     # Check u_id is in the channel: Input err
     # Check u_id is not already owner: Input err
     # Check channel_id is valid: Input err
     # If all good then promote u_id to owner.
-    payload = jwt.decode(token, key=JWT_SECRET, algorithms=["HS256"])
-    
 
+    """
+    "channels":[
+        {
+            "channel_id": channel_id,
+            "name": name,
+            "owner_members": [auth_user_id],
+            "all_members": [auth_user_id],
+            "is_public": is_public,
+            "messages": [],
+        },
+        ...
+    ],"""
 
+    store = data_store.get()
+    try:
+        payload = jwt.decode(token, key=JWT_SECRET, algorithms=["HS256"])
+    except:
+        raise AccessError("invalid token")
 
+    for users in store["users"]:
+        if users["u_id"] == payload["u_id"]:
+            if any(users["session_ids"]) == payload["session_id"]:
+                pass
+            else:
+                raise AccessError("session id not identified")
 
+    is_global_owner = False
+    if payload["u_id"] in store["global_owners"]:
+        is_global_owner = True
+    all_u_ids = [users["u_id"] for users in store["users"]]
+    all_chan_ids = [chans["channel_id"] for chans in store["channels"]]
+
+    if u_id not in all_u_ids:
+        raise InputError("u_id not valid")
+    if channel_id not in all_chan_ids:
+        raise InputError("channel_id not valid")
+    for channel in store["channels"]:
+        if channel["channel_id"] == channel_id:
+            if u_id not in channel["all_members"]:
+                raise InputError("u_id not in channel")
+            if u_id in channel["owner_members"]:
+                raise InputError("u_id already owner")
+
+    for channels in store["channels"]:
+        if channel_id == channels["channel_id"]:
+            if (payload["u_id"] in channels["all_members"] and is_global_owner) or (
+                payload["u_id"] in channels["global_owners"]
+            ):
+                channels["owner_members"].append(u_id)
+                data_store.set(store)
+                return {}
+
+    raise AccessError("does not have owner perms")

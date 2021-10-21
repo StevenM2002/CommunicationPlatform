@@ -3,6 +3,7 @@ from json import dumps
 from flask import Flask, request
 from flask_cors import CORS
 from src.channels import channels_listall_v2, channels_list_v2
+from src.channel import channel_addowner_v1
 from src import config, auth, dm
 from src.other import clear_v1
 
@@ -98,13 +99,18 @@ def clear():
 
 @APP.route("/channels/listall/v2", methods=["GET"])
 def channels_listingall():
-    token = request.args.get("data")
+    token = request.args.get("token")
     return dumps(channels_listall_v2(token))
     
 @APP.route("/channels/list/v2", methods=["GET"])
 def channels_listing():
-    token = request.args.get("data")  
+    token = request.args.get("token")
     return dumps(channels_list_v2(token))
+
+@APP.route("/channel/addowner/v1", methods=["POST"])
+def channel_addingowner():
+    data = request.get_json()
+    return dumps(channel_addowner_v1(data["token"], data["channel_id"], data["u_id"]))
 
 #### NO NEED TO MODIFY BELOW THIS POINT
 
