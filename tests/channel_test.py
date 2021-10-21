@@ -574,3 +574,60 @@ def test_remove_only_owner_removeownerv1(dataset_removeownerv1):
         },
     )
     assert response.status_code == 400
+
+@pytest.fixture
+def dataset_leavev1():
+    requests.delete(config.url + "clear/v1")
+    token0 = requests.post(
+        config.url + "auth/register/v2",
+        json={
+            "email": "user1@mail.com",
+            "password": "password",
+            "name_first": "first",
+            "name_last": "last",
+        },
+    ).json()["token"]
+    token1 = requests.post(
+        config.url + "auth/register/v2",
+        json={
+            "email": "user1@mail.com",
+            "password": "password",
+            "name_first": "first",
+            "name_last": "last",
+        },
+    ).json()["token"]
+    chan_id0 = requests.post(
+        config.url + "channels/create/v2",
+        json={"token": token0, "name": "chan0", "is_public": True},
+    ).json()["channel_id"]
+
+    return ({"t": (token0, token1)}, {"c": (chan_id0)})
+
+def test_remove_only_ownermember_leavev1(dataset_leavev1):
+    requests.post(
+        config.url + "channel/join/v2",
+        json={
+            "token": dataset_leavev1["t"][1],
+            "channel_id": dataset_leavev1["c"][0]
+        }
+    )
+    requests.post(
+        config.url + "channel/leave/v1",
+        json={
+            dataset_leavev1["t"][0],
+            dataset_leavev1["c"][0]
+        }
+    )
+    response = requests.get(
+        config.url + "channel/details/v2",
+        params={
+            "token": dataset_leavev1["t"][1],
+            "channel_id": dataset_leavev1["c"][0]
+        }
+    ).json()
+    #all_owners = [response["owner_members"] for ]
+    assert response["owner_members"] == []
+
+
+
+
