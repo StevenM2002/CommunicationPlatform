@@ -5,18 +5,18 @@ from src import config
 
 from src.error import InputError, AccessError
 from src.channel import (
-    channel_details_v1,
+    channel_details_v2,
     channel_join_v1,
     channel_invite_v1,
     channel_messages_v1,
     channel_addowner_v1,
 )
-from src.channels import channels_create_v1
+from src.channels import channels_create_v2
 from src.other import clear_v1
 from src.auth import auth_register_v2 as auth_register_v1
 from src.data_store import data_store
 
-
+"""
 @pytest.fixture
 def setup_public():
     clear_v1()
@@ -445,6 +445,7 @@ def test_global_owner_permissions():
     channel_private = channels_create_v1(user_id1, "test1", False)["channel_id"]
     channel_join_v1(global_owner, channel_private)
 
+"""
 
 @pytest.fixture
 def dataset_addownersv1():
@@ -628,7 +629,3 @@ def test_remove_only_ownermember_leavev1(dataset_leavev1):
     ).json()
     owner_ids = [owners["u_id"] for owners in response["owner_members"]]
     assert owner_ids == []
-
-
-
-
