@@ -72,6 +72,15 @@ def clear():
     return {}
 
 
+# Example
+@APP.route("/echo", methods=["GET"])
+def echo():
+    data = request.args.get("data")
+    if data == "echo":
+        raise InputError(description='Cannot echo "echo"')
+    return dumps({"data": data})
+
+
 @APP.route("/channels/create/v2", methods=["POST"])
 def create_channel_v2():
     data = request.json
