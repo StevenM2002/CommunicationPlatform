@@ -505,7 +505,8 @@ def test_add_1_owner_addownerv1(dataset_addownersv1):
             "channel_id": dataset_addownersv1["c"][0],
         },
     ).json()
-    assert dataset_addownersv1["r"][2]["auth_user_id"] in response["owner_members"]
+    owner_ids = [owners["u_id"] for owners in response["owner_members"]]
+    assert dataset_addownersv1["r"][2]["auth_user_id"] in owner_ids
 
 
 def test_no_channels_addowner(dataset_addownersv1):
@@ -590,7 +591,7 @@ def dataset_leavev1():
     token1 = requests.post(
         config.url + "auth/register/v2",
         json={
-            "email": "user1@mail.com",
+            "email": "user2@mail.com",
             "password": "password",
             "name_first": "first",
             "name_last": "last",
@@ -625,8 +626,8 @@ def test_remove_only_ownermember_leavev1(dataset_leavev1):
             "channel_id": dataset_leavev1["c"][0]
         }
     ).json()
-    #all_owners = [response["owner_members"] for ]
-    assert response["owner_members"] == []
+    owner_ids = [owners["u_id"] for owners in response["owner_members"]]
+    assert owner_ids == []
 
 
 
