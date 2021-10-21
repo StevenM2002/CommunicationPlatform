@@ -10,6 +10,7 @@ from src.other import validate_auth_id
 from src.auth import JWT_SECRET
 import jwt
 
+
 @validate_auth_id
 def channels_list_v1(auth_user_id):
     """List all public channels.
@@ -117,20 +118,18 @@ def channels_create_v1(auth_user_id, name, is_public):
 def channels_list_v2(token):
     # Token contains {"u_id": int, "session_id": int} in body and
     # secret as from src.auth import JWT_SECRET
-    
+
     store = data_store.get()
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
     except:
-        raise AccessError("invalid token")            
+        raise AccessError("invalid token")
     # Check that token info is good and if it is then do channels_list_v1
     for users in store["users"]:
         if users["u_id"] == payload["u_id"]:
             if any(users["session_ids"]) == payload["session_id"]:
                 return channels_list_v1(payload["u_id"])
-    raise AccessError("invalid token")            
-    
-    
+    raise AccessError("invalid token")
 
 
 def channels_listall_v2(token):
