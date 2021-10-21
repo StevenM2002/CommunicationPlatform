@@ -13,7 +13,6 @@ data structure:
             "name_first": name_first,
             "name_last": name_last,
             "handle_str": handle,
-            "session_ids": [session_id],
         },
         ...
     ],
@@ -29,6 +28,15 @@ data structure:
         ...
     ],
     "global_owners": [auth_user_id],
+    "dms" : [
+        {
+            "dm_id": dm_id,
+            "name": name,
+            "messages": [],
+            "members": [auth_user_id],
+            "owner": auth_user_id,
+        },
+    ],
 }
 
     Typical usage example:
@@ -48,13 +56,14 @@ data structure:
     }
     users.append(rob)
     data_store.set(users)
+
 """
 from copy import deepcopy
 from json import dump, load
 from pathlib import Path
 from threading import Event, Thread
 
-INITIAL_OBJECT = {"users": [], "channels": [], "global_owners": []}
+INITIAL_OBJECT = {"users": [], "channels": [], "global_owners": [], "dms": []}
 DATA_STORE_FILE = "datastore.json"
 WRITE_INTERVAL = 30
 
