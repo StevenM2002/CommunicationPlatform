@@ -234,8 +234,6 @@ def channel_join_v1(auth_user_id, channel_id):
     data_store.set(store)
     return {}
 
-<<<<<<< HEAD
-
 def channel_addowner_v1(token, channel_id, u_id):
     # Check token_uid is a global owner in the channel, or a channel owner: Access err
     # If u_id is not valid: Input err
@@ -250,19 +248,28 @@ def channel_addowner_v1(token, channel_id, u_id):
     except Exception as e:
         raise AccessError("invalid token") from e
 
-    for users in store["users"]:
-        if users["u_id"] == payload["u_id"]:
-            if any(users["session_ids"]) == payload["session_id"]:
-                pass
-            else:
-                raise AccessError("session id not identified")
+    #for users in store["users"]:
+    #    if users["u_id"] == payload["u_id"]:
+    #        if any(users["session_ids"]) == payload["session_id"]:
+    #            pass
+    #        else:
+    #            raise AccessError("session id not identified")
 
     is_global_owner = False
     if payload["u_id"] in store["global_owners"]:
         is_global_owner = True
     all_u_ids = [users["u_id"] for users in store["users"]]
     all_chan_ids = [chans["channel_id"] for chans in store["channels"]]
+    which_channel = None
 
+    for channels in store["channels"]:
+        if channel_id == channels["channel_id"]:
+            if (payload["u_id"] in channels["owner_members"]) or (
+                payload["u_id"] in store["global_owners"] and is_global_owner
+            ):
+                which_channel = channels["owner_members"]
+            else:
+                raise AccessError("does not have owner perms")
     if u_id not in all_u_ids:
         raise InputError("u_id not valid")
     if channel_id not in all_chan_ids:
@@ -274,16 +281,10 @@ def channel_addowner_v1(token, channel_id, u_id):
             if u_id in channel["owner_members"]:
                 raise InputError("u_id already owner")
 
-    for channels in store["channels"]:
-        if channel_id == channels["channel_id"]:
-            if (payload["u_id"] in channels["all_members"] and is_global_owner) or (
-                payload["u_id"] in channels["global_owners"]
-            ):
-                channels["owner_members"].append(u_id)
-                data_store.set(store)
-                return {}
-
-    raise AccessError("does not have owner perms")
+    which_channel.append(u_id)
+    data_store.set(store)
+    return {}
+    
 
 
 def channel_removeowner_v1(token, channel_id, u_id):
@@ -346,18 +347,6 @@ def channel_leave_v1(token, channel_id):
 
     Access err when:
     channel_id is valid and the authorised user is not a member of the channel
-
-    "channels":[
-        {
-            "channel_id": channel_id,
-            "name": name,
-            "owner_members": [auth_user_id],
-            "all_members": [auth_user_id],
-            "is_public": is_public,
-            "messages": [],
-        },
-        ...
-    ],
     """
     store = data_store.get()
     try:
@@ -379,11 +368,10 @@ def channel_leave_v1(token, channel_id):
                 channels["all_members"].remove(payload["u_id"])
                 try:
                     channels["owner_members"].remove(payload["u_id"])
+                    return
                 except ValueError:
-                    pass
-    raise AccessError("channel does not exist")
+                    return
     
-=======
 def channel_invite_v2(token, channel_id, u_id):
     store = data_store.get()
     validate_token(token, store['users'])
@@ -395,4 +383,3 @@ def channel_join_v2(token, channel_id):
     validate_token(token, store['users'])
     auth_id = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])['u_id']
     return channel_join_v1(auth_id, channel_id)
->>>>>>> master
