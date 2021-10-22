@@ -4,7 +4,7 @@ from flask import Flask, request
 from flask_cors import CORS
 
 from src.channels import channels_listall_v2, channels_list_v2, channels_create_v2
-from src.channel import channel_addowner_v1, channel_details_v2, channel_removeowner_v1
+from src.channel import channel_addowner_v1, channel_details_v2, channel_removeowner_v1, channel_leave_v1
 from src.channels import channels_create_v2
 from src.channel import channel_details_v2, channel_invite_v2, channel_join_v2
 from src import config, auth, dm
@@ -148,6 +148,11 @@ def do_channel_join():
     token = params['token']
     channel_id = params['channel_id']
     return dumps(channel_join_v2(token, channel_id))
+
+@APP.route("/channel/leave/v1", methods=["POST"])
+def leave_channel():
+    data = request.get_json()
+    return dumps(channel_leave_v1(data["token"], data["channel_id"]))
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, quit_gracefully)  # For coverage
