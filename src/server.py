@@ -6,7 +6,6 @@ from src import config, auth, dm
 from src.other import clear_v1
 import jwt
 from src.auth import JWT_SECRET
-from src.admin import admin_user_permission_change_v1, admin_user_remove_v1
 from src.channels import channels_create_v2
 from src.channel import channel_details_v2, channel_invite_v2, channel_join_v2
 from src.error import InputError, AccessError
