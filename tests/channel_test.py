@@ -605,12 +605,21 @@ def dataset_leavev1():
             "name_last": "last",
         },
     ).json()["token"]
+    token2 = requests.post(
+        config.url + "auth/register/v2",
+        json={
+            "email": "user3@mail.com",
+            "password": "password",
+            "name_first": "first",
+            "name_last": "last",
+        },
+    ).json()["token"]
     chan_id0 = requests.post(
         config.url + "channels/create/v2",
         json={"token": token0, "name": "chan0", "is_public": True},
     ).json()["channel_id"]
 
-    return ({"t": (token0, token1), "c": (chan_id0, None)})
+    return ({"t": (token0, token1, token2), "c": (chan_id0, None)})
 
 def test_remove_only_ownermember_leavev1(dataset_leavev1):
     requests.post(
@@ -636,9 +645,108 @@ def test_remove_only_ownermember_leavev1(dataset_leavev1):
     ).json()
     owner_ids = [owners["u_id"] for owners in response["owner_members"]]
     assert owner_ids == []
+
+def test_remove_normal_user_leavev1(dataset_leavev1):
+    requests.post(
+        config.url + "channel/join/v2",
+        json={
+            "token": dataset_leavev1["t"][1],
+            "channel_id": dataset_leavev1["c"][0]
+        }
+    )
+    requests.post(
+        config.url + "channel/leave/v1",
+        json={
+            "token": dataset_leavev1["t"][1],
+            "channel_id": dataset_leavev1["c"][0]
+        }
+    )
+    response = requests.get(
+        config.url + "channel/details/v2",
+        params={
+            "token": dataset_leavev1["t"][0],
+            "channel_id": dataset_leavev1["c"][0]
+        }
+    ).json()
+    member_ids = [member["u_id"] for member in response["all_members"]]
+    assert member_ids == [0]
+
+def test_remove_member_many_channels_leavev1(dataset_leavev1):
+    chan_id1 = requests.post(
+        config.url + "channels/create/v2",
+        json={"token": dataset_leavev1["t"][2], "name": "chan1", "is_public": True},
+    ).json()["channel_id"]
+    requests.post(
+        config.url + "channel/join/v2",
+        json={
+            "token": dataset_leavev1["t"][0],
+            "channel_id": chan_id1
+        }
+    )
+    requests.post(
+        config.url + "channel/join/v2",
+        json={
+            "token": dataset_leavev1["t"][1],
+            "channel_id": chan_id1
+        }
+    )
+    requests.post(
+        config.url + "channel/leave/v1",
+        json={
+            "token": dataset_leavev1["t"][0],
+            "channel_id": chan_id1
+        }
+    )
+    requests.post(
+        config.url + "channel/leave/v1",
+        json={
+            "token": dataset_leavev1["t"][1],
+            "channel_id": chan_id1
+        }
+    )
+    response = requests.get(
+        config.url + "channel/details/v2",
+        params={
+            "token": dataset_leavev1["t"][2],
+            "channel_id": chan_id1
+        }
+    ).json()
+    member_ids = [member["u_id"] for member in response["all_members"]]
+    assert member_ids == [2]
+
+def test_invalid_token_leavev1(dataset_leavev1):
+    response = requests.post(
+        config.url + "channel/leave/v1",
+        json={
+            "token": "not.valid.token",
+            "channel_id": dataset_leavev1["c"][0]
+        }
+    )
+    assert response.status_code == 403
+
+def test_invalid_chan_id_leavev1(dataset_leavev1):
+    response = requests.post(
+        config.url + "channel/leave/v1",
+        json={
+            "token": dataset_leavev1["t"][0],
+            "channel_id": 10
+        }
+    )
+    assert response.status_code == 400
+
+def test_member_not_in_channel(dataset_leavev1):
+    response = requests.post(
+        config.url + "channel/leave/v1",
+        json={
+            "token": dataset_leavev1["t"][1],
+            "channel_id": dataset_leavev1["c"][0]
+        }
+    )
+    assert response.status_code == 403
+
+
 """Tests for functions from src/channel.py"""
 import pytest
-
 from src.error import InputError, AccessError
 
 """
