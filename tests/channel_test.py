@@ -407,7 +407,7 @@ def test_userid_not_valid_removeowner(dataset_removeownerv1):
     )
     assert response.status_code == 400
 
-def test_uid_not_a_member(dataset_removeownerv1):
+def test_uid_not_a_member_removeowner(dataset_removeownerv1):
     response = requests.post(
         config.url + "channel/removeowner/v1",
         json={
@@ -418,7 +418,7 @@ def test_uid_not_a_member(dataset_removeownerv1):
     )
     assert response.status_code == 400
 
-def test_uid_not_owner(dataset_removeownerv1):
+def test_uid_not_owner_removeowner(dataset_removeownerv1):
     requests.post(
         config.url + "channel/join/v2",
         json={
@@ -436,7 +436,7 @@ def test_uid_not_owner(dataset_removeownerv1):
     )
     assert response.status_code == 400
 
-def test_do_not_have_owner_perms(dataset_removeownerv1):
+def test_do_not_have_owner_perms_removeowner(dataset_removeownerv1):
     requests.post(
         config.url + "channel/join/v2",
         json={
@@ -448,6 +448,17 @@ def test_do_not_have_owner_perms(dataset_removeownerv1):
         config.url + "channel/removeowner/v1",
         json={
             "token": dataset_removeownerv1["r"][1]["token"],
+            "channel_id": dataset_removeownerv1["c"][0],
+            "u_id": dataset_removeownerv1["r"][0]["auth_user_id"],
+        },
+    )
+    assert response.status_code == 403
+
+def test_invalid_token_removeowner(dataset_removeownerv1):
+    response = requests.post(
+        config.url + "channel/removeowner/v1",
+        json={
+            "token": "not.valid.token",
             "channel_id": dataset_removeownerv1["c"][0],
             "u_id": dataset_removeownerv1["r"][0]["auth_user_id"],
         },
@@ -541,6 +552,26 @@ def test_remove_normal_user_leavev1(dataset_leavev1):
     member_ids = [member["u_id"] for member in response["all_members"]]
     assert member_ids == [0]
 
+def test_channel_id_not_valid_leavev1(dataset_leavev1):
+    response = requests.post(
+        config.url + "channel/leave/v1",
+        json={
+            "token": dataset_leavev1["t"][1],
+            "channel_id": -1
+        }
+    )
+    assert response.status_code == 400
+
+def test_userid_not_in_channel_leavev1(dataset_leavev1):
+    response = requests.post(
+        config.url + "channel/leave/v1",
+        json={
+            "token": dataset_leavev1["t"][1],
+            "channel_id": dataset_leavev1["c"][0]
+        }
+    )
+    assert response.status_code == 403
+
 def test_remove_member_many_channels_leavev1(dataset_leavev1):
     chan_id1 = requests.post(
         config.url + "channels/create/v2",
@@ -604,7 +635,7 @@ def test_invalid_chan_id_leavev1(dataset_leavev1):
     )
     assert response.status_code == 400
 
-def test_member_not_in_channel(dataset_leavev1):
+def test_member_not_in_channel_leavev1(dataset_leavev1):
     response = requests.post(
         config.url + "channel/leave/v1",
         json={
@@ -614,6 +645,15 @@ def test_member_not_in_channel(dataset_leavev1):
     )
     assert response.status_code == 403
 
+def test_invalid_token_leavev1(dataset_leavev1):
+    response = requests.post(
+        config.url + "channel/leave/v1",
+        json={
+            "token": "not.valid.token",
+            "channel_id": dataset_leavev1["c"][0]
+        }
+    )
+    assert response.status_code == 403
 
 """Tests for functions from src/channel.py"""
 import pytest
