@@ -20,7 +20,8 @@ from src.other import validate_auth_id, first
 from src.auth import JWT_SECRET
 import jwt
 from src.channels import validate_token
-
+import jwt
+from src.auth import JWT_SECRET
 EXCLUDE_LIST = ["password", "session_ids"]
 
 
@@ -83,6 +84,7 @@ def channel_invite_v1(auth_user_id, channel_id, u_id):
 
     # if no errors were raised, add u_id to the list of members of the channel
     channel["all_members"].append(u_id)
+    data_store.set(store)
     return {}
 
 
@@ -229,8 +231,10 @@ def channel_join_v1(auth_user_id, channel_id):
 
     # adds the user to the channel members list
     channel["all_members"].append(auth_user_id)
+    data_store.set(store)
     return {}
 
+<<<<<<< HEAD
 
 def channel_addowner_v1(token, channel_id, u_id):
     # Check token_uid is a global owner in the channel, or a channel owner: Access err
@@ -379,3 +383,16 @@ def channel_leave_v1(token, channel_id):
                     pass
     raise AccessError("channel does not exist")
     
+=======
+def channel_invite_v2(token, channel_id, u_id):
+    store = data_store.get()
+    validate_token(token, store['users'])
+    auth_id = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])['u_id']
+    return channel_invite_v1(auth_id, channel_id, u_id)
+
+def channel_join_v2(token, channel_id):
+    store = data_store.get()
+    validate_token(token, store['users'])
+    auth_id = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])['u_id']
+    return channel_join_v1(auth_id, channel_id)
+>>>>>>> master

@@ -5,6 +5,8 @@ from flask_cors import CORS
 
 from src.channels import channels_listall_v2, channels_list_v2, channels_create_v2
 from src.channel import channel_addowner_v1, channel_details_v2, channel_removeowner_v1
+from src.channels import channels_create_v2
+from src.channel import channel_details_v2, channel_invite_v2, channel_join_v2
 from src import config, auth, dm
 from src.other import clear_v1
 from src.error import InputError, AccessError
@@ -132,6 +134,20 @@ def get_channel_details():
     return dumps(channel_details_v2(token, channel_id))
 
 #### NO NEED TO MODIFY BELOW THIS POINT
+@APP.route('/channel/invite/v2', methods=['POST'])
+def do_channel_invite():
+    params = request.get_json()
+    token = params['token']
+    channel_id = params['channel_id']
+    u_id = params['u_id']
+    return dumps(channel_invite_v2(token, channel_id, u_id))
+
+@APP.route('/channel/join/v2', methods=['POST'])
+def do_channel_join():
+    params = request.get_json()
+    token = params['token']
+    channel_id = params['channel_id']
+    return dumps(channel_join_v2(token, channel_id))
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, quit_gracefully)  # For coverage
