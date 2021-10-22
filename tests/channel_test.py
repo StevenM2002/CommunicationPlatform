@@ -65,7 +65,7 @@ def setup_private_channel():
         f"{config.url}/channels/create/v2",
         json={
             "token": user_token.json()["token"],
-            "name": "public_channel",
+            "name": "private_channel",
             "is_public": False,
         },
     )
@@ -247,11 +247,19 @@ def test_multiple_channels(setup_public_channel):
     )
     requests.post(
         f"{config.url}/channels/create/v2",
-        json={"token": setup_public_channel, "name": "second_channel", "is_public": True},
+        json={
+            "token": setup_public_channel,
+            "name": "second_channel",
+            "is_public": True,
+        },
     )
     requests.post(
         f"{config.url}/channels/create/v2",
-        json={"token": setup_public_channel, "name": "private_channel", "is_public": False},
+        json={
+            "token": setup_public_channel,
+            "name": "private_channel",
+            "is_public": False,
+        },
     )
     requests.post(
         f"{config.url}/channel/join/v2",
