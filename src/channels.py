@@ -131,12 +131,7 @@ def channels_list_v2(token):
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
     except:
         raise AccessError("invalid token")
-    # Check that token info is good and if it is then do channels_list_v1
-    for users in store["users"]:
-        if users["u_id"] == payload["u_id"]:
-            if any(users["session_ids"]) == payload["session_id"]:
-                return channels_list_v1(payload["u_id"])
-    raise AccessError("invalid token")
+    return channels_list_v1(payload["u_id"])
 
 
 def channels_listall_v2(token):
@@ -145,12 +140,7 @@ def channels_listall_v2(token):
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
     except:
         raise AccessError("invalid token")
-    # Check that token info is good
-    for users in store["users"]:
-        if users["u_id"] == payload["u_id"]:
-            if any(users["session_ids"]) == payload["session_id"]:
-                return channels_listall_v1(payload["u_id"])
-    raise AccessError("invalid token")
+    return channels_listall_v1(payload["u_id"])
 
 
 def validate_token(token, users):

@@ -364,19 +364,17 @@ def channel_leave_v1(token, channel_id):
     if channel_id not in all_chan_ids:
         raise InputError("channel_id not valid")
 
-    # the_channel = None
     for channels in store["channels"]:
         if channel_id == channels["channel_id"]:
-            # the_channel == channels
             if payload["u_id"] not in channels["all_members"]:
                 raise AccessError("user not member in channel")
             else:
                 channels["all_members"].remove(payload["u_id"])
                 try:
                     channels["owner_members"].remove(payload["u_id"])
-                    return
                 except ValueError:
-                    return
+                    pass
+    return {}
 
 
 def channel_invite_v2(token, channel_id, u_id):

@@ -630,14 +630,6 @@ def test_member_not_in_channel_leavev1(dataset_leavev1):
     assert response.status_code == 403
 
 
-def test_invalid_token_leavev1(dataset_leavev1):
-    response = requests.post(
-        config.url + "channel/leave/v1",
-        json={"token": "not.valid.token", "channel_id": dataset_leavev1["c"][0]},
-    )
-    assert response.status_code == 403
-
-
 """Tests for functions from src/channel.py"""
 import pytest
 from src.error import InputError, AccessError
