@@ -173,7 +173,7 @@ def test_user_does_not_have_owner_perms_addowner(dataset_addownersv1):
     )
     assert response.status_code == 403
 
-def test_add_one_normal_member(dataset_addownersv1):
+def test_add_one_normal_member_addowner(dataset_addownersv1):
     requests.post(
         config.url + "channel/join/v2",
         json={
@@ -199,7 +199,7 @@ def test_add_one_normal_member(dataset_addownersv1):
     owner_ids = [owners["u_id"] for owners in response["owner_members"]]
     assert dataset_addownersv1["r"][2]["auth_user_id"] in owner_ids
 
-def test_add_owner_using_global_owner_to_auth(dataset_addownersv1):
+def test_add_owner_using_global_owner_to_auth_addowner(dataset_addownersv1):
     requests.post(
         config.url + "channel/join/v2",
         json={
@@ -224,13 +224,32 @@ def test_add_owner_using_global_owner_to_auth(dataset_addownersv1):
     ).json()
     owner_ids = [owners["u_id"] for owners in response["owner_members"]]
     assert dataset_addownersv1["r"][0]["auth_user_id"] in owner_ids
+
 @pytest.fixture
 def dataset_removeownerv1():
     requests.delete(config.url + "clear/v1")
     reg0 = requests.post(
         config.url + "auth/register/v2",
         json={
+            "email": "user0@mail.com",
+            "password": "password",
+            "name_first": "first",
+            "name_last": "last",
+        },
+    ).json()
+    reg1 = requests.post(
+        config.url + "auth/register/v2",
+        json={
             "email": "user1@mail.com",
+            "password": "password",
+            "name_first": "first",
+            "name_last": "last",
+        },
+    ).json()
+    reg2 = requests.post(
+        config.url + "auth/register/v2",
+        json={
+            "email": "user2@mail.com",
             "password": "password",
             "name_first": "first",
             "name_last": "last",
@@ -240,9 +259,120 @@ def dataset_removeownerv1():
         config.url + "channels/create/v2",
         json={"token": reg0["token"], "name": "chan0", "is_public": True},
     ).json()["channel_id"]
+    chan_id1 = requests.post(
+        config.url + "channels/create/v2",
+        json={"token": reg1["token"], "name": "chan1", "is_public": True},
+    ).json()["channel_id"]
+    return ({"r": (reg0, reg1, reg2), "c": (chan_id0, chan_id1)})
 
-    return ({"r": (reg0, None), "c": (chan_id0, None)})
+def test_remove_one_owner_removeowner(dataset_removeownerv1):
+    requests.post(
+        config.url + "channel/join/v2",
+        json={
+            "token": dataset_removeownerv1["r"][2]["token"],
+            "channel_id": dataset_removeownerv1["c"][0]
+        }
+    )
+    requests.post(
+        config.url + "channel/addowner/v1",
+        json={
+            "token": dataset_removeownerv1["r"][0]["token"],
+            "channel_id": dataset_removeownerv1["c"][0],
+            "u_id": dataset_removeownerv1["r"][2]["auth_user_id"],
+        },
+    )
+    requests.post(
+        config.url + "channel/removeowner/v1",
+        json={
+            "token": dataset_removeownerv1["r"][0]["token"],
+            "channel_id": dataset_removeownerv1["c"][0],
+            "u_id": dataset_removeownerv1["r"][2]["auth_user_id"],
+        },
+    )
+    response = requests.get(
+        config.url + "/channel/details/v2",
+        params={
+            "token": dataset_removeownerv1["r"][0]["token"],
+            "channel_id": dataset_removeownerv1["c"][0]     
+        }
+    ).json()
+    owner_ids = [owners["u_id"] for owners in response["owner_members"]]
+    assert owner_ids == [dataset_removeownerv1["r"][0]["auth_user_id"]]
 
+def test_remove_self_removeowner(dataset_removeownerv1):
+    requests.post(
+        config.url + "channel/join/v2",
+        json={
+            "token": dataset_removeownerv1["r"][2]["token"],
+            "channel_id": dataset_removeownerv1["c"][0]
+        }
+    )
+    requests.post(
+        config.url + "channel/addowner/v1",
+        json={
+            "token": dataset_removeownerv1["r"][0]["token"],
+            "channel_id": dataset_removeownerv1["c"][0],
+            "u_id": dataset_removeownerv1["r"][2]["auth_user_id"],
+        },
+    )
+    requests.post(
+        config.url + "channel/removeowner/v1",
+        json={
+            "token": dataset_removeownerv1["r"][2]["token"],
+            "channel_id": dataset_removeownerv1["c"][0],
+            "u_id": dataset_removeownerv1["r"][2]["auth_user_id"],
+        },
+    )
+    response = requests.get(
+        config.url + "/channel/details/v2",
+        params={
+            "token": dataset_removeownerv1["r"][0]["token"],
+            "channel_id": dataset_removeownerv1["c"][0]     
+        }
+    ).json()
+    owner_ids = [owners["u_id"] for owners in response["owner_members"]]
+    assert owner_ids == [dataset_removeownerv1["r"][0]["auth_user_id"]]
+
+def test_remove_with_global_owner_perms(dataset_removeownerv1):
+    requests.post(
+        config.url + "channel/join/v2",
+        json={
+            "token": dataset_removeownerv1["r"][0]["token"],
+            "channel_id": dataset_removeownerv1["c"][1]
+        }
+    )
+    requests.post(
+        config.url + "channel/join/v2",
+        json={
+            "token": dataset_removeownerv1["r"][2]["token"],
+            "channel_id": dataset_removeownerv1["c"][1]
+        }
+    )   
+    requests.post(
+        config.url + "channel/addowner/v1",
+        json={
+            "token": dataset_removeownerv1["r"][1]["token"],
+            "channel_id": dataset_removeownerv1["c"][1],
+            "u_id": dataset_removeownerv1["r"][2]["auth_user_id"]
+        }
+    )
+    response = requests.post(
+        config.url + "channel/removeowner/v1",
+        json={
+            "token": dataset_removeownerv1["r"][0]["token"],
+            "channel_id": dataset_removeownerv1["c"][1],
+            "u_id": dataset_removeownerv1["r"][1]["auth_user_id"],
+        },
+    )
+    response = requests.get(
+        config.url + "/channel/details/v2",
+        params={
+            "token": dataset_removeownerv1["r"][0]["token"],
+            "channel_id": dataset_removeownerv1["c"][1]     
+        }
+    ).json()
+    owner_ids = [owners["u_id"] for owners in response["owner_members"]]
+    assert owner_ids == [dataset_removeownerv1["r"][2]["auth_user_id"]]
 
 def test_remove_only_owner_removeownerv1(dataset_removeownerv1):
     response = requests.post(
@@ -254,6 +384,75 @@ def test_remove_only_owner_removeownerv1(dataset_removeownerv1):
         },
     )
     assert response.status_code == 400
+
+def test_channel_id_not_valid_removeowner(dataset_removeownerv1):
+    response = requests.post(
+        config.url + "channel/removeowner/v1",
+        json={
+            "token": dataset_removeownerv1["r"][0]["token"],
+            "channel_id": -1,
+            "u_id": dataset_removeownerv1["r"][0]["auth_user_id"],
+        },
+    )
+    assert response.status_code == 400
+
+def test_userid_not_valid_removeowner(dataset_removeownerv1):
+    response = requests.post(
+        config.url + "channel/removeowner/v1",
+        json={
+            "token": dataset_removeownerv1["r"][0]["token"],
+            "channel_id": dataset_removeownerv1["c"][0],
+            "u_id": -1,
+        },
+    )
+    assert response.status_code == 400
+
+def test_uid_not_a_member(dataset_removeownerv1):
+    response = requests.post(
+        config.url + "channel/removeowner/v1",
+        json={
+            "token": dataset_removeownerv1["r"][0]["token"],
+            "channel_id": dataset_removeownerv1["c"][0],
+            "u_id": dataset_removeownerv1["r"][1]["auth_user_id"],
+        },
+    )
+    assert response.status_code == 400
+
+def test_uid_not_owner(dataset_removeownerv1):
+    requests.post(
+        config.url + "channel/join/v2",
+        json={
+            "token": dataset_removeownerv1["r"][1]["token"],
+            "channel_id": dataset_removeownerv1["c"][0]
+        }
+    )
+    response = requests.post(
+        config.url + "channel/removeowner/v1",
+        json={
+            "token": dataset_removeownerv1["r"][0]["token"],
+            "channel_id": dataset_removeownerv1["c"][0],
+            "u_id": dataset_removeownerv1["r"][1]["auth_user_id"],
+        },
+    )
+    assert response.status_code == 400
+
+def test_do_not_have_owner_perms(dataset_removeownerv1):
+    requests.post(
+        config.url + "channel/join/v2",
+        json={
+            "token": dataset_removeownerv1["r"][1]["token"],
+            "channel_id": dataset_removeownerv1["c"][0]
+        }
+    )
+    response = requests.post(
+        config.url + "channel/removeowner/v1",
+        json={
+            "token": dataset_removeownerv1["r"][1]["token"],
+            "channel_id": dataset_removeownerv1["c"][0],
+            "u_id": dataset_removeownerv1["r"][0]["auth_user_id"],
+        },
+    )
+    assert response.status_code == 403
 
 @pytest.fixture
 def dataset_leavev1():
