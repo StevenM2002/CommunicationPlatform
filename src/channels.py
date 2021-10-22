@@ -128,7 +128,7 @@ def channels_list_v2(token):
 
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-    except ValueError as e:
+    except Exception as e:
         raise AccessError("invalid token") from e
     return channels_list_v1(payload["u_id"])
 
@@ -136,7 +136,7 @@ def channels_list_v2(token):
 def channels_listall_v2(token):
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-    except ValueError as e:
+    except Exception as e:
         raise AccessError("invalid token") from e
     return channels_listall_v1(payload["u_id"])
 
