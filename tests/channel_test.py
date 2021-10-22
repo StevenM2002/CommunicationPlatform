@@ -487,10 +487,17 @@ def dataset_addownersv1():
         json={"token": reg1["token"], "name": "chan1", "is_public": True},
     ).json()["channel_id"]
 
-    return ({"r": (reg0, reg1, reg2)}, {"c": (chan_id0, chan_id1)})
+    return ({"r": (reg0, reg1, reg2), "c": (chan_id0, chan_id1)})
 
 
 def test_add_1_owner_addownerv1(dataset_addownersv1):
+    requests.post(
+        config.url + "channel/join/v2",
+        json={
+            "token": dataset_addownersv1["r"][2]["token"],
+            "channel_id": dataset_addownersv1["c"][0]
+        }
+    )
     requests.post(
         config.url + "channel/addowner/v1",
         json={
@@ -563,7 +570,7 @@ def dataset_removeownerv1():
         json={"token": reg0["token"], "name": "chan0", "is_public": True},
     ).json()["channel_id"]
 
-    return ({"r": (reg0)}, {"c": (chan_id0)})
+    return ({"r": (reg0, None), "c": (chan_id0, None)})
 
 
 def test_remove_only_owner_removeownerv1(dataset_removeownerv1):
@@ -603,7 +610,7 @@ def dataset_leavev1():
         json={"token": token0, "name": "chan0", "is_public": True},
     ).json()["channel_id"]
 
-    return ({"t": (token0, token1)}, {"c": (chan_id0)})
+    return ({"t": (token0, token1), "c": (chan_id0, None)})
 
 def test_remove_only_ownermember_leavev1(dataset_leavev1):
     requests.post(
@@ -616,8 +623,8 @@ def test_remove_only_ownermember_leavev1(dataset_leavev1):
     requests.post(
         config.url + "channel/leave/v1",
         json={
-            dataset_leavev1["t"][0],
-            dataset_leavev1["c"][0]
+            "token": dataset_leavev1["t"][0],
+            "channel_id": dataset_leavev1["c"][0]
         }
     )
     response = requests.get(

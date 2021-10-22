@@ -323,7 +323,7 @@ def channel_removeowner_v1(token, channel_id, u_id):
                 raise InputError("u_id not in channel")
             if u_id not in channel["owner_members"]:
                 raise InputError("u_id not an owner")
-            if len(channel["owner_members"] == 0):
+            if len(channel["owner_members"]) == 1:
                 raise InputError("cannot remove only channel owner")
             if (payload["u_id"] in channel["all_members"] and is_global_owner) or (
                 payload["u_id"] in channel["global_owners"]

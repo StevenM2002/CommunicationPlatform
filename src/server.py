@@ -4,7 +4,7 @@ from flask import Flask, request
 from flask_cors import CORS
 
 from src.channels import channels_listall_v2, channels_list_v2, channels_create_v2
-from src.channel import channel_addowner_v1, channel_details_v2
+from src.channel import channel_addowner_v1, channel_details_v2, channel_removeowner_v1
 from src import config, auth, dm
 from src.other import clear_v1
 from src.error import InputError, AccessError
@@ -114,7 +114,10 @@ def channel_addingowner():
     data = request.get_json()
     return dumps(channel_addowner_v1(data["token"], data["channel_id"], data["u_id"]))
 
-#### NO NEED TO MODIFY BELOW THIS POINT
+@APP.route("/channel/removeowner/v1", methods=["POST"])
+def channel_removingowner():
+    data = request.get_json()
+    return dumps(channel_removeowner_v1(data["token"], data["channel_id"], data["u_id"]))
 
 @APP.route("/channels/create/v2", methods=["POST"])
 def create_channel_v2():
@@ -128,6 +131,7 @@ def get_channel_details():
     channel_id = request.args.get("channel_id")
     return dumps(channel_details_v2(token, channel_id))
 
+#### NO NEED TO MODIFY BELOW THIS POINT
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, quit_gracefully)  # For coverage
