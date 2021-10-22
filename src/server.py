@@ -5,10 +5,14 @@ from flask_cors import CORS
 from src import config, auth, dm
 from src.other import clear_v1
 import jwt
-from src.channel import channel_invite_v1, channel_join_v1
 from src.auth import JWT_SECRET
 from src.admin import admin_user_permission_change_v1, admin_user_remove_v1
-def quit_gracefully(*_):
+from src.channels import channels_create_v2
+from src.channel import channel_details_v2, channel_invite_v2, channel_join_v2
+from src.error import InputError, AccessError
+
+
+def quit_gracefully(*args):
     """For coverage"""
     exit(0)
 
@@ -98,24 +102,35 @@ def clear():
     clear_v1()
     return {}
 
-@APP.route('/channel/invite/v2', methods=['POST'])
-def channel_invite_v2():
-    params = request.get_json()
-    token = params['token']
-    channel_id = params['channel_id']
-    u_id = params['u_id']
-    decoded_token = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
-    auth_id = decoded_token['u_id']
-    return dumps(channel_invite_v1(auth_id, channel_id, u_id))
 
-@APP.route('/channel/join/v2', methods=['POST'])
-def channel_join_v2():
+@APP.route("/channels/create/v2", methods=["POST"])
+def create_channel_v2():
+    data = request.json
+    return dumps(channels_create_v2(data["token"], data["name"], data["is_public"]))
+
+
+@APP.route("/channel/details/v2", methods=["GET"])
+def get_channel_details():
+    token = request.args.get("token")
+    channel_id = request.args.get("channel_id")
+    return dumps(channel_details_v2(token, channel_id))
+
+
+@APP.route("/channel/invite/v2", methods=["POST"])
+def do_channel_invite():
     params = request.get_json()
-    token = params['token']
-    channel_id = params['channel_id']
-    decoded_token = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
-    auth_id = decoded_token['u_id']
-    return dumps(channel_join_v1(auth_id, channel_id))
+    token = params["token"]
+    channel_id = params["channel_id"]
+    u_id = params["u_id"]
+    return dumps(channel_invite_v2(token, channel_id, u_id))
+
+
+@APP.route("/channel/join/v2", methods=["POST"])
+def do_channel_join():
+    params = request.get_json()
+    token = params["token"]
+    channel_id = params["channel_id"]
+    return dumps(channel_join_v2(token, channel_id))
 
 
 if __name__ == "__main__":
