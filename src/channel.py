@@ -18,7 +18,8 @@ from src.data_store import data_store
 from src.error import AccessError, InputError
 from src.other import validate_auth_id, first
 from src.channels import validate_token
-
+import jwt
+from src.auth import JWT_SECRET
 EXCLUDE_LIST = ["password", "session_ids"]
 
 
@@ -228,3 +229,11 @@ def channel_join_v1(auth_user_id, channel_id):
     # adds the user to the channel members list
     channel["all_members"].append(auth_user_id)
     return {}
+
+def channel_invite_v2(token, channel_id, u_id):
+    auth_id = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])['u_id']
+    return channel_invite_v1(auth_id, channel_id, u_id)
+
+def channel_join_v2(token, channel_id):
+    auth_id = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])['u_id']
+    return channel_join_v1(auth_id, channel_id)
