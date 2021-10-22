@@ -2,8 +2,42 @@
 
 This contains a definition for the Datastore class which stores all the data
 for the Streams database. This database can be accessed using the data_store
-variable which is an instance of the Datastore class. It follows the data
-structure described in the type hints.
+variable which is an instance of the Datastore class. It follows the following
+data structure:
+{
+    "users": [
+        {
+            "u_id": user_id,
+            "email": email,
+            "password": password,
+            "name_first": name_first,
+            "name_last": name_last,
+            "handle_str": handle,
+        },
+        ...
+    ],
+    "channels":[
+        {
+            "channel_id": channel_id,
+            "name": name,
+            "owner_members": [auth_user_id],
+            "all_members": [auth_user_id],
+            "is_public": is_public,
+            "messages": [],
+        },
+        ...
+    ],
+    "global_owners": [auth_user_id],
+    "dms" : [
+        {
+            "dm_id": dm_id,
+            "name": name,
+            "messages": [],
+            "members": [auth_user_id],
+            "owner": auth_user_id,
+        },
+    ],
+}
 
     Typical usage example:
 
@@ -28,52 +62,9 @@ from copy import deepcopy
 from json import dump, load
 from pathlib import Path
 from threading import Event, Thread
-from typing import TypedDict
 
 
-class User(TypedDict):
-    u_id: str
-    email: str
-    password: str
-    name_first: str
-    name_last: str
-    handle_str: str
-    session_ids: list[int]
-
-
-class Message(TypedDict):
-    message_id: str
-    u_id: int
-    message: str
-    time_created: int
-
-
-class Channel(TypedDict):
-    channel_id: int
-    name: str
-    owner_members: list[int]
-    all_members: list[int]
-    is_public: bool
-    messages: list[Message]
-
-
-class DM(TypedDict):
-    dm_id: int
-    name: str
-    messages: list[Message]
-    members: list[int]
-    owner: int
-
-
-class DatastoreType(TypedDict):
-    users: list[User]
-    channels: list[Channel]
-    global_owners: list[int]
-    max_message_id: int
-    dms: list[DM]
-
-
-INITIAL_OBJECT: DatastoreType = {
+INITIAL_OBJECT = {
     "users": [],
     "channels": [],
     "global_owners": [],
@@ -87,7 +78,7 @@ WRITE_INTERVAL = 30
 class Datastore:
     """Datastore class used to store data for Streams."""
 
-    def __init__(self) -> None:
+    def __init__(self):
         if Path(DATA_STORE_FILE).is_file():
             try:
                 self.__store = load(open(DATA_STORE_FILE))
@@ -96,14 +87,14 @@ class Datastore:
         else:
             self.__store = deepcopy(INITIAL_OBJECT)
 
-    def get(self) -> DatastoreType:
+    def get(self):
         """Get the dictionary of the data base.
 
         Return Value:
             Returns datastore (dictionary)"""
         return self.__store
 
-    def set(self, store: DatastoreType) -> None:
+    def set(self, store):
         """Get the dictionary of the data base.
 
         Arguments:
