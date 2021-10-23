@@ -152,47 +152,6 @@ def channel_details_v2(token, channel_id):
 
 
 @validate_auth_id
-def channel_messages_v1(auth_user_id, channel_id, start):
-    """Get the messages from a channels.
-
-    Arguments:
-        auth_user_id (integer) - id of user requesting messages
-        channel_id (integer) - id of channel to get messages from
-        start (integer) - index of first message to start from
-
-    Exceptions:
-        AccessError - Occurs when:
-            - auth_user_id does not belong to a user
-            - channel_id is valid and the authorised user is not a member of
-            the channel
-        InputError - Occurs when:
-            - channel_id does not refer to a valid channel
-            - start is greater than the total number of messages in the channel
-
-    Returns:
-        Returns {messages, start, end}
-    """
-    # channel is set to the channel that matches the given channel_id if none
-    # match then it is set to an empty dictionary
-    channels = data_store.get()["channels"]
-    channel = first(lambda c: c["channel_id"] == channel_id, channels, {})
-    if not channel:
-        raise InputError("no channel matching channel id")
-    if not auth_user_id in channel["all_members"]:
-        raise AccessError("user is not a member of this channel")
-    messages = len(channel["messages"]) - 1
-    if start > messages:
-        raise InputError("start message id is greater than latest message id")
-
-    # end is set to -1 if the most recent message has been returned
-    return {
-        "messages": channel["messages"][start : start + 50],
-        "start": start,
-        "end": start + 50 if start + 50 < messages else -1,
-    }
-
-
-@validate_auth_id
 def channel_join_v1(auth_user_id, channel_id):
     """Add a user to a channel.
 
