@@ -239,6 +239,13 @@ def edit_message():
     return dumps(message.message_edit_v1(user_id, data["message_id"], data["message"]))
 
 
+@APP.route("/message/senddm/v1", methods=["POST"])
+def send_dm():
+    data = request.json
+    user_id, _ = extract_token(data["token"])
+    return dumps(message.message_senddm_v1(user_id, data["dm_id"], data["message"]))
+
+
 @APP.route("/message/remove/v1", methods=["DELETE"])
 def remove_message():
     data = request.json

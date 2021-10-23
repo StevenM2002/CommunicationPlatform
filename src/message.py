@@ -1,7 +1,7 @@
 import math
 import time
 
-from src.data_store import Channel, Message, data_store
+from src.data_store import data_store
 from src.error import AccessError, InputError
 from src.other import first, validate_auth_id
 
@@ -37,7 +37,9 @@ def channel_messages_v1(auth_user_id, channel_id, start):
         raise AccessError(description="user is not a member of this channel")
     messages = len(channel["messages"])
     if start > messages:
-        raise InputError(description="start message id is greater than latest message id")
+        raise InputError(
+            description="start message id is greater than latest message id"
+        )
 
     # end is set to -1 if the most recent message has been returned
     return {
@@ -54,10 +56,8 @@ def message_send_v1(user_id, channel_id, message_text):
         raise InputError(description="no channel matching channel id")
     if not user_id in channel["all_members"]:
         raise AccessError(description="user is not a member of this channel")
-    if len(message_text) > 1000:
-        raise InputError(description="message longer than 1000 characters")
-    if len(message_text) == 0:
-        raise InputError(description="message empty must contain 1 characters")
+    if not 1 <= len(message_text) <= 1000:
+        raise InputError(description="message must be between 1 and 1000 characters")
     message_id = data["max_message_id"] + 1
     data["max_message_id"] += 1
     message = {
@@ -70,18 +70,18 @@ def message_send_v1(user_id, channel_id, message_text):
     return {"message_id": message_id}
 
 
-def get_message(message_id) -> tuple[Message, Channel]:
+def get_message(message_id):
     data = data_store.get()
-    for channel in data["channels"]:
-        for message in channel["messages"]:
+    for group in (*data["channels"], *data["dms"]):
+        for message in group["messages"]:
             if message["message_id"] == message_id:
-                return message, channel
+                return message, group
     raise InputError(description="no message with message id was found")
 
 
 def message_edit_v1(user_id, message_id, edited_message):
-    message, channel = get_message(message_id)
-    if message["u_id"] != user_id and user_id not in channel["owner_members"]:
+    message, group = get_message(message_id)
+    if message["u_id"] != user_id and user_id not in group["owner_members"]:
         raise AccessError(
             description="message not sent by user or user not owner of channel"
         )
@@ -95,10 +95,33 @@ def message_edit_v1(user_id, message_id, edited_message):
 
 
 def message_remove_v1(user_id, message_id):
-    message, channel = get_message(message_id)
-    if message["u_id"] != user_id and user_id not in channel["owner_members"]:
+    message, group = get_message(message_id)
+    if message["u_id"] != user_id and user_id not in group["owner_members"]:
         raise AccessError(
             description="message not sent by user or user not owner of channel"
         )
-    channel["messages"].remove(message)
+    group["messages"].remove(message)
     return {}
+
+
+def message_senddm_v1(user_id, dm_id, message_text):
+    data = data_store.get()
+    for dm in data["dms"]:
+        if dm["dm_id"] == dm_id:
+            if user_id not in dm["members"]:
+                raise AccessError(description="user not a member of dm")
+            if not 1 <= len(message_text) <= 1000:
+                raise InputError(
+                    description="message must be between 1 and 1000 characters"
+                )
+            data["max_message_id"] += 1
+            message_id = data["max_message_id"]
+            message = {
+                "message": message_text,
+                "message_id": message_id,
+                "time_created": math.floor(time.time()),
+                "u_id": user_id,
+            }
+            dm["messages"].insert(0, message)
+            return {"message_id": message_id}
+    raise InputError(description="no dm matching dm id")

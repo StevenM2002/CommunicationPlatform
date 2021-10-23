@@ -7,6 +7,8 @@ from src.error import AccessError, InputError
 import pytest
 import requests
 
+from src.other import first
+
 
 @pytest.fixture
 def clear_datastore():
@@ -44,6 +46,21 @@ def register_bob(clear_datastore):
 
 
 @pytest.fixture
+def register_jeff(clear_datastore):
+    r = requests.post(
+        f"{url}auth/register/v2",
+        json={
+            "name_first": "jeff",
+            "name_last": "mama",
+            "email": "jeff@mail.com",
+            "password": "password",
+        },
+    )
+    assert r.status_code == 200
+    return r.json()["token"], r.json()["auth_user_id"]
+
+
+@pytest.fixture
 def create_public_channel(register_joe):
     token, user_id = register_joe
     r = requests.post(
@@ -63,6 +80,22 @@ def create_private_channel(register_joe):
     )
     assert r.status_code == 200
     return user_id, token, r.json()["channel_id"]
+
+
+@pytest.fixture
+def create_dm(register_joe, register_bob):
+    joe_token, joe_user_id = register_joe
+    bob_token, bob_user_id = register_bob
+    r = requests.post(
+        f"{url}dm/create/v1",
+        json={
+            "token": joe_token,
+            "u_ids": [joe_user_id, bob_user_id],
+        },
+    )
+    assert r.status_code == 200
+    dm_id = r.json()["dm_id"]
+    return joe_token, joe_user_id, bob_token, bob_user_id, dm_id
 
 
 def test_message_invalid_token(create_public_channel):
@@ -152,7 +185,6 @@ def test_message_get(create_public_channel):
     assert messages["start"] == 0
     assert messages["end"] == -1
     message = messages["messages"][0]
-    print(message)
     assert message["message_id"] == 0
     assert message["u_id"] == user_id
     assert message["message"] == message_text
@@ -216,7 +248,6 @@ def test_message_send_message_too_long(create_public_channel):
     assert r.status_code == InputError.code
 
 
-@pytest.mark.skip(reason="waiting for join")
 def test_message_send_joined_user(create_public_channel, register_bob):
     _, _, channel_id = create_public_channel
     bob_token, _ = register_bob
@@ -283,7 +314,6 @@ def test_message_edit_message_not_from_user_and_not_owner(
     assert r.status_code == AccessError.code
 
 
-@pytest.mark.skip(reason="waiting for join")
 def test_message_edit_message_not_from_user_and_is_owner(
     create_public_channel, register_bob
 ):
@@ -315,7 +345,6 @@ def test_message_edit_message_not_from_user_and_is_owner(
     assert message["message_id"] == message_id
 
 
-@pytest.mark.skip(reason="waiting for join")
 def test_message_edit_message_from_user_and_not_owner(
     create_public_channel, register_bob
 ):
@@ -371,7 +400,6 @@ def test_message_edit_message_from_user_and_is_owner(create_public_channel):
     assert message["message_id"] == message_id
 
 
-@pytest.mark.skip(reason="waiting for join")
 def test_message_edit_message_from_user_and_is_member(
     create_public_channel, register_bob
 ):
@@ -388,6 +416,11 @@ def test_message_edit_message_from_user_and_is_member(
     )
     assert r.status_code == 200
     message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": bob_token, "channel_id": channel_id, "message": "there"},
+    )
+    assert r.status_code == 200
     r = requests.put(
         f"{url}message/edit/v1",
         json={"token": bob_token, "message_id": message_id, "message": new_message},
@@ -398,7 +431,8 @@ def test_message_edit_message_from_user_and_is_member(
         params={"token": bob_token, "channel_id": channel_id, "start": 0},
     )
     assert r.status_code == 200
-    message = r.json()["messages"][0]
+    message = first(lambda m: m["message_id"] == message_id, r.json()["messages"])
+    assert message is not None
     assert message["message"] == new_message
     assert message["message_id"] == message_id
 
@@ -423,6 +457,83 @@ def test_message_edit_empty_message(create_public_channel):
     assert r.status_code == 200
     messages = r.json()["messages"]
     assert len(messages) == 0
+
+
+@pytest.mark.skip(reason="requires dm/messages/v1")
+def test_message_edit_dm(create_dm):
+    joe_token, _, _, _, dm_id = create_dm
+    old_message = "hi"
+    new_message = "hi from the future"
+    r = requests.post(
+        f"{url}message/senddm/v1",
+        json={
+            "token": joe_token,
+            "message": old_message,
+            "dm_id": dm_id,
+        },
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.put(
+        f"{url}message/edit/v1",
+        json={
+            "token": joe_token,
+            "message_id": message_id,
+            "message": new_message,
+        },
+    )
+    assert r.status_code == 200
+    r = requests.post(
+        f"{url}dm/messages/v1",
+        json={
+            "token": joe_token,
+            "message_id": message_id,
+            "message": new_message,
+        },
+    )
+    assert r.status_code == 200
+    messages = r.json()["messages"]
+    assert messages[0]["message"] == new_message
+
+
+def test_message_send_dm_user_not_member(create_dm, register_jeff):
+    _, _, _, _, dm_id = create_dm
+    jeff_token, _ = register_jeff
+    r = requests.post(
+        f"{url}message/senddm/v1",
+        json={
+            "token": jeff_token,
+            "message": "hi" * 1000,
+            "dm_id": dm_id,
+        },
+    )
+    assert r.status_code == 403
+
+
+def test_message_send_dm_invalid_dm(create_dm):
+    joe_token, _, _, _, _ = create_dm
+    r = requests.post(
+        f"{url}message/senddm/v1",
+        json={
+            "token": joe_token,
+            "message": "hi",
+            "dm_id": -1,
+        },
+    )
+    assert r.status_code == 400
+
+
+def test_message_send_dm_message_too_long(create_dm):
+    joe_token, _, _, _, dm_id = create_dm
+    r = requests.post(
+        f"{url}message/senddm/v1",
+        json={
+            "token": joe_token,
+            "message": "hi" * 1000,
+            "dm_id": dm_id,
+        },
+    )
+    assert r.status_code == 400
 
 
 def test_message_remove_message_id_not_valid(create_public_channel):
@@ -452,7 +563,6 @@ def test_message_remove_message_not_from_user_and_not_owner(
     assert r.status_code == AccessError.code
 
 
-@pytest.mark.skip(reason="waiting for join")
 def test_message_remove_message_not_from_user_and_is_owner(
     create_public_channel, register_bob
 ):
@@ -482,7 +592,6 @@ def test_message_remove_message_not_from_user_and_is_owner(
     assert len(messages) == 0
 
 
-@pytest.mark.skip(reason="waiting for join")
 def test_message_remove_message_from_user_and_not_owner(
     create_public_channel, register_bob
 ):
@@ -532,7 +641,6 @@ def test_message_remove_message_from_user_and_is_owner(create_public_channel):
     assert len(messages) == 0
 
 
-@pytest.mark.skip(reason="waiting for join")
 def test_message_remove_message_from_user_and_is_member(
     create_public_channel, register_bob
 ):
@@ -559,3 +667,7 @@ def test_message_remove_message_from_user_and_is_member(
     assert r.status_code == 200
     messages = r.json()["messages"]
     assert len(messages) == 0
+
+
+def test_message_remove_dm(register_joe):
+    ...
