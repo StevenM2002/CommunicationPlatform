@@ -1,19 +1,24 @@
 import signal
 from json import dumps
-from flask import Flask, request
-from flask_cors import CORS
 
-from src.channels import channels_listall_v2, channels_list_v2, channels_create_v2
-from src.channel import channel_addowner_v1, channel_details_v2, channel_removeowner_v1, channel_leave_v1
-from src.channels import channels_create_v2
-from src.channel import channel_details_v2, channel_invite_v2, channel_join_v2
-from src import config, auth, dm
-from src.other import clear_v1
-import jwt
-from src.auth import JWT_SECRET
-from src.channels import channels_create_v2
-from src.channel import channel_details_v2, channel_invite_v2, channel_join_v2
-from src.error import InputError, AccessError
+from src import config, auth, dm, message
+from src.channel import (
+    channel_details_v2,
+    channel_invite_v2,
+    channel_join_v2,
+    channel_addowner_v1,
+    channel_leave_v1,
+    channel_removeowner_v1,
+)
+from src.channels import (
+    channels_create_v2,
+    channels_listall_v2,
+    channels_list_v2,
+    channels_create_v2,
+)
+from src.data_store import clear_v1
+from src.error import InputError
+from src.other import extract_token
 from src.user import (
     all_users,
     user_profile,
@@ -21,13 +26,12 @@ from src.user import (
     user_set_email,
     user_set_handle,
 )
-import jwt
-from src.channel import channel_invite_v1, channel_join_v1
-from src.auth import JWT_SECRET
 
-# from src.admin import admin_user_permission_change_v1, admin_user_remove_v1
+from flask import Flask, request
+from flask_cors import CORS
 
-def quit_gracefully(*args):
+
+def quit_gracefully(*_):
     """For coverage"""
     exit(0)
 
@@ -117,25 +121,32 @@ def clear():
     clear_v1()
     return {}
 
+
 @APP.route("/channels/listall/v2", methods=["GET"])
 def channels_listingall():
     token = request.args.get("token")
     return dumps(channels_listall_v2(token))
-    
+
+
 @APP.route("/channels/list/v2", methods=["GET"])
 def channels_listing():
     token = request.args.get("token")
     return dumps(channels_list_v2(token))
+
 
 @APP.route("/channel/addowner/v1", methods=["POST"])
 def channel_addingowner():
     data = request.get_json()
     return dumps(channel_addowner_v1(data["token"], data["channel_id"], data["u_id"]))
 
+
 @APP.route("/channel/removeowner/v1", methods=["POST"])
 def channel_removingowner():
     data = request.get_json()
-    return dumps(channel_removeowner_v1(data["token"], data["channel_id"], data["u_id"]))
+    return dumps(
+        channel_removeowner_v1(data["token"], data["channel_id"], data["u_id"])
+    )
+
 
 @APP.route("/channels/create/v2", methods=["POST"])
 def create_channel_v2():
@@ -198,10 +209,50 @@ def do_channel_join():
     channel_id = params["channel_id"]
     return dumps(channel_join_v2(token, channel_id))
 
+
 @APP.route("/channel/leave/v1", methods=["POST"])
 def leave_channel():
     data = request.get_json()
     return dumps(channel_leave_v1(data["token"], data["channel_id"]))
+
+
+@APP.route("/channel/messages/v2", methods=["GET"])
+def get_messages():
+    user_id, _ = extract_token(request.args.get("token"))
+    channel_id = request.args.get("channel_id")
+    start = request.args.get("start")
+    if not channel_id.isnumeric() or not start.isnumeric():
+        raise InputError(description="channel_id and start must be integers")
+    return dumps(message.channel_messages_v1(user_id, int(channel_id), int(start)))
+
+
+@APP.route("/message/send/v1", methods=["POST"])
+def send_message():
+    data = request.json
+    user_id, _ = extract_token(data["token"])
+    return dumps(message.message_send_v1(user_id, data["channel_id"], data["message"]))
+
+
+@APP.route("/message/edit/v1", methods=["PUT"])
+def edit_message():
+    data = request.json
+    user_id, _ = extract_token(data["token"])
+    return dumps(message.message_edit_v1(user_id, data["message_id"], data["message"]))
+
+
+@APP.route("/message/senddm/v1", methods=["POST"])
+def send_dm():
+    data = request.json
+    user_id, _ = extract_token(data["token"])
+    return dumps(message.message_senddm_v1(user_id, data["dm_id"], data["message"]))
+
+
+@APP.route("/message/remove/v1", methods=["DELETE"])
+def remove_message():
+    data = request.json
+    user_id, _ = extract_token(data["token"])
+    return dumps(message.message_remove_v1(user_id, data["message_id"]))
+
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, quit_gracefully)  # For coverage

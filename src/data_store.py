@@ -13,7 +13,6 @@ data structure:
             "name_first": name_first,
             "name_last": name_last,
             "handle_str": handle,
-            "session_id": [int],
         },
         ...
     ],
@@ -64,7 +63,14 @@ from json import dump, load
 from pathlib import Path
 from threading import Event, Thread
 
-INITIAL_OBJECT = {"users": [], "channels": [], "global_owners": [], "dms": []}
+
+INITIAL_OBJECT = {
+    "users": [],
+    "channels": [],
+    "global_owners": [],
+    "dms": [],
+    "max_message_id": -1,
+}
 DATA_STORE_FILE = "datastore.json"
 WRITE_INTERVAL = 30
 
@@ -100,6 +106,12 @@ class Datastore:
         if not isinstance(store, dict):
             raise TypeError("store must be of type dictionary")
         self.__store = store
+
+
+def clear_v1():
+    """Clear the datastore class object to the value of INITIAL_OBJECT."""
+    data_store.set(deepcopy(INITIAL_OBJECT))
+    return {}
 
 
 def every(interval):
