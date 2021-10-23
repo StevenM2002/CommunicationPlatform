@@ -123,21 +123,41 @@ def channels_create_v2(token, name, is_public):
 
 
 def channels_list_v2(token):
-    # Token contains {"u_id": int, "session_id": int} in body and
-    # secret as from src.auth import JWT_SECRET
+    """
+    This function provides a list of channel information given a token
 
-    try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-    except Exception as e:
-        raise AccessError("invalid token") from e
+    Arguments:
+        token, token which is a jwt
+
+    Exceptions:
+        InputError  - NA
+        AccessError - Occurs when the token is incorrect
+
+    Return Value:
+        Returns channels_list_v1 return which is of form {"channels": []}
+
+    """
+    store = data_store.get()
+    payload = validate_token(token, store["users"])
     return channels_list_v1(payload["u_id"])
 
 
 def channels_listall_v2(token):
-    try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-    except Exception as e:
-        raise AccessError("invalid token") from e
+    """
+    Given a valid token, give a list of all channels
+
+    Arguments:
+        token, is a jwt
+
+    Exceptions:
+        InputError  - NA
+        AccessError - Occurs when there is an invalid token
+
+    Return Value:
+         Returns channels_listall_v1 return which is of form {"channels": []}
+    """
+    store = data_store.get()
+    payload = validate_token(token, store["users"])
     return channels_listall_v1(payload["u_id"])
 
 
