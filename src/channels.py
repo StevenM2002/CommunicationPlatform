@@ -138,7 +138,7 @@ def channels_list_v2(token):
 
     """
     store = data_store.get()
-    payload = validate_token(token, store["users"]);
+    payload = validate_token(token, store["users"])
     return channels_list_v1(payload["u_id"])
 
 
@@ -157,7 +157,7 @@ def channels_listall_v2(token):
          Returns channels_listall_v1 return which is of form {"channels": []}
     """
     store = data_store.get()
-    payload = validate_token(token, store["users"]);
+    payload = validate_token(token, store["users"])
     return channels_listall_v1(payload["u_id"])
 
 
