@@ -9,6 +9,21 @@ USER_KEYS = ["u_id", "email", "name_first", "name_last", "handle_str"]
 
 
 def dm_create_v1(token, u_ids):
+    """Create a new dm
+
+    A new dm will be created with owner who is suppplied token and members which are in u_ids
+
+    Arguments:
+        token (str) - An encoded JWT token
+        u_ids (list) - a list of auth_user_ids
+
+    Exceptions:
+        InputError - Occurs when:
+            - any u_id in u_ids does not refer to a valid user
+
+    Return Value:
+        Returns { dm_id } on successful dm creation
+    """
     store = data_store.get()
     users = store["users"]
     dms = store["dms"]  # [{ dm_id, name },]
@@ -54,6 +69,15 @@ def dm_create_v1(token, u_ids):
 
 
 def dm_list_v1(token):
+    """
+    Returns the list of DMs that the user is a member of.
+
+    Arguments:
+        token (str) - An encoded JWT token
+
+    Return Value:
+        Returns { dms } on success
+    """
     store = data_store.get()
     users = store["users"]
     dms = store["dms"]  # [{ dm_id, name },]
@@ -78,6 +102,20 @@ def dm_list_v1(token):
 
 
 def dm_remove_v1(token, dm_id):
+    """
+    Remove an existing DM, so all members are no longer in the DM.
+    This can only be done by the original creator of the DM.
+
+    Arguments:
+        token (str) - An encoded JWT token
+        dm_id (int) - the id a dm
+
+    Exceptions:
+        InputError - Occurs when:
+            - dm_id does not refer to a valid DM
+        AcessError - Occurs when:
+            - dm_id is valid and the authorised user is not the original DM creator
+    """
     store = data_store.get()
     users = store["users"]
     dms = store["dms"]  # [{ dm_id, name },]
@@ -112,6 +150,22 @@ def dm_remove_v1(token, dm_id):
 
 
 def dm_details_v1(token, dm_id):
+    """Given a DM with ID dm_id that the authorised user is a member of,
+    provide basic details about the DM.
+
+    Arguments:
+        token (str) - An encoded JWT token
+        dm_id (int) - the id a dm
+
+    Exceptions:
+        InputError - Occurs when:
+            - dm_id does not refer to a valid DM
+        AccessError - Occurs when:
+            - dm_id is valid and the authorised user is not a member of the DM
+
+    Return Value:
+        Returns { name, members } on success
+    """
     store = data_store.get()
     users = store["users"]
     dms = store["dms"]  # [{ dm_id, name },]
@@ -144,6 +198,19 @@ def dm_details_v1(token, dm_id):
 
 
 def dm_leave_v1(token, dm_id):
+    """
+    Given a DM ID, the user is removed as a member of this DM.
+
+    Arguments:
+        token (str) - An encoded JWT token
+        dm_id (int) - the id a dm
+
+    Exceptions:
+        InputError - Occurs when:
+            - dm_id does not refer to a valid DM
+        AccessError - Occurs when:
+            - dm_id is valid and the authorised user is not a member of the DM
+    """
     store = data_store.get()
     users = store["users"]
     dms = store["dms"]  # [{ dm_id, name },]
@@ -177,6 +244,24 @@ def dm_leave_v1(token, dm_id):
 
 
 def dm_messages_v1(token, dm_id, start):
+    """Given a DM with ID dm_id that the authorised user is a member of,
+    return up to 50 messages between index "start" and "start + 50".
+  
+    Arguments:
+        token (str) - An encoded JWT token
+        dm_id (int) - the id a dm
+        start (int) - the message to start retrieving from (0 is most recent)
+
+    Exceptions:
+        InputError - Occurs when:
+            - dm_id does not refer to a valid DM
+            - start is greater than the total number of messages in the channel
+        AccessError - Occurs when:
+            - dm_id is valid and the authorised user is not a member of the DM
+
+    Return Value:
+        Returns { messsages, start, end } on successful dm creation
+    """
     store = data_store.get()
     users = store["users"]
     dms = store["dms"]  # [{ dm_id, name },]
