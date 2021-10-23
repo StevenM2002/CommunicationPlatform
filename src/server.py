@@ -9,7 +9,23 @@ from src.channels import channels_create_v2
 from src.channel import channel_details_v2, channel_invite_v2, channel_join_v2
 from src import config, auth, dm
 from src.other import clear_v1
+import jwt
+from src.auth import JWT_SECRET
+from src.channels import channels_create_v2
+from src.channel import channel_details_v2, channel_invite_v2, channel_join_v2
 from src.error import InputError, AccessError
+from src.user import (
+    all_users,
+    user_profile,
+    user_set_name,
+    user_set_email,
+    user_set_handle,
+)
+import jwt
+from src.channel import channel_invite_v1, channel_join_v1
+from src.auth import JWT_SECRET
+
+# from src.admin import admin_user_permission_change_v1, admin_user_remove_v1
 
 def quit_gracefully(*args):
     """For coverage"""
@@ -133,20 +149,53 @@ def get_channel_details():
     channel_id = request.args.get("channel_id")
     return dumps(channel_details_v2(token, channel_id))
 
-#### NO NEED TO MODIFY BELOW THIS POINT
-@APP.route('/channel/invite/v2', methods=['POST'])
+
+@APP.route("/user/all/v1", methods=["GET"])
+def get_all_users():
+    token = request.args.get("token")
+    return dumps(all_users(token))
+
+
+@APP.route("/user/profile/v1", methods=["GET"])
+def find_user():
+    token = request.args.get("token")
+    u_id = request.args.get("u_id")
+    return dumps(user_profile(token, u_id))
+
+
+@APP.route("/user/profile/setname/v1", methods=["PUT"])
+def set_name():
+    data = request.json
+    return dumps(user_set_name(data["token"], data["name_first"], data["name_last"]))
+
+
+@APP.route("/user/profile/setemail/v1", methods=["PUT"])
+def set_email():
+    data = request.json
+    return dumps(user_set_email(data["token"], data["email"]))
+
+
+@APP.route("/user/profile/sethandle/v1", methods=["PUT"])
+def set_handle():
+    data = request.json
+    print(data)
+    return dumps(user_set_handle(data["token"], data["handle_str"]))
+
+
+@APP.route("/channel/invite/v2", methods=["POST"])
 def do_channel_invite():
     params = request.get_json()
-    token = params['token']
-    channel_id = params['channel_id']
-    u_id = params['u_id']
+    token = params["token"]
+    channel_id = params["channel_id"]
+    u_id = params["u_id"]
     return dumps(channel_invite_v2(token, channel_id, u_id))
 
-@APP.route('/channel/join/v2', methods=['POST'])
+
+@APP.route("/channel/join/v2", methods=["POST"])
 def do_channel_join():
     params = request.get_json()
-    token = params['token']
-    channel_id = params['channel_id']
+    token = params["token"]
+    channel_id = params["channel_id"]
     return dumps(channel_join_v2(token, channel_id))
 
 @APP.route("/channel/leave/v1", methods=["POST"])
