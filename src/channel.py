@@ -237,25 +237,30 @@ def channel_join_v1(auth_user_id, channel_id):
 
 
 def channel_addowner_v1(token, channel_id, u_id):
-    # Check token_uid is a global owner in the channel, or a channel owner: Access err
-    # If u_id is not valid: Input err
-    # Check u_id is in the channel: Input err
-    # Check u_id is not already owner: Input err
-    # Check channel_id is valid: Input err
-    # If all good then promote u_id to owner.
+    """
+    Adds owner to a channel
 
+    Arguments:
+        token, is a jwt, contains info on person accessing
+        channel_id, is an int which specifies a specific channel
+        u_id, is an int which specifies a specific user
+
+    Exceptions:
+        InputError  - Occurs when:
+            u_id is not valid
+            u_id is already in channel
+            channel_id is not valid
+            u_id is already owner
+        AccessError - Occurs when:
+            auth_user_id from token does not have owner perms
+            token is invalid
+
+    Return Value:
+        returns {}
+
+    """
     store = data_store.get()
-    try:
-        payload = jwt.decode(token, key=JWT_SECRET, algorithms=["HS256"])
-    except Exception as e:
-        raise AccessError("invalid token") from e
-
-    # for users in store["users"]:
-    #    if users["u_id"] == payload["u_id"]:
-    #        if any(users["session_ids"]) == payload["session_id"]:
-    #            pass
-    #        else:
-    #            raise AccessError("session id not identified")
+    payload = validate_token(token, store["users"])
 
     is_global_owner = False
     if payload["u_id"] in store["global_owners"]:
@@ -263,7 +268,7 @@ def channel_addowner_v1(token, channel_id, u_id):
     all_u_ids = [users["u_id"] for users in store["users"]]
     all_chan_ids = [chans["channel_id"] for chans in store["channels"]]
     which_channel = None
-
+    # Check for access errs
     for channels in store["channels"]:
         if channel_id == channels["channel_id"]:
             if (payload["u_id"] in channels["owner_members"]) or (
@@ -272,6 +277,7 @@ def channel_addowner_v1(token, channel_id, u_id):
                 which_channel = channels["owner_members"]
             else:
                 raise AccessError("does not have owner perms")
+    # Check for input errs
     if u_id not in all_u_ids:
         raise InputError("u_id not valid")
     if channel_id not in all_chan_ids:
@@ -290,35 +296,33 @@ def channel_addowner_v1(token, channel_id, u_id):
 
 def channel_removeowner_v1(token, channel_id, u_id):
     """
-    Input err when:
-    channel_id does not refer to a valid channel
-    u_id does not refer to a valid user
-    u_id refers to a user who is not an owner of the channel
-    u_id refers to a user who is currently the only owner of the channel
+    This function removes the owner of a channel
 
-    Access err when:
-    channel_id is valid and the authorised user does not have owner permissions in the channel
-        AKA token_uid needs to be either a global owner and a user in channel or a channel owner
+    Arguments:
+        token, is a jwt, contains info on person accessing
+        channel_id, is an int which specifies a specific channel
+        u_id, is an int which specifies a specific user
+
+    Exceptions:
+        InputError  - Occurs when:
+            u_id is not a valid user
+            u_id is not an owner
+            u_id is the only owner
+            channel_id is not valid
+        AccessError - Occurs when ...
+            authorised user from token does not have owner perms
+    Return Value:
+        Returns {}
+
     """
     store = data_store.get()
-    try:
-        payload = jwt.decode(token, key=JWT_SECRET, algorithms=["HS256"])
-    except Exception as e:
-        raise AccessError("invalid token") from e
-
-    # for users in store["users"]:
-    #    if users["u_id"] == payload["u_id"]:
-    #        if any(users["session_ids"]) == payload["session_id"]:
-    #            pass
-    #        else:
-    #            raise AccessError("session id not identified")
-
+    payload = validate_token(token, store["users"])
     is_global_owner = False
     if payload["u_id"] in store["global_owners"]:
         is_global_owner = True
     all_u_ids = [users["u_id"] for users in store["users"]]
     all_chan_ids = [chans["channel_id"] for chans in store["channels"]]
-
+    # Check for access errs
     for channels in store["channels"]:
         if channel_id == channels["channel_id"]:
             if (payload["u_id"] in channels["owner_members"]) or (
@@ -327,7 +331,7 @@ def channel_removeowner_v1(token, channel_id, u_id):
                 which_channel = channels["owner_members"]
             else:
                 raise AccessError("does not have owner perms")
-
+    # Check for input errs
     if u_id not in all_u_ids:
         raise InputError("u_id not valid")
     if channel_id not in all_chan_ids:
@@ -348,22 +352,28 @@ def channel_removeowner_v1(token, channel_id, u_id):
 
 def channel_leave_v1(token, channel_id):
     """
-    Input err when:
-    channel_id does not refer to a valid channel
+    This function removes the owner of a channel
 
-    Access err when:
-    channel_id is valid and the authorised user is not a member of the channel
+    Arguments:
+        token, is a jwt, contains info on person accessing
+        channel_id, is an int which specifies a specific channel
+
+    Exceptions:
+        InputError  - Occurs when:
+            channel_id is not valid
+        AccessError - Occurs when ...
+            authorised user from token is not a member of the channel
+
+    Return Value:
+        Returns {}
     """
     store = data_store.get()
-    try:
-        payload = jwt.decode(token, key=JWT_SECRET, algorithms=["HS256"])
-    except Exception as e:
-        raise AccessError("invalid token") from e
-
+    payload = validate_token(token, store["users"])
+    # Check input err
     all_chan_ids = [chans["channel_id"] for chans in store["channels"]]
     if channel_id not in all_chan_ids:
         raise InputError("channel_id not valid")
-
+    # Check access err and if all good, remove 
     for channels in store["channels"]:
         if channel_id == channels["channel_id"]:
             if payload["u_id"] not in channels["all_members"]:
