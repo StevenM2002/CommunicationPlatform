@@ -459,7 +459,7 @@ def test_message_edit_empty_message(create_public_channel):
     assert len(messages) == 0
 
 
-@pytest.mark.skip(reason="requires dm/messages/v1")
+# @pytest.mark.skip(reason="requires dm/messages/v1")
 def test_message_edit_dm(create_dm):
     joe_token, _, _, _, dm_id = create_dm
     old_message = "hi"
@@ -483,12 +483,12 @@ def test_message_edit_dm(create_dm):
         },
     )
     assert r.status_code == 200
-    r = requests.post(
+    r = requests.get(
         f"{url}dm/messages/v1",
         json={
             "token": joe_token,
-            "message_id": message_id,
-            "message": new_message,
+            "dm_id": dm_id,
+            "start": 0,
         },
     )
     assert r.status_code == 200
