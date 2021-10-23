@@ -5,6 +5,7 @@ channel. Each of these functions are decorated with validate_auth_id to ensure
 that auth_user_id is valid before running code inside the functions.
 """
 from src.data_store import data_store
+
 from src.auth import JWT_SECRET
 from src.error import InputError, AccessError
 from src.other import validate_auth_id
@@ -32,7 +33,6 @@ def channels_list_v1(auth_user_id):
         Returns {"channels": [{"channel_id": channel_id, "name": channel_name}]}
     """
     store = data_store.get()
-
     # iterate through channels if auth_user_id is a member of the channel add
     # channel to the return value
     channels = []
@@ -120,6 +120,25 @@ def channels_create_v2(token, name, is_public):
     return {
         "channel_id": channel_id,
     }
+
+
+def channels_list_v2(token):
+    # Token contains {"u_id": int, "session_id": int} in body and
+    # secret as from src.auth import JWT_SECRET
+
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    except Exception as e:
+        raise AccessError("invalid token") from e
+    return channels_list_v1(payload["u_id"])
+
+
+def channels_listall_v2(token):
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    except Exception as e:
+        raise AccessError("invalid token") from e
+    return channels_listall_v1(payload["u_id"])
 
 
 def validate_token(token, users):

@@ -2,6 +2,11 @@ import signal
 from json import dumps
 from flask import Flask, request
 from flask_cors import CORS
+
+from src.channels import channels_listall_v2, channels_list_v2, channels_create_v2
+from src.channel import channel_addowner_v1, channel_details_v2, channel_removeowner_v1, channel_leave_v1
+from src.channels import channels_create_v2
+from src.channel import channel_details_v2, channel_invite_v2, channel_join_v2
 from src import config, auth, dm
 from src.other import clear_v1
 import jwt
@@ -22,8 +27,7 @@ from src.auth import JWT_SECRET
 
 # from src.admin import admin_user_permission_change_v1, admin_user_remove_v1
 
-
-def quit_gracefully(*_):
+def quit_gracefully(*args):
     """For coverage"""
     exit(0)
 
@@ -113,6 +117,25 @@ def clear():
     clear_v1()
     return {}
 
+@APP.route("/channels/listall/v2", methods=["GET"])
+def channels_listingall():
+    token = request.args.get("token")
+    return dumps(channels_listall_v2(token))
+    
+@APP.route("/channels/list/v2", methods=["GET"])
+def channels_listing():
+    token = request.args.get("token")
+    return dumps(channels_list_v2(token))
+
+@APP.route("/channel/addowner/v1", methods=["POST"])
+def channel_addingowner():
+    data = request.get_json()
+    return dumps(channel_addowner_v1(data["token"], data["channel_id"], data["u_id"]))
+
+@APP.route("/channel/removeowner/v1", methods=["POST"])
+def channel_removingowner():
+    data = request.get_json()
+    return dumps(channel_removeowner_v1(data["token"], data["channel_id"], data["u_id"]))
 
 @APP.route("/channels/create/v2", methods=["POST"])
 def create_channel_v2():
@@ -175,6 +198,10 @@ def do_channel_join():
     channel_id = params["channel_id"]
     return dumps(channel_join_v2(token, channel_id))
 
+@APP.route("/channel/leave/v1", methods=["POST"])
+def leave_channel():
+    data = request.get_json()
+    return dumps(channel_leave_v1(data["token"], data["channel_id"]))
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, quit_gracefully)  # For coverage
