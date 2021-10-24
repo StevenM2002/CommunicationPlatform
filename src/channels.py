@@ -90,10 +90,9 @@ def channels_create_v2(token, name, is_public):
         raise InputError(description="invalid Name")
 
     # sets channel_id as the next highest number in the channel list
-    if len(channels) > 0:
-        channel_id = max(channels, key=lambda c: c["channel_id"])["channel_id"] + 1
-    else:
-        channel_id = 0
+    store["max_ids"]["channel"] += 1
+    data_store.set(store)
+    channel_id = store["max_ids"]["channel"]
 
     channels.append(
         {

@@ -39,7 +39,9 @@ def dm_create_v1(token, u_ids):
 
     name = ", ".join(handle_list)
 
-    dm_id = max(dms, key=lambda x: x["dm_id"])["dm_id"] + 1 if len(dms) > 0 else 0
+    store["max_ids"]["dm"] += 1
+    data_store.set(store)
+    dm_id = store["max_ids"]["dm"]
 
     dms.append(
         {
@@ -195,7 +197,7 @@ def dm_leave_v1(token, dm_id):
 def dm_messages_v1(token, dm_id, start):
     """Given a DM with ID dm_id that the authorised user is a member of,
     return up to 50 messages between index "start" and "start + 50".
-  
+
     Arguments:
         token (str) - An encoded JWT token
         dm_id (int) - the id a dm
