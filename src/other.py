@@ -1,6 +1,4 @@
 """Miscellaneous functions that are used throughout Streams backend.
-
-Contains clear_v1 function and validate_auth_id decorator.
 """
 
 

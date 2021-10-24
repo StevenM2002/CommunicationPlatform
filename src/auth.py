@@ -66,6 +66,11 @@ def auth_login_v2(email, password):
 
 
 def auth_logout_v1(token):
+    """Given an active token, invalidates the token to log the user out.
+
+    Arguments:
+        token (str) - An encoded JWT token
+    """
     # retreive token's data
     token_data = extract_token(token)
 
@@ -188,6 +193,19 @@ def create_handle(handle, base_length):
 
 
 def extract_token(token):
+    """Verifies if the given token is valid
+
+    Arguments:
+        token (str) - An encoded JWT token
+
+    Exceptions:
+        InputError - Occurs when:
+            - invalid jwt token
+            - no matching session id for user
+
+    Return Value:
+        Returns { u_id, token } on successful registration
+    """
     try:
         token_data = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
     except jwt.DecodeError:

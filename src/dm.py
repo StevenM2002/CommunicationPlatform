@@ -26,9 +26,11 @@ def dm_create_v1(token, u_ids):
     users = store["users"]
     dms = store["dms"]  # [{ dm_id, name },]
     token_data = extract_token(token)
+    # check if users in list are valid
     for u_id in u_ids:
         if not any([True for user in users if user["u_id"] == u_id]):
             raise InputError(description="Not valid user to add to dm")
+    # sort names to alphabetical order
     handle_list = sorted(
         [
             user["handle_str"]
@@ -39,6 +41,7 @@ def dm_create_v1(token, u_ids):
 
     name = ", ".join(handle_list)
 
+    # set new dm_id to 1 + max current id
     store["max_ids"]["dm"] += 1
     data_store.set(store)
     dm_id = store["max_ids"]["dm"]
@@ -72,6 +75,7 @@ def dm_list_v1(token):
     dms = store["dms"]  # [{ dm_id, name },]
     token_data = extract_token(token)
 
+    # loop through dms and add to list if in
     member_dms = [
         {key: dm[key] for key in dm if key in OUTPUT_KEYS}
         for dm in dms
@@ -186,6 +190,7 @@ def dm_leave_v1(token, dm_id):
         raise AccessError(description="User not in DM")
     selected_dm["members"].remove(token_data["u_id"])
 
+    # if no members left in dm delete dm
     if len(selected_dm["members"]) == 0:
         store["dms"] = [dm for dm in dms if dm is not selected_dm]
 
