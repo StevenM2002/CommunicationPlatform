@@ -1,6 +1,6 @@
 from src.data_store import data_store
 from src.error import InputError, AccessError
-from src.other import extract_token
+from src.auth import extract_token
 
 OUTPUT_KEYS = ["name", "dm_id"]
 USER_KEYS = ["u_id", "email", "name_first", "name_last", "handle_str"]

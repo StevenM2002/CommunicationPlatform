@@ -18,7 +18,9 @@ from copy import deepcopy
 
 from src.data_store import data_store
 from src.error import AccessError, InputError
-from src.other import extract_token, first
+from src.other import first
+from src.auth import extract_token
+
 
 EXCLUDE_LIST = ["password", "session_ids", "channel_id", "messages"]
 

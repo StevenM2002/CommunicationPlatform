@@ -515,7 +515,7 @@ def test_logout_2x():
         f"{config.url}auth/logout/v1",
         json={"token": token},
     )
-    assert r.status_code == 200
+    assert r.status_code == AccessError.code
 
     r = requests.get(
         f"{config.url}channels/list/v2",
@@ -561,7 +561,7 @@ def test_logout_removed_user():
         f"{config.url}auth/logout/v1",
         json={"token": user_token},
     )
-    assert r.status_code == 200
+    assert r.status_code == AccessError.code
 
     r = requests.get(
         f"{config.url}channels/list/v2",

@@ -14,8 +14,7 @@ import random
 from string import printable
 
 from src.data_store import data_store
-from src.error import InputError
-from src.other import extract_token
+from src.error import InputError, AccessError
 
 JWT_SECRET = "".join(random.choice(printable) for _ in range(50))
 
@@ -75,9 +74,8 @@ def auth_logout_v1(token):
     for user in users:
         # check for matching user_id
         if user["u_id"] == token_data["u_id"]:
-            if token_data["session_id"] in user["session_ids"]:
-                user["session_ids"].remove(token_data["session_id"])
-                data_store.store(store)
+            user["session_ids"].remove(token_data["session_id"])
+            data_store.set(store)
     return {}
 
 
@@ -185,3 +183,18 @@ def create_handle(handle, base_length):
             # check if new counter also exists
             return create_handle(handle[:base_length] + str(counter), base_length)
     return handle
+
+
+def extract_token(token):
+    try:
+        token_data = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    except jwt.DecodeError:
+        raise AccessError(description="invalid jwt token") from Exception
+
+    for user in data_store.get()["users"]:
+        if user["u_id"] == token_data["u_id"]:
+            if token_data["session_id"] in user["session_ids"]:
+                return token_data
+            else:
+                raise AccessError(description="no matching session id for user")
+    raise AccessError(description="no matching user id in database")

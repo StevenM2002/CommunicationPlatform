@@ -17,7 +17,7 @@ from src.channels import (
 )
 from src.data_store import clear_v1
 from src.error import InputError
-from src.other import extract_token
+from src.auth import extract_token
 from src.user import (
     all_users,
     user_profile,
