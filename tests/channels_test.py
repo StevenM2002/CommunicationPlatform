@@ -1,17 +1,11 @@
 import pytest
-
-from src.error import InputError, AccessError
-from src.data_store import clear_v1
-from src.auth import auth_register_v2 as auth_register_v1
-from src.channel import channel_join_v1
-from src.channels import channels_list_v1, channels_listall_v1, channels_create_v2
-from src import config
 import json
 import requests
 
+from src import config
+from src.error import InputError, AccessError
+
 OK = 200
-INPUT_ERROR = 400
-ACCESS_ERROR = 403
 
 
 @pytest.fixture
@@ -35,13 +29,11 @@ def clear_and_register():
 # Channel Create Tests
 # Input name is an empty string (input error)
 def test_create_empty(clear_and_register):
-    print(f"user_token = {clear_and_register}")
     response = requests.post(
         f"{config.url}/channels/create/v2",
         json={"token": clear_and_register, "name": "", "is_public": True},
     )
-    print(response.status_code)
-    assert response.status_code == INPUT_ERROR
+    assert response.status_code == InputError.code
 
 
 # Input name is greater than 20 characters (input error)
@@ -54,7 +46,7 @@ def test_create_large(clear_and_register):
             "is_public": True,
         },
     )
-    assert response.status_code == INPUT_ERROR
+    assert response.status_code == InputError.code
 
 
 # Invalid user_auth_id (access error)
@@ -67,7 +59,7 @@ def test_create_inval_auth(clear_and_register):
             "is_public": True,
         },
     )
-    assert response.status_code == ACCESS_ERROR
+    assert response.status_code == AccessError.code
 
 
 # Valid input name is used with a public chat
@@ -129,7 +121,6 @@ def test_no_channels_listv2(list_data_v2):
     payload = requests.get(
         config.url + "channels/list/v2", params={"token": list_data_v2[0]}
     )
-    print(json.loads(payload.text))
     assert payload.json() == {"channels": []}
     requests.post(
         config.url + "channels/create/v2",
@@ -354,7 +345,7 @@ def test_user_is_not_owner_listallv2(listall_data_v2):
         json={"token": listall_data_v2[0], "name": "chan0", "is_public": True},
     ).json()
     requests.post(
-        config.url + "channels/join/v2",
+        config.url + "channel/join/v2",
         params={"token": listall_data_v2[1], "channel_id": chan_id0["channel_id"]},
     )
     payload = requests.get(

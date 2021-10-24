@@ -14,7 +14,6 @@ from src.channels import (
     channels_create_v2,
     channels_listall_v2,
     channels_list_v2,
-    channels_create_v2,
 )
 from src.data_store import clear_v1
 from src.error import InputError
@@ -189,7 +188,6 @@ def set_email():
 @APP.route("/user/profile/sethandle/v1", methods=["PUT"])
 def set_handle():
     data = request.json
-    print(data)
     return dumps(user_set_handle(data["token"], data["handle_str"]))
 
 
@@ -218,7 +216,7 @@ def leave_channel():
 
 @APP.route("/channel/messages/v2", methods=["GET"])
 def get_messages():
-    user_id, _ = extract_token(request.args.get("token"))
+    user_id = extract_token(request.args.get("token"))["u_id"]
     channel_id = request.args.get("channel_id")
     start = request.args.get("start")
     if not channel_id.isnumeric() or not start.isnumeric():
@@ -229,28 +227,28 @@ def get_messages():
 @APP.route("/message/send/v1", methods=["POST"])
 def send_message():
     data = request.json
-    user_id, _ = extract_token(data["token"])
+    user_id = extract_token(data["token"])["u_id"]
     return dumps(message.message_send_v1(user_id, data["channel_id"], data["message"]))
 
 
 @APP.route("/message/edit/v1", methods=["PUT"])
 def edit_message():
     data = request.json
-    user_id, _ = extract_token(data["token"])
+    user_id = extract_token(data["token"])["u_id"]
     return dumps(message.message_edit_v1(user_id, data["message_id"], data["message"]))
 
 
 @APP.route("/message/senddm/v1", methods=["POST"])
 def send_dm():
     data = request.json
-    user_id, _ = extract_token(data["token"])
+    user_id = extract_token(data["token"])["u_id"]
     return dumps(message.message_senddm_v1(user_id, data["dm_id"], data["message"]))
 
 
 @APP.route("/message/remove/v1", methods=["DELETE"])
 def remove_message():
     data = request.json
-    user_id, _ = extract_token(data["token"])
+    user_id = extract_token(data["token"])["u_id"]
     return dumps(message.message_remove_v1(user_id, data["message_id"]))
 
 

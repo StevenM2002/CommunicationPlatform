@@ -16,17 +16,11 @@ ensure that auth_user_id is valid before running code inside the functions.
 """
 from src.data_store import data_store
 from src.error import AccessError, InputError
-from src.other import validate_auth_id, first
-from src.auth import JWT_SECRET
-import jwt
-from src.channels import validate_token
-import jwt
-from src.auth import JWT_SECRET
+from src.other import extract_token, first
 
 EXCLUDE_LIST = ["password", "session_ids"]
 
 
-@validate_auth_id
 def channel_invite_v1(auth_user_id, channel_id, u_id):
     """Invites a user with ID u_id to join a channel with ID channel_id.
 
@@ -110,7 +104,7 @@ def channel_details_v2(token, channel_id):
     store = data_store.get()
     users = store["users"]
     channels = store["channels"]
-    u_information = validate_token(token, users)
+    u_information = extract_token(token)
     auth_user_id = int(u_information["u_id"])
     # Forces channel_id to be an integer
     channel_id = int(channel_id)
@@ -151,7 +145,6 @@ def channel_details_v2(token, channel_id):
     }
 
 
-@validate_auth_id
 def channel_join_v1(auth_user_id, channel_id):
     """Add a user to a channel.
 
@@ -219,7 +212,7 @@ def channel_addowner_v1(token, channel_id, u_id):
 
     """
     store = data_store.get()
-    payload = validate_token(token, store["users"])
+    payload = extract_token(token)
 
     is_global_owner = False
     if payload["u_id"] in store["global_owners"]:
@@ -275,7 +268,7 @@ def channel_removeowner_v1(token, channel_id, u_id):
 
     """
     store = data_store.get()
-    payload = validate_token(token, store["users"])
+    payload = extract_token(token)
     is_global_owner = False
     if payload["u_id"] in store["global_owners"]:
         is_global_owner = True
@@ -327,12 +320,12 @@ def channel_leave_v1(token, channel_id):
         Returns {}
     """
     store = data_store.get()
-    payload = validate_token(token, store["users"])
+    payload = extract_token(token)
     # Check input err
     all_chan_ids = [chans["channel_id"] for chans in store["channels"]]
     if channel_id not in all_chan_ids:
         raise InputError("channel_id not valid")
-    # Check access err and if all good, remove 
+    # Check access err and if all good, remove
     for channels in store["channels"]:
         if channel_id == channels["channel_id"]:
             if payload["u_id"] not in channels["all_members"]:
@@ -347,14 +340,10 @@ def channel_leave_v1(token, channel_id):
 
 
 def channel_invite_v2(token, channel_id, u_id):
-    store = data_store.get()
-    validate_token(token, store["users"])
-    auth_id = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])["u_id"]
+    auth_id = extract_token(token)["u_id"]
     return channel_invite_v1(auth_id, channel_id, u_id)
 
 
 def channel_join_v2(token, channel_id):
-    store = data_store.get()
-    validate_token(token, store["users"])
-    auth_id = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])["u_id"]
+    auth_id = extract_token(token)["u_id"]
     return channel_join_v1(auth_id, channel_id)

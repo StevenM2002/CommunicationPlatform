@@ -5,18 +5,10 @@ channel. Each of these functions are decorated with validate_auth_id to ensure
 that auth_user_id is valid before running code inside the functions.
 """
 from src.data_store import data_store
-
-from src.auth import JWT_SECRET
-from src.error import InputError, AccessError
-from src.other import validate_auth_id
-import json
-import re
-import jwt
-import hashlib
-from jwt import DecodeError
+from src.error import InputError
+from src.other import extract_token
 
 
-@validate_auth_id
 def channels_list_v1(auth_user_id):
     """List all public channels.
 
@@ -45,7 +37,6 @@ def channels_list_v1(auth_user_id):
     return {"channels": channels}
 
 
-@validate_auth_id
 def channels_listall_v1(auth_user_id):  # pylint: disable=unused-argument
     """List all public and private channels.
 
@@ -91,7 +82,7 @@ def channels_create_v2(token, name, is_public):
     channels = store["channels"]
 
     # Checks if the given token is valid
-    u_information = validate_token(token, store["users"])
+    u_information = extract_token(token)
     auth_user_id = u_information["u_id"]
 
     # checks for if the name is valid
@@ -137,8 +128,7 @@ def channels_list_v2(token):
         Returns channels_list_v1 return which is of form {"channels": []}
 
     """
-    store = data_store.get()
-    payload = validate_token(token, store["users"])
+    payload = extract_token(token)
     return channels_list_v1(payload["u_id"])
 
 
@@ -156,32 +146,5 @@ def channels_listall_v2(token):
     Return Value:
          Returns channels_listall_v1 return which is of form {"channels": []}
     """
-    store = data_store.get()
-    payload = validate_token(token, store["users"])
+    payload = extract_token(token)
     return channels_listall_v1(payload["u_id"])
-
-
-def validate_token(token, users):
-    """Decodes the token and determines if it points to a valid user's session
-
-    Args:
-        token (str) - An encoded JWT token
-
-    Returns:
-        u_information (dict) - A boolean declaring if token is valid
-    """
-    try:
-        u_information = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-    except DecodeError as Error:
-        raise AccessError(description="Invalid token") from Error
-    valid = any(True for user in users if user["u_id"] == u_information["u_id"])
-    found_user = [user for user in users if user["u_id"] == u_information["u_id"]][0]
-    if valid:
-        valid = any(
-            True
-            for session in found_user["session_ids"]
-            if session == u_information["session_id"]
-        )
-    if not valid:
-        raise AccessError(description="Invalid Token")
-    return u_information

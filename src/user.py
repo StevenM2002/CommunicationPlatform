@@ -1,8 +1,7 @@
 import re
 from src.data_store import data_store
-from src.auth import JWT_SECRET
-from src.error import InputError, AccessError
-from src.channels import validate_token
+from src.error import InputError
+from src.other import extract_token
 
 
 def all_users(token):
@@ -22,7 +21,7 @@ def all_users(token):
     store = data_store.get()
 
     # Validating the input token
-    validate_token(token, store["users"])
+    extract_token(token)
 
     # Returning the list of users
     users = [
@@ -59,7 +58,7 @@ def user_profile(token, u_id):
     removed = store["removed_users"]
     u_id = int(u_id)
     # Validating the input token
-    validate_token(token, users)
+    extract_token(token)
 
     # Finding the correct user
     found_user = [user for user in users if user["u_id"] == u_id]
@@ -101,7 +100,7 @@ def user_set_name(token, name_first, name_last):
     users = store["users"]
 
     # Validating the token
-    u_information = validate_token(token, users)
+    u_information = extract_token(token)
 
     # Checks the length of the given strings, returning input errors if not
     for name in (name_first, name_last):
@@ -138,7 +137,7 @@ def user_set_email(token, email):
     users = store["users"]
 
     # Validating the token
-    u_information = validate_token(token, users)
+    u_information = extract_token(token)
 
     # Checks if the given email fits the correct regex
     if not re.fullmatch(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$", email):
@@ -178,7 +177,7 @@ def user_set_handle(token, handle_str):
     users = store["users"]
 
     # Validating the token
-    u_information = validate_token(token, users)
+    u_information = extract_token(token)
 
     # Checking that the length of the handle is valid
     if len(handle_str) < 3 or len(handle_str) > 20:

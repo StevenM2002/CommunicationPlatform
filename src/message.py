@@ -3,10 +3,9 @@ import time
 
 from src.data_store import data_store
 from src.error import AccessError, InputError
-from src.other import first, validate_auth_id
+from src.other import first
 
 
-@validate_auth_id
 def channel_messages_v1(auth_user_id, channel_id, start):
     """Get the messages from a channels.
 

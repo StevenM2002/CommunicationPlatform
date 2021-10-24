@@ -68,7 +68,6 @@ def test_invalid_channel_id(setup_public_channel):
         f"{config.url}/channel/details/v2",
         params={"token": setup_public_channel, "channel_id": 10},
     )
-    print(response)
     assert response.status_code == INPUT_ERROR
 
 
@@ -106,7 +105,6 @@ def test_valid_inputs(setup_public_channel):
         f"{config.url}/channel/details/v2",
         params={"token": setup_public_channel, "channel_id": 0},
     )
-    print(response)
     assert response.status_code == OK
     assert response.json() == {
         "name": "public_channel",
