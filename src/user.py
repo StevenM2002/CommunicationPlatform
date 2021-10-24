@@ -34,7 +34,7 @@ def all_users(token):
         }
         for user in store["users"]
     ]
-    return {'users': users}
+    return {"users": users}
 
 
 def user_profile(token, u_id):
@@ -75,7 +75,7 @@ def user_profile(token, u_id):
         for key, value in found_user[0].items()
         if key not in ("session_ids", "password")
     }
-    return {'user': user}
+    return {"user": user}
 
 
 def user_set_name(token, name_first, name_last):
