@@ -65,7 +65,7 @@ def test_create(dm_users):
 def test_list(dm_create):
     dm_users = dm_create[1]
 
-    r = requests.get(f"{config.url}dm/list/v1", json={"token": dm_users[0]["token"]})
+    r = requests.get(f"{config.url}dm/list/v1", params={"token": dm_users[0]["token"]})
 
     assert r.status_code == 200
     assert r.json()["dms"] == [
@@ -85,13 +85,13 @@ def test_remove(dm_create):
     )
     assert r.status_code == 200
     for user in dm_users:
-        r = requests.get(f"{config.url}dm/list/v1", json={"token": user["token"]})
+        r = requests.get(f"{config.url}dm/list/v1", params={"token": user["token"]})
         assert r.status_code == 200
         assert r.json()["dms"] == []
 
         r = requests.get(
             f"{config.url}dm/details/v1",
-            json={
+            params={
                 "token": user["token"],
                 "dm_id": dm_id,
             },
@@ -104,7 +104,7 @@ def test_details(dm_create):
 
     r = requests.get(
         f"{config.url}dm/details/v1",
-        json={
+        params={
             "token": dm_users[0]["token"],
             "dm_id": dm_id,
         },
@@ -150,13 +150,13 @@ def test_leave(dm_create):
     )
     assert r.status_code == 200
 
-    r = requests.get(f"{config.url}dm/list/v1", json={"token": dm_users[1]["token"]})
+    r = requests.get(f"{config.url}dm/list/v1", params={"token": dm_users[1]["token"]})
     assert r.status_code == 200
     assert r.json()["dms"] == []
 
     r = requests.get(
         f"{config.url}dm/details/v1",
-        json={
+        params={
             "token": dm_users[1]["token"],
             "dm_id": dm_id,
         },
@@ -169,7 +169,7 @@ def test_messages(dm_create):
 
     r = requests.get(
         f"{config.url}dm/messages/v1",
-        json={
+        params={
             "token": dm_users[0]["token"],
             "dm_id": dm_id,
             "start": 0,
@@ -184,7 +184,7 @@ def test_messages_bad_index(dm_create):
 
     r = requests.get(
         f"{config.url}dm/messages/v1",
-        json={
+        params={
             "token": dm_users[0]["token"],
             "dm_id": dm_id,
             "start": 10,
@@ -208,7 +208,7 @@ def test_invalid_token(dm_users):
 
     r = requests.get(
         f"{config.url}dm/list/v1",
-        json={
+        params={
             "token": dm_users[0]["token"],
         },
     )
@@ -225,7 +225,7 @@ def test_invalid_token(dm_users):
 
     r = requests.get(
         f"{config.url}dm/details/v1",
-        json={
+        params={
             "token": dm_users[0]["token"],
             "dm_id": 0,
         },
@@ -243,7 +243,7 @@ def test_invalid_token(dm_users):
 
     r = requests.get(
         f"{config.url}dm/messages/v1",
-        json={"token": dm_users[0]["token"], "dm_id": 0, "start": 0},
+        params={"token": dm_users[0]["token"], "dm_id": 0, "start": 0},
     )
     assert r.status_code == AccessError.code
 
@@ -297,7 +297,7 @@ def test_invalid_dm_id(dm_users):
 
     r = requests.get(
         f"{config.url}dm/details/v1",
-        json={
+        params={
             "token": dm_users[0]["token"],
             "dm_id": 100,
         },
@@ -315,7 +315,7 @@ def test_invalid_dm_id(dm_users):
 
     r = requests.get(
         f"{config.url}dm/messages/v1",
-        json={
+        params={
             "token": dm_users[0]["token"],
             "dm_id": 100,
             "start": 0,
@@ -370,7 +370,7 @@ def test_not_in_dm(dm_users):
     assert r.status_code == AccessError.code
     r = requests.get(
         f"{config.url}dm/messages/v1",
-        json={
+        params={
             "token": dm_users[2]["token"],
             "dm_id": dm_id,
             "start": 0,
