@@ -50,7 +50,9 @@ def auth_login_v2(email, password):
             # if correct user generate token
             token_data = {
                 "u_id": user["u_id"],
-                "session_id": max(user["session_ids"]) + 1,
+                "session_id": max(user["session_ids"]) + 1
+                if len(user["session_ids"]) > 0
+                else 0,
             }
             token = jwt.encode(token_data, JWT_SECRET, algorithm="HS256")
 
