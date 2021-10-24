@@ -16,7 +16,7 @@ from string import printable
 from src.data_store import data_store
 from src.error import InputError
 
-JWT_SECRET = "".join(random.choice(printable) for i in range(50))
+JWT_SECRET = "".join(random.choice(printable) for _ in range(50))
 
 """jwt structure
 {"u_id": int, "session_id": int}

@@ -14,11 +14,13 @@ ensure that auth_user_id is valid before running code inside the functions.
 
     channel_invite_v1(user_id, channel_id, user_id)
 """
+from copy import deepcopy
+
 from src.data_store import data_store
 from src.error import AccessError, InputError
 from src.other import extract_token, first
 
-EXCLUDE_LIST = ["password", "session_ids"]
+EXCLUDE_LIST = ["password", "session_ids", "channel_id", "messages"]
 
 
 def channel_invite_v1(auth_user_id, channel_id, u_id):
@@ -109,40 +111,34 @@ def channel_details_v2(token, channel_id):
     # Forces channel_id to be an integer
     channel_id = int(channel_id)
 
-    # checks whether the channel_id is used
-    valid = any(True for channel in channels if channel["channel_id"] == channel_id)
-    if not valid:
+    channel = first(lambda c: c["channel_id"] == channel_id, channels, {})
+    if not channel:
         raise InputError(description="channel_id not found")
-
-    # finds the given channel, and saves the given data to a dictionary
-    found_channel = [
-        channel for channel in channels if channel["channel_id"] == channel_id
-    ][0]
 
     # checks whether auth_user_id is a member of the channel
     is_member = any(
-        True for user in found_channel["all_members"] if user == auth_user_id
+        True for user in channel["all_members"] if user == auth_user_id
     )
     if not is_member:
         raise AccessError(description="user is not a member of the channel")
 
     # loops through the tuple containing owner_members and all_members, finding
     # the user from the user_id and adding it to the corresponding list
+    channel_details = {
+        key: value
+        for key, value in deepcopy(channel).items()
+        if key not in EXCLUDE_LIST
+    }
     for member_key in ("owner_members", "all_members"):
-        for i, user_id in enumerate(found_channel[member_key]):
-            member_user = [user for user in users if user["u_id"] == user_id][0]
-            found_channel[member_key][i] = {
+        for i, user_id in enumerate(channel[member_key]):
+            user_details = first(lambda u: u["u_id"] == user_id, users, {})
+            channel_details[member_key][i] = {
                 key: value
-                for key, value in member_user.items()
+                for key, value in user_details.items()
                 if key not in EXCLUDE_LIST
             }
 
-    # return found_channel excluding for channel_id and messages keys
-    return {
-        key: value
-        for key, value in found_channel.items()
-        if key not in ("channel_id", "messages")
-    }
+    return channel_details
 
 
 def channel_join_v1(auth_user_id, channel_id):
