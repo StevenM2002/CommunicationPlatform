@@ -17,6 +17,7 @@ def clear_datastore():
 
 @pytest.fixture
 def register_joe(clear_datastore):
+    print("joe")
     r = requests.post(
         f"{url}auth/register/v2",
         json={
@@ -32,6 +33,7 @@ def register_joe(clear_datastore):
 
 @pytest.fixture
 def register_bob(clear_datastore):
+    print("bob")
     r = requests.post(
         f"{url}auth/register/v2",
         json={
@@ -47,6 +49,7 @@ def register_bob(clear_datastore):
 
 @pytest.fixture
 def register_jeff(clear_datastore):
+    print("jeff")
     r = requests.post(
         f"{url}auth/register/v2",
         json={
@@ -459,7 +462,6 @@ def test_message_edit_empty_message(create_public_channel):
     assert len(messages) == 0
 
 
-# @pytest.mark.skip(reason="requires dm/messages/v1")
 def test_message_edit_dm(create_dm):
     joe_token, _, _, _, dm_id = create_dm
     old_message = "hi"
@@ -540,7 +542,7 @@ def test_message_remove_message_id_not_valid(create_public_channel):
     _, token, _ = create_public_channel
     r = requests.delete(
         f"{url}message/remove/v1",
-        json={"token": token, "message_id": 0, "message": "hi"},
+        json={"token": token, "message_id": 0},
     )
     assert r.status_code == InputError.code
 
@@ -669,7 +671,9 @@ def test_message_remove_message_from_user_and_is_member(
     assert len(messages) == 0
 
 
-def test_message_remove_dm(create_public_channel, register_bob, register_jeff):
+def test_message_edit_message_from_removed_user(
+    create_public_channel, register_bob, register_jeff
+):
     _, joe_token, channel_id = create_public_channel
     bob_token, bob_user_id = register_bob
     jeff_token, _ = register_jeff
@@ -704,3 +708,82 @@ def test_message_remove_dm(create_public_channel, register_bob, register_jeff):
     )
     assert r.status_code == 200
     assert r.json()["messages"][0]["message"] == "new"
+
+
+def test_message_remove_dm(create_dm):
+    joe_token, _, _, _, dm_id = create_dm
+    message = "hi"
+    r = requests.post(
+        f"{url}message/senddm/v1",
+        json={
+            "token": joe_token,
+            "message": message,
+            "dm_id": dm_id,
+        },
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.get(
+        f"{url}dm/messages/v1",
+        params={
+            "token": joe_token,
+            "dm_id": dm_id,
+            "start": 0,
+        },
+    )
+    assert r.status_code == 200
+    messages = r.json()["messages"]
+    assert messages[0]["message"] == message
+    r = requests.delete(
+        f"{url}message/remove/v1",
+        json={"token": joe_token, "message_id": message_id},
+    )
+    assert r.status_code == 200
+    r = requests.get(
+        f"{url}dm/messages/v1",
+        params={
+            "token": joe_token,
+            "dm_id": dm_id,
+            "start": 0,
+        },
+    )
+    assert r.status_code == 200
+    messages = r.json()["messages"]
+    assert len(messages) == 0
+
+
+def test_message_remove_dm_from_removed_user(register_jeff, create_dm):
+    joe_token, joe_user_id, bob_token, _, dm_id = create_dm
+    jeff_token, _ = register_jeff
+    message = "hi"
+    r = requests.post(
+        f"{url}message/senddm/v1",
+        json={
+            "token": joe_token,
+            "message": message,
+            "dm_id": dm_id,
+        },
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.get(
+        f"{url}dm/messages/v1",
+        params={
+            "token": joe_token,
+            "dm_id": dm_id,
+            "start": 0,
+        },
+    )
+    assert r.status_code == 200
+    messages = r.json()["messages"]
+    assert messages[0]["message"] == message
+    r = requests.delete(
+        f"{url}admin/user/remove/v1",
+        json={"token": jeff_token, "u_id": joe_user_id},
+    )
+    assert r.status_code == 200
+    r = requests.delete(
+        f"{url}message/remove/v1",
+        json={"token": bob_token, "message_id": message_id},
+    )
+    assert r.status_code == AccessError.code

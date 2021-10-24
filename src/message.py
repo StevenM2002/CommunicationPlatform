@@ -133,11 +133,11 @@ def message_edit_v1(user_id, message_id, edited_message):
 
     if not sender_is_member and (not global_owner or not group_owner):
         raise AccessError(
-            description="message not sent by user or user not owner of channel"
+            description="message not sent by a member and user_id is not an owner"
         )
     if message["u_id"] != user_id and (not global_owner or not group_owner):
         raise AccessError(
-            description="message not sent by user or user not owner of channel"
+            description="message not sent by user and user not an owner"
         )
     if len(edited_message) > 1000:
         raise InputError(description="message longer than 1000 characters")
@@ -170,9 +170,22 @@ def message_remove_v1(user_id, message_id):
         Returns {}
     """
     message, group = get_message(message_id)
-    if message["u_id"] != user_id and user_id not in group["owner_members"]:
+    data = data_store.get()
+    global_owner = user_id in data["global_owners"]
+    if "dm_id" in group:
+        group_owner = user_id in group["members"]
+        sender_is_member = message["u_id"] in group["members"]
+    else:
+        group_owner = user_id in group["owner_members"]
+        sender_is_member = message["u_id"] in group["all_members"]
+
+    if not sender_is_member and (not global_owner or not group_owner):
         raise AccessError(
-            description="message not sent by user or user not owner of channel"
+            description="message not sent by a member and user_id is not an owner"
+        )
+    if message["u_id"] != user_id and (not global_owner or not group_owner):
+        raise AccessError(
+            description="message not sent by user and user not an owner"
         )
     group["messages"].remove(message)
     return {}
