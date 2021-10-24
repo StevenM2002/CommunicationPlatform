@@ -669,5 +669,38 @@ def test_message_remove_message_from_user_and_is_member(
     assert len(messages) == 0
 
 
-def test_message_remove_dm(register_joe):
-    ...
+def test_message_remove_dm(create_public_channel, register_bob, register_jeff):
+    _, joe_token, channel_id = create_public_channel
+    bob_token, bob_user_id = register_bob
+    jeff_token, _ = register_jeff
+    r = requests.post(
+        f"{url}channel/join/v2", json={"token": bob_token, "channel_id": channel_id}
+    )
+    assert r.status_code == 200
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": bob_token, "channel_id": channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.delete(
+        f"{url}admin/user/remove/v1",
+        json={"token": joe_token, "u_id": bob_user_id},
+    )
+    assert r.status_code == 200
+    r = requests.put(
+        f"{url}message/edit/v1",
+        json={"token": jeff_token, "message_id": message_id, "message": "new"},
+    )
+    assert r.status_code == AccessError.code
+    r = requests.put(
+        f"{url}message/edit/v1",
+        json={"token": joe_token, "message_id": message_id, "message": "new"},
+    )
+    assert r.status_code == 200
+    r = requests.get(
+        f"{url}channel/messages/v2",
+        params={"token": joe_token, "channel_id": channel_id, "start": 0},
+    )
+    assert r.status_code == 200
+    assert r.json()["messages"][0]["message"] == "new"
