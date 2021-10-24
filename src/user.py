@@ -93,7 +93,6 @@ def user_set_name(token, name_first, name_last):
 
     Return Value:
         Returns {}
-
     """
     # Loading the data store
     store = data_store.get()

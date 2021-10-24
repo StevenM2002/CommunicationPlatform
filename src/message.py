@@ -10,9 +10,9 @@ def channel_messages_v1(auth_user_id, channel_id, start):
     """Get the messages from a channels.
 
     Arguments:
-        auth_user_id (integer) - id of user requesting messages
-        channel_id (integer) - id of channel to get messages from
-        start (integer) - index of first message to start from
+        auth_user_id (int) - id of user requesting messages
+        channel_id (int) - id of channel to get messages from
+        start (int) - index of first message to start from
 
     Exceptions:
         AccessError - Occurs when:
@@ -49,6 +49,23 @@ def channel_messages_v1(auth_user_id, channel_id, start):
 
 
 def message_send_v1(user_id, channel_id, message_text):
+    """Send a message from use to a channel.
+
+    Arguments:
+        user_id (int) - id of user requesting messages
+        channel_id (int) - id of channel to get messages from
+        message_text (str) - index of first message to start from
+
+    Exceptions:
+        InputError when:
+            - channel_id does not refer to a valid channel
+            - length of message is less than 1 or over 1000 characters
+        AccessError when:
+            - channel_id is valid and the authorised user is not a member of the channel
+
+    Returns:
+        Returns {message_id}
+    """
     data = data_store.get()
     channel = first(lambda c: c["channel_id"] == channel_id, data["channels"], {})
     if not channel:
@@ -71,6 +88,7 @@ def message_send_v1(user_id, channel_id, message_text):
 
 
 def get_message(message_id):
+    """Get a message from a message id"""
     data = data_store.get()
     for group in (*data["channels"], *data["dms"]):
         for message in group["messages"]:
@@ -80,6 +98,29 @@ def get_message(message_id):
 
 
 def message_edit_v1(user_id, message_id, edited_message):
+    """Edit a message with message_id to say edited_message.
+
+    Arguments:
+        user_id (int) - id of user requesting messages
+        message_id (int) - id of channel to get messages from
+        edited_message (str) - index of first message to start from
+
+    Exceptions:
+        InputError when:
+            - length of message is over 1000 characters
+            - message_id does not refer to a valid message within a
+              channel/DM that the authorised user has joined
+
+        AccessError when:
+            - message_id refers to a valid message in a joined
+              channel/DM and none of the following are true
+            - the message was sent by the authorised user making this
+              request
+            - the authorised user has owner permissions in the channel/DM
+
+    Returns:
+        Returns {}
+    """
     message, group = get_message(message_id)
     data = data_store.get()
     global_owner = user_id in data["global_owners"]
@@ -102,6 +143,26 @@ def message_edit_v1(user_id, message_id, edited_message):
 
 
 def message_remove_v1(user_id, message_id):
+    """Remove a message with message_id from user_id.
+
+    Arguments:
+        user_id (int) - id of user requesting messages
+        message_id (int) - id of message to remove
+
+    Exceptions:
+        InputError when:
+            - message_id does not refer to a valid message within a
+              channel/DM that the authorised user has joined
+        AccessError when:
+            - message_id refers to a valid message in a joined
+              channel/DM and none of the following are true
+            - the message was sent by the authorised user making this
+              request
+            - the authorised user has owner permissions in the channel/DM
+
+    Returns:
+        Returns {}
+    """
     message, group = get_message(message_id)
     if message["u_id"] != user_id and user_id not in group["owner_members"]:
         raise AccessError(
@@ -112,6 +173,27 @@ def message_remove_v1(user_id, message_id):
 
 
 def message_senddm_v1(user_id, dm_id, message_text):
+    """Send a dm in dm_id with message_text to user_id.
+
+    Arguments:
+        user_id (int) - id of user requesting messages
+        channel_id (int) - id of channel to get messages from
+        message_text (str) - index of first message to start from
+
+    Exceptions:
+        InputError when:
+            - message_id does not refer to a valid message within a
+              channel/DM that the authorised user has joined
+        AccessError when:
+            - message_id refers to a valid message in a joined channel/DM
+              and none of the following are true
+            - the message was sent by the authorised user making this
+              request the authorised user has owner permissions in the
+              channel/DM
+
+    Returns:
+        Returns {}
+    """
     data = data_store.get()
     for dm in data["dms"]:
         if dm["dm_id"] == dm_id:

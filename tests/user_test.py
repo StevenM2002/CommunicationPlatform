@@ -78,90 +78,51 @@ def test_all_single_user():
     ).json()["token"]
     response = requests.get(f"{config.url}/users/all/v1", params={"token": token})
     assert response.status_code == OK
-    assert response.json() == {
-        "users": [
-            {
-                "u_id": 0,
-                "email": "mario@gmail.com",
-                "name_first": "Mario",
-                "name_last": "Plumber",
-                "handle_str": "marioplumber",
-            }
-        ]
-    }
+    assert response.json()["users"] == [
+        {
+            "u_id": 0,
+            "email": "mario@gmail.com",
+            "name_first": "Mario",
+            "name_last": "Plumber",
+            "handle_str": "marioplumber",
+        }
+    ]
 
 
 # Checks that when multiple users are added the correct list is returned
 def test_all_valid_users(new_users):
     response = requests.get(f"{config.url}/users/all/v1", params={"token": new_users})
     assert response.status_code == OK
-    assert response.json() == {
-        "users": [
-            {
-                "u_id": 0,
-                "email": "mario@gmail.com",
-                "name_first": "Mario",
-                "name_last": "Plumber",
-                "handle_str": "marioplumber",
-            },
-            {
-                "u_id": 1,
-                "email": "luigi@gmail.com",
-                "name_first": "Luigi",
-                "name_last": "Plumber",
-                "handle_str": "luigiplumber",
-            },
-            {
-                "u_id": 2,
-                "email": "Peach@gmail.com",
-                "name_first": "Princess",
-                "name_last": "Peach",
-                "handle_str": "princesspeach",
-            },
-            {
-                "u_id": 3,
-                "email": "bowser@gmail.com",
-                "name_first": "Bowser",
-                "name_last": "Turtle",
-                "handle_str": "bowserturtle",
-            },
-        ]
-    }
-
-
-# Checks that if a user is removed, they no longer get printed by the function
-def test_all_removed_users(new_users):
-    delete_response = requests.delete(
-        f"{config.url}/admin/user/remove/v1", json={"token": new_users, "u_id": 1}
-    )
-    assert delete_response.status_code == OK
-    response = requests.get(f"{config.url}/users/all/v1", params={"token": new_users})
-    assert response.status_code == OK
-    assert response.json() == {
-        "users": [
-            {
-                "u_id": 0,
-                "email": "mario@gmail.com",
-                "name_first": "Mario",
-                "name_last": "Plumber",
-                "handle_str": "marioplumber",
-            },
-            {
-                "u_id": 2,
-                "email": "Peach@gmail.com",
-                "name_first": "Princess",
-                "name_last": "Peach",
-                "handle_str": "princesspeach",
-            },
-            {
-                "u_id": 3,
-                "email": "bowser@gmail.com",
-                "name_first": "Bowser",
-                "name_last": "Turtle",
-                "handle_str": "bowserturtle",
-            },
-        ]
-    }
+    assert response.json()["users"] == [
+        {
+            "u_id": 0,
+            "email": "mario@gmail.com",
+            "name_first": "Mario",
+            "name_last": "Plumber",
+            "handle_str": "marioplumber",
+        },
+        {
+            "u_id": 1,
+            "email": "luigi@gmail.com",
+            "name_first": "Luigi",
+            "name_last": "Plumber",
+            "handle_str": "luigiplumber",
+        },
+        {
+            "u_id": 2,
+            "email": "Peach@gmail.com",
+            "name_first": "Princess",
+            "name_last": "Peach",
+            "handle_str": "princesspeach",
+        },
+        {
+            "u_id": 3,
+            "email": "bowser@gmail.com",
+            "name_first": "Bowser",
+            "name_last": "Turtle",
+            "handle_str": "bowserturtle",
+        },
+    ]
 
 
 # user/profile/v1 tests
@@ -188,14 +149,12 @@ def test_profile_valid_id(new_users):
         f"{config.url}/user/profile/v1", params={"token": new_users, "u_id": 1}
     )
     assert response.status_code == OK
-    assert response.json() == {
-        "user": {
-            "u_id": 1,
-            "email": "luigi@gmail.com",
-            "name_first": "Luigi",
-            "name_last": "Plumber",
-            "handle_str": "luigiplumber",
-        }
+    assert response.json()["user"] == {
+        "u_id": 1,
+        "email": "luigi@gmail.com",
+        "name_first": "Luigi",
+        "name_last": "Plumber",
+        "handle_str": "luigiplumber",
     }
 
 
@@ -205,35 +164,12 @@ def test_profile_valid_self(new_users):
         f"{config.url}/user/profile/v1", params={"token": new_users, "u_id": 0}
     )
     assert response.status_code == OK
-    assert response.json() == {
-        "user": {
-            "u_id": 0,
-            "email": "mario@gmail.com",
-            "name_first": "Mario",
-            "name_last": "Plumber",
-            "handle_str": "marioplumber",
-        }
-    }
-
-
-# Checks that a deleted user can still be found by user/profile
-def test_profile_removed_id(new_users):
-    delete_response = requests.delete(
-        f"{config.url}/admin/user/remove/v1", json={"token": new_users, "u_id": 1}
-    )
-    assert delete_response.status_code == OK
-    response = requests.get(
-        f"{config.url}/user/profile/v1", params={"token": new_users, "u_id": 1}
-    )
-    assert response.status_code == OK
-    assert response.json() == {
-        "user": {
-            "u_id": 1,
-            "email": "luigi@gmail.com",
-            "name_first": "Removed",
-            "name_last": "user",
-            "handle_str": "luigiplumber",
-        }
+    assert response.json()["user"] == {
+        "u_id": 0,
+        "email": "mario@gmail.com",
+        "name_first": "Mario",
+        "name_last": "Plumber",
+        "handle_str": "marioplumber",
     }
 
 

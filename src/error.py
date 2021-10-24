@@ -9,12 +9,16 @@ Contains definitions for AccessError and InputError errors.
 """
 from werkzeug.exceptions import HTTPException
 
+
 class AccessError(HTTPException):
     """Access to an operation is not allowed."""
+
     code = 403
     message = "No message specified"
 
+
 class InputError(HTTPException):
     """Input to a function is not valid."""
+
     code = 400
     message = "No message specified"

@@ -118,9 +118,7 @@ def channel_details_v2(token, channel_id):
         raise InputError(description="channel_id not found")
 
     # checks whether auth_user_id is a member of the channel
-    is_member = any(
-        True for user in channel["all_members"] if user == auth_user_id
-    )
+    is_member = any(True for user in channel["all_members"] if user == auth_user_id)
     if not is_member:
         raise AccessError(description="user is not a member of the channel")
 
@@ -187,13 +185,12 @@ def channel_join_v1(auth_user_id, channel_id):
 
 
 def channel_addowner_v1(token, channel_id, u_id):
-    """
-    Adds owner to a channel
+    """Adds owner to a channel
 
     Arguments:
-        token, is a jwt, contains info on person accessing
-        channel_id, is an int which specifies a specific channel
-        u_id, is an int which specifies a specific user
+        token (str) is a jwt, contains info on person accessing
+        channel_id (int) is an int which specifies a specific channel
+        u_id (int) is an int which specifies a specific user
 
     Exceptions:
         InputError  - Occurs when:
@@ -207,7 +204,6 @@ def channel_addowner_v1(token, channel_id, u_id):
 
     Return Value:
         returns {}
-
     """
     store = data_store.get()
     payload = extract_token(token)
@@ -245,8 +241,7 @@ def channel_addowner_v1(token, channel_id, u_id):
 
 
 def channel_removeowner_v1(token, channel_id, u_id):
-    """
-    This function removes the owner of a channel
+    """This function removes the owner of a channel.
 
     Arguments:
         token, is a jwt, contains info on person accessing
@@ -263,7 +258,6 @@ def channel_removeowner_v1(token, channel_id, u_id):
             authorised user from token does not have owner perms
     Return Value:
         Returns {}
-
     """
     store = data_store.get()
     payload = extract_token(token)
@@ -301,8 +295,7 @@ def channel_removeowner_v1(token, channel_id, u_id):
 
 
 def channel_leave_v1(token, channel_id):
-    """
-    This function removes the owner of a channel
+    """This function removes the owner of a channel
 
     Arguments:
         token, is a jwt, contains info on person accessing
@@ -338,10 +331,50 @@ def channel_leave_v1(token, channel_id):
 
 
 def channel_invite_v2(token, channel_id, u_id):
+    """Invite a user with u_id to a channel with channel_id.
+
+    Arguments:
+        token (str) - is a jwt, contains info on person accessing
+        channel_id (int) - id of given channel
+        u_id (int) - id of user being invited
+
+    Exceptions:
+        InputError when any of:
+            - channel_id does not refer to a valid channel
+            - u_id does not refer to a valid user
+            - u_id refers to a user who is already a member of the
+              channel
+
+        AccessError when:
+            - channel_id is valid and the authorised user is not a
+              member of the channel
+
+    Return Value:
+        Returns {}
+    """
     auth_id = extract_token(token)["u_id"]
     return channel_invite_v1(auth_id, channel_id, u_id)
 
 
 def channel_join_v2(token, channel_id):
+    """Join a user with u_id to a channel with channel_id.
+
+    Arguments:
+        token (str) - is a jwt, contains info on person accessing
+        channel_id (int) - id of given channel
+
+    Exceptions:
+        InputError when any of:
+            - channel_id does not refer to a valid channel
+            - the authorised user is already a member of the channel
+
+          AccessError when:
+            - channel_id refers to a channel that is private and the
+              authorised user is not already a channel member and is
+              not a global owner
+
+    Return Value:
+        Returns {}
+    """
     auth_id = extract_token(token)["u_id"]
     return channel_join_v1(auth_id, channel_id)
