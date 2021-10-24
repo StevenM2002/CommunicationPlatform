@@ -1,17 +1,11 @@
 import pytest
-
-from src.error import InputError, AccessError
-from src.data_store import clear_v1
-from src.auth import auth_register_v2 as auth_register_v1
-from src.channel import channel_join_v1
-from src.channels import channels_list_v1, channels_listall_v1, channels_create_v2
-from src import config
 import json
 import requests
 
+from src import config
+from src.error import InputError, AccessError
+
 OK = 200
-INPUT_ERROR = 400
-ACCESS_ERROR = 403
 
 
 @pytest.fixture
@@ -41,7 +35,7 @@ def test_create_empty(clear_and_register):
         json={"token": clear_and_register, "name": "", "is_public": True},
     )
     print(response.status_code)
-    assert response.status_code == INPUT_ERROR
+    assert response.status_code == InputError.code
 
 
 # Input name is greater than 20 characters (input error)
@@ -54,7 +48,7 @@ def test_create_large(clear_and_register):
             "is_public": True,
         },
     )
-    assert response.status_code == INPUT_ERROR
+    assert response.status_code == InputError.code
 
 
 # Invalid user_auth_id (access error)
@@ -67,7 +61,7 @@ def test_create_inval_auth(clear_and_register):
             "is_public": True,
         },
     )
-    assert response.status_code == ACCESS_ERROR
+    assert response.status_code == AccessError.code
 
 
 # Valid input name is used with a public chat

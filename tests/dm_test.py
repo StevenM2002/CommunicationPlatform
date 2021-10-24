@@ -1,6 +1,5 @@
 import pytest
 import requests
-from requests.api import request
 from src import config
 from src.error import AccessError, InputError
 

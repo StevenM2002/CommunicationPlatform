@@ -1,8 +1,6 @@
-import jwt
-
 from src.data_store import data_store
 from src.error import InputError, AccessError
-from src.auth import JWT_SECRET
+from src.other import extract_token
 
 OUTPUT_KEYS = ["name", "dm_id"]
 USER_KEYS = ["u_id", "email", "name_first", "name_last", "handle_str"]
@@ -27,17 +25,7 @@ def dm_create_v1(token, u_ids):
     store = data_store.get()
     users = store["users"]
     dms = store["dms"]  # [{ dm_id, name },]
-    token_data = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-    valid_token = any(
-        [
-            True
-            for user in users
-            if token_data["u_id"] == user["u_id"]
-            and token_data["session_id"] in user["session_ids"]
-        ]
-    )
-    if not valid_token:
-        raise AccessError(description="Invalid Token")
+    token_data = extract_token(token)
     for u_id in u_ids:
         if not any([True for user in users if user["u_id"] == u_id]):
             raise InputError(description="Not valid user to add to dm")
@@ -79,19 +67,9 @@ def dm_list_v1(token):
         Returns { dms } on success
     """
     store = data_store.get()
-    users = store["users"]
     dms = store["dms"]  # [{ dm_id, name },]
-    token_data = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-    valid_token = any(
-        [
-            True
-            for user in users
-            if token_data["u_id"] == user["u_id"]
-            and token_data["session_id"] in user["session_ids"]
-        ]
-    )
-    if not valid_token:
-        raise AccessError(description="Invalid Token")
+    token_data = extract_token(token)
+
     member_dms = [
         {key: dm[key] for key in dm if key in OUTPUT_KEYS}
         for dm in dms
@@ -117,19 +95,9 @@ def dm_remove_v1(token, dm_id):
             - dm_id is valid and the authorised user is not the original DM creator
     """
     store = data_store.get()
-    users = store["users"]
     dms = store["dms"]  # [{ dm_id, name },]
-    token_data = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-    valid_token = any(
-        [
-            True
-            for user in users
-            if token_data["u_id"] == user["u_id"]
-            and token_data["session_id"] in user["session_ids"]
-        ]
-    )
-    if not valid_token:
-        raise AccessError(description="Invalid Token")
+    token_data = extract_token(token)
+
     selected_dm = [dm for dm in dms if dm["dm_id"] == dm_id]
 
     if len(selected_dm) == 0:
@@ -169,17 +137,8 @@ def dm_details_v1(token, dm_id):
     store = data_store.get()
     users = store["users"]
     dms = store["dms"]  # [{ dm_id, name },]
-    token_data = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-    valid_token = any(
-        [
-            True
-            for user in users
-            if token_data["u_id"] == user["u_id"]
-            and token_data["session_id"] in user["session_ids"]
-        ]
-    )
-    if not valid_token:
-        raise AccessError(description="Invalid Token")
+    token_data = extract_token(token)
+
     selected_dm = [dm for dm in dms if dm["dm_id"] == dm_id]
 
     if len(selected_dm) == 0:
@@ -212,19 +171,9 @@ def dm_leave_v1(token, dm_id):
             - dm_id is valid and the authorised user is not a member of the DM
     """
     store = data_store.get()
-    users = store["users"]
     dms = store["dms"]  # [{ dm_id, name },]
-    token_data = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-    valid_token = any(
-        [
-            True
-            for user in users
-            if token_data["u_id"] == user["u_id"]
-            and token_data["session_id"] in user["session_ids"]
-        ]
-    )
-    if not valid_token:
-        raise AccessError(description="Invalid Token")
+    token_data = extract_token(token)
+
     selected_dm = [dm for dm in dms if dm["dm_id"] == dm_id]
 
     if len(selected_dm) == 0:
@@ -263,20 +212,9 @@ def dm_messages_v1(token, dm_id, start):
         Returns { messsages, start, end } on successful dm creation
     """
     store = data_store.get()
-    users = store["users"]
     dms = store["dms"]  # [{ dm_id, name },]
-    token_data = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-    valid_token = any(
-        [
-            True
-            for user in users
-            if token_data["u_id"] == user["u_id"]
-            and token_data["session_id"] in user["session_ids"]
-        ]
-    )
+    token_data = extract_token(token)
 
-    if not valid_token:
-        raise AccessError(description="Invalid Token")
     selected_dm = [dm for dm in dms if dm["dm_id"] == dm_id]
 
     if len(selected_dm) == 0:
