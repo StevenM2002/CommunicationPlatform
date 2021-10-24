@@ -6,7 +6,7 @@ that auth_user_id is valid before running code inside the functions.
 """
 from src.data_store import data_store
 from src.error import InputError
-from src.other import extract_token
+from src.auth import extract_token
 
 
 def channels_list_v1(auth_user_id):

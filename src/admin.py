@@ -1,7 +1,6 @@
 from src.data_store import data_store
 from src.error import AccessError, InputError
-from src.other import extract_token
-
+from src.auth import extract_token
 
 def is_valid_user(u_id, user_list):
     valid_user = False

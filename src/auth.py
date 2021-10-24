@@ -14,7 +14,7 @@ import random
 from string import printable
 
 from src.data_store import data_store
-from src.error import InputError
+from src.error import InputError, AccessError
 
 JWT_SECRET = "".join(random.choice(printable) for _ in range(50))
 
@@ -48,11 +48,15 @@ def auth_login_v2(email, password):
         # check for correct email and password pair
         if user["email"] == email and user["password"] == hashed_password:
             # if correct user generate token
+            new_session_id = (
+                max(user["session_ids"]) + 1 if len(user["session_ids"]) > 0 else 0
+            )
+            user["session_ids"].append(new_session_id)
+            data_store.set(store)
+
             token_data = {
                 "u_id": user["u_id"],
-                "session_id": max(user["session_ids"]) + 1
-                if len(user["session_ids"]) > 0
-                else 0,
+                "session_id": new_session_id,
             }
             token = jwt.encode(token_data, JWT_SECRET, algorithm="HS256")
 
@@ -63,16 +67,15 @@ def auth_login_v2(email, password):
 
 def auth_logout_v1(token):
     # retreive token's data
-    token_data = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    token_data = extract_token(token)
 
     store = data_store.get()
     users = store["users"]
     for user in users:
         # check for matching user_id
         if user["u_id"] == token_data["u_id"]:
-            if token_data["session_id"] in user["session_ids"]:
-                user["session_ids"].remove(token_data["session_id"])
-            return {}
+            user["session_ids"].remove(token_data["session_id"])
+            data_store.set(store)
     return {}
 
 
@@ -180,3 +183,18 @@ def create_handle(handle, base_length):
             # check if new counter also exists
             return create_handle(handle[:base_length] + str(counter), base_length)
     return handle
+
+
+def extract_token(token):
+    try:
+        token_data = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    except jwt.DecodeError:
+        raise AccessError(description="invalid jwt token") from Exception
+
+    for user in data_store.get()["users"]:
+        if user["u_id"] == token_data["u_id"]:
+            if token_data["session_id"] in user["session_ids"]:
+                return token_data
+            else:
+                raise AccessError(description="no matching session id for user")
+    raise AccessError(description="no matching user id in database")
