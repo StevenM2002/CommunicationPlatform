@@ -70,7 +70,7 @@ INITIAL_OBJECT = {
     "global_owners": [],
     "removed_users": [],
     "dms": [],
-    "max_message_id": -1,
+    "max_ids": {"dm": -1, "message": -1, "channel": -1, "user": -1},
 }
 DATA_STORE_FILE = "datastore.json"
 WRITE_INTERVAL = 30

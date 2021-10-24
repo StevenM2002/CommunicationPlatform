@@ -57,8 +57,8 @@ def message_send_v1(user_id, channel_id, message_text):
         raise AccessError(description="user is not a member of this channel")
     if not 1 <= len(message_text) <= 1000:
         raise InputError(description="message must be between 1 and 1000 characters")
-    message_id = data["max_message_id"] + 1
-    data["max_message_id"] += 1
+    message_id = data["max_ids"]["message"] + 1
+    data["max_ids"]["message"] += 1
     message = {
         "message": message_text,
         "message_id": message_id,
@@ -66,6 +66,7 @@ def message_send_v1(user_id, channel_id, message_text):
         "u_id": user_id,
     }
     channel["messages"].insert(0, message)
+    data_store.set(data)
     return {"message_id": message_id}
 
 
@@ -113,8 +114,9 @@ def message_senddm_v1(user_id, dm_id, message_text):
                 raise InputError(
                     description="message must be between 1 and 1000 characters"
                 )
-            data["max_message_id"] += 1
-            message_id = data["max_message_id"]
+            data["max_ids"]["message"] += 1
+            message_id = data["max_ids"]["message"]
+            data_store.set(data)
             message = {
                 "message": message_text,
                 "message_id": message_id,

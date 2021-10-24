@@ -123,7 +123,9 @@ def auth_register_v2(email, password, name_first, name_last):
             raise InputError(description="email already belongs to a user")
 
     # make new user id, maximum current id + 1
-    user_id = max(users, key=lambda x: x["u_id"])["u_id"] + 1 if len(users) > 0 else 0
+    store["max_ids"]["user"] += 1
+    user_id = store["max_ids"]["user"]
+    data_store.set(store)
 
     # create handle, concatenate, and check for multiples and add number
     handle = f"{name_first.lower()}{name_last.lower()}"
