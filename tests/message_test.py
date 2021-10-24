@@ -17,7 +17,6 @@ def clear_datastore():
 
 @pytest.fixture
 def register_joe(clear_datastore):
-    print("joe")
     r = requests.post(
         f"{url}auth/register/v2",
         json={
@@ -33,7 +32,6 @@ def register_joe(clear_datastore):
 
 @pytest.fixture
 def register_bob(clear_datastore):
-    print("bob")
     r = requests.post(
         f"{url}auth/register/v2",
         json={
@@ -49,7 +47,6 @@ def register_bob(clear_datastore):
 
 @pytest.fixture
 def register_jeff(clear_datastore):
-    print("jeff")
     r = requests.post(
         f"{url}auth/register/v2",
         json={
