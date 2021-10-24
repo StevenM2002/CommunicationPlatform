@@ -55,11 +55,11 @@ def new_users():
     return user_token
 
 
-# user/all/v1 tests
+# users/all/v1 tests
 # Checks that an invalid token will return an Access Error
 def test_all_invalid_token(new_users):
     response = requests.get(
-        f"{config.url}/user/all/v1", params={"token": "awsfkhbaeikfnkjasn"}
+        f"{config.url}/users/all/v1", params={"token": "awsfkhbaeikfnkjasn"}
     )
     assert response.status_code == ACCESS_ERROR
 
@@ -76,9 +76,9 @@ def test_all_single_user():
             "name_last": "Plumber",
         },
     ).json()["token"]
-    response = requests.get(f"{config.url}/user/all/v1", params={"token": token})
+    response = requests.get(f"{config.url}/users/all/v1", params={"token": token})
     assert response.status_code == OK
-    assert response.json() == [
+    assert response.json()['users'] == [
         {
             "u_id": 0,
             "email": "mario@gmail.com",
@@ -91,9 +91,9 @@ def test_all_single_user():
 
 # Checks that when multiple users are added the correct list is returned
 def test_all_valid_users(new_users):
-    response = requests.get(f"{config.url}/user/all/v1", params={"token": new_users})
+    response = requests.get(f"{config.url}/users/all/v1", params={"token": new_users})
     assert response.status_code == OK
-    assert response.json() == [
+    assert response.json()['users'] == [
         {
             "u_id": 0,
             "email": "mario@gmail.com",
@@ -138,7 +138,7 @@ def test_profile_invalid_user(new_users):
 def test_profile_invalid_token(new_users):
     response = requests.get(
         f"{config.url}/user/profile/v1",
-        params={"token": "awsfkhbaeikfnkjasn", "channel_id": 0},
+        params={"token": "awsfkhbaeikfnkjasn", "u_id": 0},
     )
     assert response.status_code == ACCESS_ERROR
 
@@ -149,7 +149,7 @@ def test_profile_valid_id(new_users):
         f"{config.url}/user/profile/v1", params={"token": new_users, "u_id": 1}
     )
     assert response.status_code == OK
-    assert response.json() == {
+    assert response.json()['user'] == {
         "u_id": 1,
         "email": "luigi@gmail.com",
         "name_first": "Luigi",
@@ -164,7 +164,7 @@ def test_profile_valid_self(new_users):
         f"{config.url}/user/profile/v1", params={"token": new_users, "u_id": 0}
     )
     assert response.status_code == OK
-    assert response.json() == {
+    assert response.json()['user'] == {
         "u_id": 0,
         "email": "mario@gmail.com",
         "name_first": "Mario",
@@ -243,7 +243,7 @@ def test_setname_valid(new_users):
         f"{config.url}/user/profile/v1", params={"token": new_users, "u_id": 0}
     )
     assert new_response.status_code == OK
-    assert new_response.json() == {
+    assert new_response.json()['user'] == {
         "u_id": 0,
         "email": "mario@gmail.com",
         "name_first": "Toad",
@@ -304,7 +304,7 @@ def test_setemail_valid(new_users):
         f"{config.url}/user/profile/v1", params={"token": new_users, "u_id": 0}
     )
     assert new_response.status_code == OK
-    assert new_response.json() == {
+    assert new_response.json()['user'] == {
         "u_id": 0,
         "email": "toad@gmail.com",
         "name_first": "Mario",
@@ -389,7 +389,7 @@ def test_sethandle_valid(new_users):
         f"{config.url}/user/profile/v1", params={"token": new_users, "u_id": 0}
     )
     assert new_response.status_code == OK
-    assert new_response.json() == {
+    assert new_response.json()['user'] == {
         "u_id": 0,
         "email": "mario@gmail.com",
         "name_first": "Mario",
