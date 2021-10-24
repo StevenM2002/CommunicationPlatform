@@ -171,7 +171,6 @@ def test_existing_email():
             "name_last": "last2",
         },
     )
-    print(r.json())
     assert r.status_code == InputError.code
     assert r.json()["message"] == "<p>email already belongs to a user</p>"
 
@@ -566,7 +565,7 @@ def test_logout_removed_user():
 
     r = requests.get(
         f"{config.url}channels/list/v2",
-        json={
+        params={
             "token": user_token,
         },
     )

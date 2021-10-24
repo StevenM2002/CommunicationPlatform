@@ -29,12 +29,10 @@ def clear_and_register():
 # Channel Create Tests
 # Input name is an empty string (input error)
 def test_create_empty(clear_and_register):
-    print(f"user_token = {clear_and_register}")
     response = requests.post(
         f"{config.url}/channels/create/v2",
         json={"token": clear_and_register, "name": "", "is_public": True},
     )
-    print(response.status_code)
     assert response.status_code == InputError.code
 
 
@@ -123,7 +121,6 @@ def test_no_channels_listv2(list_data_v2):
     payload = requests.get(
         config.url + "channels/list/v2", params={"token": list_data_v2[0]}
     )
-    print(json.loads(payload.text))
     assert payload.json() == {"channels": []}
     requests.post(
         config.url + "channels/create/v2",
@@ -348,7 +345,7 @@ def test_user_is_not_owner_listallv2(listall_data_v2):
         json={"token": listall_data_v2[0], "name": "chan0", "is_public": True},
     ).json()
     requests.post(
-        config.url + "channels/join/v2",
+        config.url + "channel/join/v2",
         params={"token": listall_data_v2[1], "channel_id": chan_id0["channel_id"]},
     )
     payload = requests.get(

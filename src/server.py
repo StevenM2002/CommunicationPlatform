@@ -188,7 +188,6 @@ def set_email():
 @APP.route("/user/profile/sethandle/v1", methods=["PUT"])
 def set_handle():
     data = request.json
-    print(data)
     return dumps(user_set_handle(data["token"], data["handle_str"]))
 
 
