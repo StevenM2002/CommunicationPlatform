@@ -81,7 +81,14 @@ def get_message(message_id):
 
 def message_edit_v1(user_id, message_id, edited_message):
     message, group = get_message(message_id)
-    if message["u_id"] != user_id and user_id not in group["owner_members"]:
+    data = data_store.get()
+    global_owner = user_id in data["global_owners"]
+    if "dm_id" in group:
+        group_owner = user_id in group["members"]
+    else:
+        group_owner = user_id in group["owner_members"]
+
+    if message["u_id"] != user_id and not global_owner and not group_owner:
         raise AccessError(
             description="message not sent by user or user not owner of channel"
         )
