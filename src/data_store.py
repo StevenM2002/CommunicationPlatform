@@ -68,6 +68,7 @@ INITIAL_OBJECT = {
     "users": [],
     "channels": [],
     "global_owners": [],
+    "removed_users": [],
     "dms": [],
     "max_message_id": -1,
 }

@@ -35,7 +35,7 @@ def all_users(token):
         }
         for user in store["users"]
     ]
-    return users
+    return {'users': users}
 
 
 def user_profile(token, u_id):
@@ -56,22 +56,27 @@ def user_profile(token, u_id):
     # Loading the data store
     store = data_store.get()
     users = store["users"]
-
+    removed = store["removed_users"]
+    u_id = int(u_id)
     # Validating the input token
     validate_token(token, users)
 
     # Finding the correct user
-    found_user = [user for user in users if user["u_id"] == int(u_id)]
+    found_user = [user for user in users if user["u_id"] == u_id]
 
     # Check to ensure a valid user has been found
     if len(found_user) == 0:
+        found_user = [user for user in removed if user["u_id"] == u_id]
+
+    if len(found_user) == 0:
         raise InputError(description="User Not Found")
 
-    return {
+    user = {
         key: value
         for key, value in found_user[0].items()
         if key not in ("session_ids", "password")
     }
+    return {'user': user}
 
 
 def user_set_name(token, name_first, name_last):

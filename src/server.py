@@ -1,6 +1,6 @@
 import signal
 from json import dumps
-
+from src.admin import admin_user_permission_change_v1, admin_user_remove_v1
 from src import config, auth, dm, message
 from src.channel import (
     channel_details_v2,
@@ -161,7 +161,7 @@ def get_channel_details():
     return dumps(channel_details_v2(token, channel_id))
 
 
-@APP.route("/user/all/v1", methods=["GET"])
+@APP.route("/users/all/v1", methods=["GET"])
 def get_all_users():
     token = request.args.get("token")
     return dumps(all_users(token))
@@ -252,6 +252,23 @@ def remove_message():
     data = request.json
     user_id, _ = extract_token(data["token"])
     return dumps(message.message_remove_v1(user_id, data["message_id"]))
+
+
+@APP.route('/admin/user/remove/v1', methods=['DELETE'])
+def do_admin_user_remove():
+    params = request.get_json()
+    u_id = params['u_id']
+    token = params['token']	
+    return dumps(admin_user_remove_v1(token, u_id))
+
+
+@APP.route('/admin/userpermission/change/v1', methods=['POST'])
+def do_admin_userpermission_change():
+    params = request.get_json()
+    token = params['token']
+    u_id = params['u_id']
+    permission_id = params['permission_id']
+    return dumps(admin_user_permission_change_v1(token, u_id, permission_id))
 
 
 if __name__ == "__main__":
