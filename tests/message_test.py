@@ -485,7 +485,7 @@ def test_message_edit_dm(create_dm):
     assert r.status_code == 200
     r = requests.get(
         f"{url}dm/messages/v1",
-        json={
+        params={
             "token": joe_token,
             "dm_id": dm_id,
             "start": 0,

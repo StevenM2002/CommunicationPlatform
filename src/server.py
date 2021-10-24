@@ -87,8 +87,8 @@ def dm_create():
 
 @APP.route("/dm/list/v1", methods=["GET"])
 def dm_list():
-    data = request.json
-    return dumps(dm.dm_list_v1(data["token"]))
+    token = request.args.get("token")
+    return dumps(dm.dm_list_v1(token))
 
 
 @APP.route("/dm/remove/v1", methods=["DELETE"])
@@ -99,8 +99,9 @@ def dm_remove():
 
 @APP.route("/dm/details/v1", methods=["GET"])
 def dm_details():
-    data = request.json
-    return dumps(dm.dm_details_v1(data["token"], data["dm_id"]))
+    token = request.args.get("token")
+    dm_id = int(request.args.get("dm_id"))
+    return dumps(dm.dm_details_v1(token, dm_id))
 
 
 @APP.route("/dm/leave/v1", methods=["POST"])
@@ -111,8 +112,10 @@ def dm_leave():
 
 @APP.route("/dm/messages/v1", methods=["GET"])
 def dm_messages():
-    data = request.json
-    return dumps(dm.dm_messages_v1(data["token"], data["dm_id"], data["start"]))
+    token = request.args.get("token")
+    dm_id = int(request.args.get("dm_id"))
+    start = int(request.args.get("start"))
+    return dumps(dm.dm_messages_v1(token, dm_id, start))
 
 
 @APP.route("/clear/v1", methods=["DELETE"])
@@ -252,20 +255,20 @@ def remove_message():
     return dumps(message.message_remove_v1(user_id, data["message_id"]))
 
 
-@APP.route('/admin/user/remove/v1', methods=['DELETE'])
+@APP.route("/admin/user/remove/v1", methods=["DELETE"])
 def do_admin_user_remove():
     params = request.get_json()
-    u_id = params['u_id']
-    token = params['token']	
+    u_id = params["u_id"]
+    token = params["token"]
     return dumps(admin_user_remove_v1(token, u_id))
 
 
-@APP.route('/admin/userpermission/change/v1', methods=['POST'])
+@APP.route("/admin/userpermission/change/v1", methods=["POST"])
 def do_admin_userpermission_change():
     params = request.get_json()
-    token = params['token']
-    u_id = params['u_id']
-    permission_id = params['permission_id']
+    token = params["token"]
+    u_id = params["u_id"]
+    permission_id = params["permission_id"]
     return dumps(admin_user_permission_change_v1(token, u_id, permission_id))
 
 
