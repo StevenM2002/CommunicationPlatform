@@ -2,7 +2,9 @@ from src.data_store import data_store
 from src.error import AccessError, InputError
 from src.auth import extract_token
 
+
 def is_valid_user(u_id, user_list):
+    """Check if a user_id belongs to a user in user_list."""
     valid_user = False
     for user in user_list:
         if u_id == user["u_id"]:
@@ -11,6 +13,22 @@ def is_valid_user(u_id, user_list):
 
 
 def admin_user_remove_v1(token, u_id):
+    """Remove an admin with u_id.
+
+    Arguments:
+        token (str) - jwt token of user making request
+        u_id (int) - id of user being invited
+
+    Exceptions:
+        InputError when any of:
+            - u_id does not refer to a valid user
+            - u_id refers to a user who is the only global owner
+        AccessError when:
+            - the authorised user is not a global owner
+
+    Returns:
+        Returns {}
+    """
     store = data_store.get()
     user_list = store["users"]
     auth_user_id = extract_token(token)["u_id"]
@@ -48,6 +66,22 @@ def admin_user_remove_v1(token, u_id):
 
 
 def admin_user_permission_change_v1(token, u_id, permission_id):
+    """Change user of u_id to permission to permission_id.
+
+    Arguments:
+        token (str) - jwt token of user making request
+        u_id (int) - id of user being invited
+
+    Exceptions:
+        InputError when any of:
+            - u_id does not refer to a valid user
+            - u_id refers to a user who is the only global owner
+        AccessError when:
+            - the authorised user is not a global owner
+
+    Returns:
+        Returns {}
+    """
     store = data_store.get()
     user_list = store["users"]
     auth_user_id = extract_token(token)["u_id"]
