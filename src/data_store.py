@@ -13,6 +13,11 @@ data structure:
             "name_first": name_first,
             "name_last": name_last,
             "handle_str": handle,
+            "user_stats": {
+                            channels_joined: [{num_channels_joined, time_stamp}],
+                            dms_joined: [{num_dms_joined, time_stamp}], 
+                            messages_sent: [{num_messages_sent, time_stamp}], 
+                          }
         },
         ...
     ],
@@ -37,6 +42,11 @@ data structure:
             "owner": auth_user_id,
         },
     ],
+    "workspace_stats": {
+                         channels_exist: [{num_channels_exist, time_stamp}], 
+                         dms_exist: [{num_dms_exist, time_stamp}], 
+                         messages_exist: [{num_messages_exist, time_stamp}], 
+                        }
 }
 
     Typical usage example:
@@ -58,10 +68,16 @@ data structure:
     data_store.set(users)
 
 """
+import time
+import math
+
 from copy import deepcopy
 from json import dump, load
 from pathlib import Path
 from threading import Event, Thread
+
+
+timestamp = math.floor(time.time())
 
 
 INITIAL_OBJECT = {
@@ -71,6 +87,11 @@ INITIAL_OBJECT = {
     "removed_users": [],
     "dms": [],
     "max_ids": {"dm": -1, "message": -1, "channel": -1, "user": -1},
+    "workspace_stats": {
+        "channels": [{"channels_exist": 0, "timestamp": timestamp}],
+        "dms": [{"dms_exist": 0, "timestamp": timestamp}],
+        "messages": [{"messages_exist": 0, "timestamp": timestamp}],
+    },
 }
 DATA_STORE_FILE = "datastore.json"
 WRITE_INTERVAL = 30
@@ -111,6 +132,7 @@ class Datastore:
 
 def clear_v1():
     """Clear the datastore class object to the value of INITIAL_OBJECT."""
+    timestamp = math.floor(time.time())
     data_store.set(deepcopy(INITIAL_OBJECT))
     return {}
 
