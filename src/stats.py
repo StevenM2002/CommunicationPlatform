@@ -69,7 +69,7 @@ def workspace_stats(token):
         Returns { num_channels, num_dms, messages_sent, utilization_rate }
     """
     # Validates the given token
-    token_data = extract_token(token)
+    extract_token(token)
 
     # Fetching the data_store
     store = data_store.get()

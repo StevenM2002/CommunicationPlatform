@@ -82,8 +82,6 @@ def channels_create_v2(token, name, is_public):
     # retrieves the data store, and the channel dictionary
     store = data_store.get()
     channels = store["channels"]
-    users = store["users"]
-    workspace = store["workspace_stats"]
 
     # Checks if the given token is valid
     u_information = extract_token(token)

@@ -58,7 +58,6 @@ def dm_create_v1(token, u_ids):
     )
 
     # incrementing the user stats for the owner
-    timestamp = math.floor(time.time())
     u_ids.append(token_data["u_id"])
     for u_id in u_ids:
         increment_user_dms(u_id)
@@ -111,7 +110,6 @@ def dm_remove_v1(token, dm_id):
             - dm_id is valid and the authorised user is not the original DM creator
     """
     store = data_store.get()
-    users = store["users"]
     dms = store["dms"]  # [{ dm_id, name },]
     token_data = extract_token(token)
 
@@ -197,7 +195,6 @@ def dm_leave_v1(token, dm_id):
             - dm_id is valid and the authorised user is not a member of the DM
     """
     store = data_store.get()
-    users = store["users"]
     dms = store["dms"]  # [{ dm_id, name },]
     token_data = extract_token(token)
 
@@ -245,7 +242,6 @@ def dm_messages_v1(token, dm_id, start):
         Returns { messsages, start, end } on successful dm creation
     """
     store = data_store.get()
-    users = store["users"]
     dms = store["dms"]  # [{ dm_id, name },]
     token_data = extract_token(token)
 

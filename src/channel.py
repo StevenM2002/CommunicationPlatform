@@ -353,7 +353,7 @@ def channel_leave_v1(token, channel_id):
 
     # updating the user stats for the owner
     timestamp = math.floor(time.time())
-    found_user = [user for user in user_list if user["u_id"] == u_id][0]
+    found_user = [user for user in store["users"] if user["u_id"] == payload["u_id"]][0]
     user_stats = found_user["user_stats"]
     channels_joined_prev = user_stats["channels_joined"][-1]["num_channels_joined"]
     user_stats["channels_joined"].append(
