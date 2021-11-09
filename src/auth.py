@@ -11,6 +11,8 @@ import re
 import jwt
 import hashlib
 import random
+import math
+import time
 from string import printable
 
 from src.data_store import data_store
@@ -146,6 +148,9 @@ def auth_register_v2(email, password, name_first, name_last):
 
     password = hashlib.sha256(password.encode()).hexdigest()
 
+    # creating a timestamp for the user stats
+    time_stamp = math.floor(time.time())
+
     # add to user list
     users.append(
         {
@@ -156,8 +161,16 @@ def auth_register_v2(email, password, name_first, name_last):
             "name_last": name_last,
             "handle_str": handle,
             "session_ids": [1],
+            "user_stats": {
+                "channels_joined": [
+                    {"num_channels_joined": 0, "time_stamp": time_stamp}
+                ],
+                "dms_joined": [{"num_dms_joined": 0, "time_stamp": time_stamp}],
+                "messages_sent": [{"num_messages_sent": 0, "time_stamp": time_stamp}],
+            },
         }
     )
+
     data_store.set(store)
 
     token_data = {"u_id": user_id, "session_id": 1}

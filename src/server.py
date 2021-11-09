@@ -25,6 +25,7 @@ from src.user import (
     user_set_email,
     user_set_handle,
 )
+from src.stats import user_stats, workspace_stats
 
 from flask import Flask, request
 from flask_cors import CORS
@@ -270,6 +271,18 @@ def do_admin_userpermission_change():
     u_id = params["u_id"]
     permission_id = params["permission_id"]
     return dumps(admin_user_permission_change_v1(token, u_id, permission_id))
+
+
+@APP.route("/user/stats/v1", methods=["GET"])
+def do_user_stats():
+    data = request.args.get("token")
+    return dumps(user_stats(data))
+
+
+@APP.route("/users/stats/v1", methods=["GET"])
+def do_workspace_stats():
+    data = request.args.get("token")
+    return dumps(workspace_stats(data))
 
 
 if __name__ == "__main__":

@@ -73,7 +73,7 @@ def user_profile(token, u_id):
     user = {
         key: value
         for key, value in found_user[0].items()
-        if key not in ("session_ids", "password")
+        if key not in ("session_ids", "password", "user_stats")
     }
     return {"user": user}
 

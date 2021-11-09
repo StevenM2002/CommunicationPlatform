@@ -15,8 +15,10 @@ ACCESS_ERROR = 403
 
 @pytest.fixture
 def new_time():
+    requests.delete(f"{config.url}/clear/v1")
     # Clears the Data Store and finds the timestamp of when the code was cleared
     timestamp = math.floor(time.time())
+    print(timestamp)
     requests.delete(f"{config.url}/clear/v1")
     # Initialises a new user
     user_timestamp = math.floor(time.time())
@@ -29,20 +31,24 @@ def new_time():
             "name_last": "Plumber",
         },
     )
+
     # Saves the timestamp and token to a new list
     data = {
-        "timestamp": timestamp, 
-        "token": token.json()["token"], 
-        "user_timestamp": user_timestamp
-        }
+        "timestamp": timestamp,
+        "token": token.json()["token"],
+        "user_timestamp": user_timestamp,
+    }
     return data
 
 
 """ ========================= Workplace Stats Tests ========================="""
 # Tests that when given an invalid token, an Access Error is raised
 def test_workplace_invalid(new_time):
-    response = requests.get(f"{config.url}/users/stats/v1", params={"token": "asdhgjjas"})
+    response = requests.get(
+        f"{config.url}/users/stats/v1", params={"token": "asdhgjjas"}
+    )
     assert response.status_code == ACCESS_ERROR
+
 
 # Tests that the initialised values for workplace stats returns the correct value
 def test_workplace_init(new_time):
@@ -50,7 +56,9 @@ def test_workplace_init(new_time):
     timestamp = new_time["timestamp"]
     response = requests.get(f"{config.url}/users/stats/v1", params={"token": token})
     assert response.status_code == OK
-    assert response == {
+    print(timestamp)
+    print(response.json())
+    assert response.json() == {
         "channels_exist": [{"num_channels_exist": 0, "time_stamp": timestamp}],
         "dms_exist": [{"num_dms_exist": 0, "time_stamp": timestamp}],
         "messages_exist": [{"num_messages_exist": 0, "time_stamp": timestamp}],
@@ -64,7 +72,7 @@ def test_workplace_stats(new_time):
     timestamp = new_time["timestamp"]
     timestamps = []
     # Creating new channels, and making members join the channels
-    timestamps.append(math.floor(time.time))
+    timestamps.append(math.floor(time.time()))
     requests.post(
         f"{config.url}/channels/create/v2",
         json={
@@ -82,7 +90,7 @@ def test_workplace_stats(new_time):
             "name_last": "Citizen",
         },
     )
-    timestamps.append(math.floor(time.time))
+    timestamps.append(math.floor(time.time()))
     requests.post(
         f"{config.url}/channels/create/v2",
         json={
@@ -91,7 +99,7 @@ def test_workplace_stats(new_time):
             "is_public": True,
         },
     )
-    timestamps.append(math.floor(time.time))
+    timestamps.append(math.floor(time.time()))
     requests.post(
         f"{config.url}/channels/create/v2",
         json={
@@ -109,56 +117,54 @@ def test_workplace_stats(new_time):
         json={"token": new_token.json()["token"], "channel_id": 1},
     )
     # Creates a new dm
-    timestamps.append(math.floor(time.time))
-    requests.get(f"{config.url}/dm/create/v1", json={"token": token, "u_ids": 1})
+    timestamps.append(math.floor(time.time()))
+    requests.post(f"{config.url}/dm/create/v1", json={"token": token, "u_ids": [1]})
     # Sending messages in a channel
-    timestamps.append(math.floor(time.time))
+    timestamps.append(math.floor(time.time()))
     requests.post(
-        f"{config_url}/message/send/v1", 
-        json={
-            "token": token, 
-            "channel_id": 0,
-            "message": "Test Message"
-            })
-    timestamps.append(math.floor(time.time))
+        f"{config.url}/message/send/v1",
+        json={"token": token, "channel_id": 0, "message": "Test Message"},
+    )
+    timestamps.append(math.floor(time.time()))
     requests.post(
-        f"{config_url}/message/send/v1", 
-        json={
-            "token": token, 
-            "channel_id": 0,
-            "message": "Another Test Message"
-            })
-    timestamps.append(math.floor(time.time))
+        f"{config.url}/message/send/v1",
+        json={"token": token, "channel_id": 0, "message": "Another Test Message"},
+    )
+    timestamps.append(math.floor(time.time()))
     requests.post(
-        f"{config_url}/message/send/v1", 
-        json={
-            "token": token, 
-            "channel_id": 0,
-            "message": "A final test message"
-    })
+        f"{config.url}/message/send/v1",
+        json={"token": token, "channel_id": 0, "message": "A final test message"},
+    )
     response = requests.get(f"{config.url}/users/stats/v1", params={"token": token})
     assert response.status_code == OK
-    assert response == {
+    print(response.json())
+    assert response.json() == {
         "channels_exist": [
-            {"num_channels_exist": 3, "time_stamp": timestamps[2]},
-            {"num_channels_exist": 2, "time_stamp": timestamps[1]},
-            {"num_channels_exist": 1, "time_stamp": timestamps[0]},
-            {"num_channels_exist": 0, "time_stamp": timestamp}],
+            {"num_channels_exist": 0, "time_stamp": timestamps[2]},
+            {"num_channels_exist": 1, "time_stamp": timestamps[1]},
+            {"num_channels_exist": 2, "time_stamp": timestamps[0]},
+            {"num_channels_exist": 3, "time_stamp": timestamp},
+        ],
         "dms_exist": [
-            {"num_dms_exist": 1, "time_stamp": timestamps[3]},
-            {"num_dms_exist": 0, "time_stamp": timestamp}],
+            {"num_dms_exist": 0, "time_stamp": timestamps[3]},
+            {"num_dms_exist": 1, "time_stamp": timestamp},
+        ],
         "messages_exist": [
-            {"num_messages_exist": 3, "time_stamp": timestamps[6]},
-            {"num_messages_exist": 2, "time_stamp": timestamps[5]},
-            {"num_messages_exist": 1, "time_stamp": timestamps[4]},
-            {"num_messages_exist": 0, "time_stamp": timestamp}],
+            {"num_messages_exist": 0, "time_stamp": timestamps[6]},
+            {"num_messages_exist": 1, "time_stamp": timestamps[5]},
+            {"num_messages_exist": 2, "time_stamp": timestamps[4]},
+            {"num_messages_exist": 3, "time_stamp": timestamp},
+        ],
         "utilization_rate": 1,
     }
+
 
 """ =========================== User Stats Tests ==========================="""
 # Tests that when given an invalid token, an Access Error is raised
 def test_user_invalid(new_time):
-    response = requests.get(f"{config.url}/user/stats/v1", params={"token": "asdhgjjas"})
+    response = requests.get(
+        f"{config.url}/user/stats/v1", params={"token": "asdhgjjas"}
+    )
     assert response.status_code == ACCESS_ERROR
 
 
@@ -168,11 +174,12 @@ def test_user_init(new_time):
     timestamp = new_time["timestamp"]
     response = requests.get(f"{config.url}/user/stats/v1", params={"token": token})
     assert response.status_code == OK
-    assert response == {
-        "channels_joined": [{"num_channels_joined": "time_stamp": timestamp}],
-        "dms_joined": [{"num_dms_joined": "time_stamp": timestamp}],
-        "messages_sent": [{"num_messages_sent": "time_stamp": timestamp}],
-        "involvement_rate": 0
+    print(response.json())
+    assert response.json() == {
+        "channels_joined": [{"num_channels_joined": 0, "time_stamp": timestamp}],
+        "dms_joined": [{"num_dms_joined": 0, "time_stamp": timestamp}],
+        "messages_sent": [{"num_messages_sent": 0, "time_stamp": timestamp}],
+        "involvement_rate": 0,
     }
 
 
@@ -183,7 +190,7 @@ def test_user_stats(new_time):
     timestamp = new_time["timestamp"]
     timestamps = []
     # Creating new channels, and making members join the channels
-    timestamps.append(math.floor(time.time))
+    timestamps.append(math.floor(time.time()))
     requests.post(
         f"{config.url}/channels/create/v2",
         json={
@@ -201,7 +208,7 @@ def test_user_stats(new_time):
             "name_last": "Citizen",
         },
     )
-    timestamps.append(math.floor(time.time))
+    timestamps.append(math.floor(time.time()))
     requests.post(
         f"{config.url}/channels/create/v2",
         json={
@@ -210,7 +217,7 @@ def test_user_stats(new_time):
             "is_public": True,
         },
     )
-    timestamps.append(math.floor(time.time))
+    timestamps.append(math.floor(time.time()))
     requests.post(
         f"{config.url}/channels/create/v2",
         json={
@@ -228,48 +235,43 @@ def test_user_stats(new_time):
         json={"token": new_token.json()["token"], "channel_id": 1},
     )
     # Creating a dm with both users
-    timestamps.append(math.floor(time.time))
-    requests.get(f"{config.url}/dm/create/v1", json={"token": token, "u_ids": 1})
+    timestamps.append(math.floor(time.time()))
+    requests.post(f"{config.url}/dm/create/v1", json={"token": token, "u_ids": [1]})
     # Sending messages with the user
-    timestamps.append(math.floor(time.time))
+    timestamps.append(math.floor(time.time()))
     requests.post(
-        f"{config_url}/message/send/v1", 
-        json={
-            "token": token, 
-            "channel_id": 0,
-            "message": "Test Message"
-            })
-    timestamps.append(math.floor(time.time))
+        f"{config.url}/message/send/v1",
+        json={"token": token, "channel_id": 0, "message": "Test Message"},
+    )
+    timestamps.append(math.floor(time.time()))
     requests.post(
-        f"{config_url}/message/send/v1", 
-        json={
-            "token": token, 
-            "channel_id": 0,
-            "message": "Another Test Message"
-            })
-    timestamps.append(math.floor(time.time))
+        f"{config.url}/message/send/v1",
+        json={"token": token, "channel_id": 0, "message": "Another Test Message"},
+    )
+    timestamps.append(math.floor(time.time()))
     requests.post(
-        f"{config_url}/message/send/v1", 
-        json={
-            "token": token, 
-            "channel_id": 0,
-            "message": "A final test message"
-    })
+        f"{config.url}/message/send/v1",
+        json={"token": token, "channel_id": 0, "message": "A final test message"},
+    )
     response = requests.get(f"{config.url}/user/stats/v1", params={"token": token})
     assert response.status_code == OK
-    assert response == {
+    print(response.json())
+    assert response.json() == {
         "channels_joined": [
-            {"num_channels_joined": 3, "time_stamp": timestamps[2]},
-            {"num_channels_joined": 2, "time_stamp": timestamps[1]},
-            {"num_channels_joined": 1, "time_stamp": timestamps[0]},
-            {"num_channels_joined": 0, "time_stamp": timestamp}],
+            {"num_channels_joined": 0, "time_stamp": timestamps[2]},
+            {"num_channels_joined": 1, "time_stamp": timestamps[1]},
+            {"num_channels_joined": 2, "time_stamp": timestamps[0]},
+            {"num_channels_joined": 3, "time_stamp": timestamp},
+        ],
         "dms_joined": [
-            {"num_dms_joined": 1, "time_stamp": timestamps[3]},
-            {"num_dms_joined": 0, "time_stamp": timestamp}],
+            {"num_dms_joined": 0, "time_stamp": timestamps[3]},
+            {"num_dms_joined": 1, "time_stamp": timestamp},
+        ],
         "messages_sent": [
-            {"num_messages_sent": 3, "time_stamp": timestamps[6]},
-            {"num_messages_sent": 2, "time_stamp": timestamps[5]},
-            {"num_messages_sent": 1, "time_stamp": timestamps[4]},
-            {"num_messages_sent": 0, "time_stamp": timestamp}],
+            {"num_messages_sent": 0, "time_stamp": timestamps[6]},
+            {"num_messages_sent": 1, "time_stamp": timestamps[5]},
+            {"num_messages_sent": 2, "time_stamp": timestamps[4]},
+            {"num_messages_sent": 3, "time_stamp": timestamp},
+        ],
         "involvement_rate": 1,
     }

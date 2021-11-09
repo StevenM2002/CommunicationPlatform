@@ -15,6 +15,8 @@ ensure that auth_user_id is valid before running code inside the functions.
     channel_invite_v1(user_id, channel_id, user_id)
 """
 from copy import deepcopy
+import math
+import time
 
 from src.data_store import data_store
 from src.error import AccessError, InputError
@@ -22,7 +24,7 @@ from src.other import first
 from src.auth import extract_token
 
 
-EXCLUDE_LIST = ["password", "session_ids", "channel_id", "messages"]
+EXCLUDE_LIST = ["password", "session_ids", "channel_id", "messages", "user_stats"]
 
 
 def channel_invite_v1(auth_user_id, channel_id, u_id):
@@ -83,6 +85,16 @@ def channel_invite_v1(auth_user_id, channel_id, u_id):
 
     # if no errors were raised, add u_id to the list of members of the channel
     channel["all_members"].append(u_id)
+
+    # updating the user stats for the owner
+    timestamp = math.floor(time.time())
+    found_user = [user for user in user_list if user["u_id"] == u_id][0]
+    user_stats = found_user["user_stats"]
+    channels_joined_prev = user_stats["channels_joined"][-1]["num_channels_joined"]
+    user_stats["channels_joined"].append(
+        {"num_channels_joined": channels_joined_prev + 1, "time_stamp": timestamp}
+    )
+
     data_store.set(store)
     return {}
 
@@ -161,6 +173,7 @@ def channel_join_v1(auth_user_id, channel_id):
         Returns {} if join is successful
     """
     store = data_store.get()
+    users = store["users"]
 
     # find first channel matching channel_id if none found set to empty dict
     channel = first(lambda c: c["channel_id"] == channel_id, store["channels"], {})
@@ -180,6 +193,16 @@ def channel_join_v1(auth_user_id, channel_id):
 
     # adds the user to the channel members list
     channel["all_members"].append(auth_user_id)
+
+    # updating the user stats for the owner
+    timestamp = math.floor(time.time())
+    found_user = [user for user in users if user["u_id"] == auth_user_id][0]
+    user_stats = found_user["user_stats"]
+    channels_joined_prev = user_stats["channels_joined"][-1]["num_channels_joined"]
+    user_stats["channels_joined"].append(
+        {"num_channels_joined": channels_joined_prev + 1, "time_stamp": timestamp}
+    )
+
     data_store.set(store)
     return {}
 
@@ -327,6 +350,16 @@ def channel_leave_v1(token, channel_id):
                     channels["owner_members"].remove(payload["u_id"])
                 except ValueError:
                     pass
+
+    # updating the user stats for the owner
+    timestamp = math.floor(time.time())
+    found_user = [user for user in user_list if user["u_id"] == u_id][0]
+    user_stats = found_user["user_stats"]
+    channels_joined_prev = user_stats["channels_joined"][-1]["num_channels_joined"]
+    user_stats["channels_joined"].append(
+        {"num_channels_joined": channels_joined_prev - 1, "time_stamp": timestamp}
+    )
+
     return {}
 
 
