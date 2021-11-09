@@ -4,6 +4,8 @@ Contains functions for listing channels public or private and creating a new
 channel. Each of these functions are decorated with validate_auth_id to ensure
 that auth_user_id is valid before running code inside the functions.
 """
+import math
+import time
 from src.data_store import data_store
 from src.error import InputError
 from src.auth import extract_token
@@ -80,6 +82,8 @@ def channels_create_v2(token, name, is_public):
     # retrieves the data store, and the channel dictionary
     store = data_store.get()
     channels = store["channels"]
+    users = store["users"]
+    workspace = store["workspace_stats"]
 
     # Checks if the given token is valid
     u_information = extract_token(token)
@@ -104,6 +108,12 @@ def channels_create_v2(token, name, is_public):
             "messages": [],
         }
     )
+
+    # Incrementing the workspace stats for the user
+    increment_workspace_channels()
+
+    # Updating the user stats for the owner
+    incremement_user_channels(auth_user_id)
 
     # update data store with changes
     data_store.set(store)
@@ -147,3 +157,34 @@ def channels_listall_v2(token):
     """
     payload = extract_token(token)
     return channels_listall_v1(payload["u_id"])
+
+
+def increment_workspace_channels():
+    # Fetching the data store
+    store = data_store.get()
+    workspace = store["workspace_stats"]
+
+    # Creating a timestamp and incrementing the workspace stats
+    timestamp = math.floor(time.time())
+    num_channels = workspace["channels_exist"][-1]["num_channels_exist"]
+    workspace["channels_exist"].append(
+        {"num_channels_exist": num_channels + 1, "time_stamp": timestamp}
+    )
+
+
+def incremement_user_channels(auth_user_id):
+    # Fetching the data store
+    users = data_store.get()["users"]
+
+    # Finding the given user in the data store
+    found_user = [user for user in users if user["u_id"] == auth_user_id][0]
+    user_stats = found_user["user_stats"]
+
+    # Creating a timestamp and saving the user stats
+    timestamp = math.floor(time.time())
+
+    # Incrementing channels_joined stat
+    channels_joined_prev = user_stats["channels_joined"][-1]["num_channels_joined"]
+    user_stats["channels_joined"].append(
+        {"num_channels_joined": channels_joined_prev + 1, "time_stamp": timestamp}
+    )
