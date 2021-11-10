@@ -39,6 +39,24 @@ def setup_public():
         json={"token": token, "name": "public_channel", "is_public": True},
     )
     channel_id = response.json()["channel_id"]
+    
+    # create temporary channel for coverage
+    response = requests.post(
+        config.url + "channels/create/v2",
+        json={"token": token, "name": "public_budget", \
+            "is_public": True},
+    )
+    assert response.status_code == OK
+    c_id_temp = response.json()["channel_id"]
+    # create temporary standup for coverage
+    response = requests.post(config.url + 'standup/start/v1',
+        json={
+            'token': token,
+            'channel_id': c_id_temp,
+            'length': 300
+        },
+    )
+    assert response.status_code == OK
     return {
         "user_id": user_id,
         "channel_id": channel_id,
@@ -64,7 +82,7 @@ def test_standup_active(setup_public):
 
 def test_active_invalid_channel(setup_public):
     data = setup_public
-    channel_id = data['channel_id'] + 1
+    channel_id = -1
     token = data['token']
     r = requests.get(config.url + 'standup/active/v1', \
         params={
@@ -91,7 +109,7 @@ def test_standup_start(setup_public):
     data = setup_public
     token = data['token']
     channel_id = data['channel_id']
-    length = 300
+    length = 10
     r = requests.post(config.url + 'standup/start/v1',
         json={
             'token': token,
@@ -116,7 +134,7 @@ def test_standup_start(setup_public):
 def test_start_invalid_channel(setup_public):
     data = setup_public
     token = data['token']
-    channel_id = data['channel_id'] + 1
+    channel_id = -1
     length = 300
     r = requests.post(config.url + 'standup/start/v1',
         json={
@@ -226,7 +244,7 @@ def test_send_invalid_channel(setup_public):
     r = requests.post(config.url + 'standup/send/v1', 
         json={
             'token': token,
-            'channel_id': channel_id + 1,
+            'channel_id': -1,
             'message': "This is a test standup message"
         },
     )

@@ -116,7 +116,6 @@ def standup_send_v1(token, channel_id, message):
     for standups in store["standups"]:
         if standups["channel_id"] == channel_id:
             standup = standups
-            break
     for users in store["users"]:
         if users["u_id"] == auth_user_id:
             name = users["handle_str"]
