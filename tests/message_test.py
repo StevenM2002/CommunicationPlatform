@@ -3,11 +3,10 @@ import time
 
 from src.config import url
 from src.error import AccessError, InputError
+from src.other import first
 
 import pytest
 import requests
-
-from src.other import first
 
 
 @pytest.fixture
@@ -784,3 +783,91 @@ def test_message_remove_dm_from_removed_user(register_jeff, create_dm):
         json={"token": bob_token, "message_id": message_id},
     )
     assert r.status_code == AccessError.code
+
+
+def test_message_global_owner_can_edit_memebers_message_channel(register_bob, create_public_channel):
+    bob_token, _ = register_bob
+    _, joe_token, channel_id = create_public_channel
+    message_text = "hi there people"
+    new_message_text = "new message"
+
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": joe_token, "channel_id": channel_id, "message": message_text},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.get(
+        f"{url}channel/messages/v2",
+        params={"token": joe_token, "channel_id": channel_id, "start": 0},
+    )
+    assert r.status_code == 200
+    message = r.json()["messages"][0]
+    assert message["message"] == message_text
+    r = requests.put(
+        f"{url}message/edit/v1",
+        json={"token": bob_token, "message_id": message_id, "message": new_message_text},
+    )
+    assert r.status_code == 200
+    r = requests.get(
+        f"{url}channel/messages/v2",
+        params={"token": joe_token, "channel_id": channel_id, "start": 0},
+    )
+    assert r.status_code == 200
+    message = r.json()["messages"][0]
+    assert message["message"] == new_message_text
+
+
+def test_message_global_owner_cant_edit_memebers_message_dm(register_joe, register_bob):
+    joe_token, joe_user_id = register_joe
+    bob_token, bob_user_id = register_bob
+    r = requests.post(
+        f"{url}dm/create/v1",
+        json={
+            "token": bob_token,
+            "u_ids": [joe_user_id, bob_user_id],
+        },
+    )
+    assert r.status_code == 200
+    dm_id = r.json()["dm_id"]
+
+    message_text = "hi there people"
+    new_message_text = "new message"
+
+    r = requests.post(
+        f"{url}message/senddm/v1",
+        json={
+            "token": bob_token,
+            "message": message_text,
+            "dm_id": dm_id,
+        },
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.get(
+        f"{url}dm/messages/v1",
+        params={
+            "token": bob_token,
+            "dm_id": dm_id,
+            "start": 0,
+        },
+    )
+    assert r.status_code == 200
+    messages = r.json()["messages"]
+    assert messages[0]["message"] == message_text
+    r = requests.put(
+        f"{url}message/edit/v1",
+        json={"token": joe_token, "message_id": message_id, "message": new_message_text},
+    )
+    assert r.status_code == AccessError.code
+    r = requests.get(
+        f"{url}dm/messages/v1",
+        params={
+            "token": joe_token,
+            "dm_id": dm_id,
+            "start": 0,
+        },
+    )
+    assert r.status_code == 200
+    messages = r.json()["messages"]
+    assert messages[0]["message"] == message_text
