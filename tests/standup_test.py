@@ -131,7 +131,7 @@ def test_start_auth_not_member(setup_public):
     data = setup_public
     token = data['user_token']
     channel_id = data['channel_id']
-    length = 300
+    length = 10
     r = requests.post(config.url + 'standup/start/v1',
         json={
             'token': token,
@@ -159,7 +159,7 @@ def test_start_standup_already_running(setup_public):
     data = setup_public
     token = data['token']
     channel_id = data['channel_id']
-    length = 300
+    length = 10
     r = requests.post(config.url + 'standup/start/v1',
         json={
             'token': token,
@@ -172,7 +172,7 @@ def test_start_standup_already_running(setup_public):
         json={
             'token': token,
             'channel_id': channel_id,
-            'length': length + 60
+            'length': length + 5
         },
     )
     assert r.status_code == InputError.code

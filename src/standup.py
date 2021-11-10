@@ -29,7 +29,10 @@ def end_standup(auth_user_id, channel, standup):
         "u_id": auth_user_id,
     }
     channel["messages"].insert(0, message)
-    data["standups"].remove(standup)
+    for standups in data["standups"]:
+        if standups == standup:
+            data["standups"].remove(standup)
+        
     data_store.set(data)
 def standup_start_v1(token, channel_id, length):
     store = data_store.get()
