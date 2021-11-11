@@ -268,30 +268,7 @@ def test_send_message_too_long(setup_public):
         json={
             'token': token,
             'channel_id': channel_id,
-            'message': "This is a test standup message that is over 1000 \
-            characters but i'm not going to write out 1000 unique \
-            characters so i will just keep looping this one for a while" + \
-            "This is a test standup message that is over 1000 \
-            characters but i'm not going to write out 1000 unique \
-            characters so i will just keep looping this one for a while" + \
-            "This is a test standup message that is over 1000 \
-            characters but i'm not going to write out 1000 unique \
-            characters so i will just keep looping this one for a while" + \
-            "This is a test standup message that is over 1000 \
-            characters but i'm not going to write out 1000 unique \
-            characters so i will just keep looping this one for a while" + \
-            "This is a test standup message that is over 1000 \
-            characters but i'm not going to write out 1000 unique \
-            characters so i will just keep looping this one for a while" + \
-            "This is a test standup message that is over 1000 \
-            characters but i'm not going to write out 1000 unique \
-            characters so i will just keep looping this one for a while" + \
-            "This is a test standup message that is over 1000 \
-            characters but i'm not going to write out 1000 unique \
-            characters so i will just keep looping this one for a while" + \
-            "This is a test standup message that is over 1000 \
-            characters but i'm not going to write out 1000 unique \
-            characters so i will just keep looping this one for a while"
+            'message': "s" * 1001
         },
     )
     assert r.status_code == InputError.code
