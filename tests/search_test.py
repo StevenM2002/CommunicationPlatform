@@ -66,7 +66,14 @@ def test_input_err_search(search_dataset):
         },
     )
     assert response.status_code == InputError.code
-
+    response = requests.get(
+        config.url + "search/v1",
+        params={
+            "token": search_dataset["t"][0],
+            "query_str": "a" * 1005,
+        },
+    )
+    assert response.status_code == InputError.code
 
 def test_match_one_channels_message_search(search_dataset):
     # {message_id, u_id, message, time_created, reacts, is_pinned}
