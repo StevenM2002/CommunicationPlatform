@@ -37,6 +37,7 @@ data structure:
             "owner": auth_user_id,
         },
     ],
+    "all_notifications":[{"u_id": int, "notifications":[]},...]
 }
 
     Typical usage example:
@@ -71,6 +72,7 @@ INITIAL_OBJECT = {
     "removed_users": [],
     "dms": [],
     "max_ids": {"dm": -1, "message": -1, "channel": -1, "user": -1},
+    "all_notifications": [],
 }
 DATA_STORE_FILE = "datastore.json"
 WRITE_INTERVAL = 30
