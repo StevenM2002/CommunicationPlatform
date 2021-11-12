@@ -26,6 +26,7 @@ from src.user import (
     user_set_handle,
 )
 from src.search import search_v1
+from src.notifications import notifications_get_v1
 
 from flask import Flask, request
 from flask_cors import CORS
@@ -277,6 +278,12 @@ def search_the_messages():
     token = request.args.get("token")
     query_str = request.args.get("query_str")
     return dumps(search_v1(token, query_str))
+
+@APP.route("/notifications/get/v1", methods=["GET"])
+def get_notifications():
+    token = request.args.get("token")
+    u_id = extract_token(token)["u_id"]
+    return dumps(notifications_get_v1(u_id))
 
 
 if __name__ == "__main__":

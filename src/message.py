@@ -4,6 +4,7 @@ import time
 from src.data_store import data_store
 from src.error import AccessError, InputError
 from src.other import first
+from src.notifications import add_tagged_to_notif
 
 
 def channel_messages_v1(auth_user_id, channel_id, start):
@@ -84,6 +85,7 @@ def message_send_v1(user_id, channel_id, message_text):
     }
     channel["messages"].insert(0, message)
     data_store.set(data)
+    add_tagged_to_notif(user_id, channel_id, -1, message_text)
     return {"message_id": message_id}
 
 
@@ -232,5 +234,6 @@ def message_senddm_v1(user_id, dm_id, message_text):
                 "u_id": user_id,
             }
             dm["messages"].insert(0, message)
+            add_tagged_to_notif(user_id, -1, dm_id, message_text)
             return {"message_id": message_id}
     raise InputError(description="no dm matching dm id")
