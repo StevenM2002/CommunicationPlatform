@@ -227,7 +227,7 @@ def test_standup_send(setup_public):
     )
     assert r.status_code == OK
     message = r.json()['messages'][0]['message']
-    assert message == "jondoe: This is a test standup message" + "\n"
+    assert message == "jondoe: This is a test standup message"
 def test_send_invalid_channel(setup_public):
     data = setup_public
     token = data['token']

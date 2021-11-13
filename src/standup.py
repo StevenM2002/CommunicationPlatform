@@ -22,6 +22,7 @@ def end_standup(auth_user_id, channel, standup):
     data = data_store.get()
     message_id = data["max_ids"]["message"] + 1
     data["max_ids"]["message"] += 1
+    standup["message_queue"] = standup["message_queue"][:-1]
     message =  {
         "message": standup["message_queue"],
         "message_id": message_id,
