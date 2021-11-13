@@ -785,7 +785,9 @@ def test_message_remove_dm_from_removed_user(register_jeff, create_dm):
     assert r.status_code == AccessError.code
 
 
-def test_message_global_owner_can_edit_memebers_message_channel(register_bob, create_public_channel):
+def test_message_global_owner_can_edit_memebers_message_channel(
+    register_bob, create_public_channel
+):
     bob_token, _ = register_bob
     _, joe_token, channel_id = create_public_channel
     message_text = "hi there people"
@@ -806,7 +808,11 @@ def test_message_global_owner_can_edit_memebers_message_channel(register_bob, cr
     assert message["message"] == message_text
     r = requests.put(
         f"{url}message/edit/v1",
-        json={"token": bob_token, "message_id": message_id, "message": new_message_text},
+        json={
+            "token": bob_token,
+            "message_id": message_id,
+            "message": new_message_text,
+        },
     )
     assert r.status_code == 200
     r = requests.get(
@@ -857,7 +863,11 @@ def test_message_global_owner_cant_edit_memebers_message_dm(register_joe, regist
     assert messages[0]["message"] == message_text
     r = requests.put(
         f"{url}message/edit/v1",
-        json={"token": joe_token, "message_id": message_id, "message": new_message_text},
+        json={
+            "token": joe_token,
+            "message_id": message_id,
+            "message": new_message_text,
+        },
     )
     assert r.status_code == AccessError.code
     r = requests.get(
@@ -871,3 +881,556 @@ def test_message_global_owner_cant_edit_memebers_message_dm(register_joe, regist
     assert r.status_code == 200
     messages = r.json()["messages"]
     assert messages[0]["message"] == message_text
+
+
+def test_message_is_not_pinned(create_public_channel):
+    _, token, channel_id = create_public_channel
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": token, "channel_id": channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    assert r.status_code == 200
+    r = requests.get(
+        f"{url}channel/messages/v2",
+        params={"token": token, "channel_id": channel_id, "start": 0},
+    )
+    assert r.status_code == 200
+    message = r.json()["messages"][0]
+    assert message["is_pinned"] == False
+
+
+def test_message_is_pinned(create_public_channel):
+    _, token, channel_id = create_public_channel
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": token, "channel_id": channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/pin/v1",
+        json={"token": token, "message_id": message_id},
+    )
+    assert r.status_code == 200
+    r = requests.get(
+        f"{url}channel/messages/v2",
+        params={"token": token, "channel_id": channel_id, "start": 0},
+    )
+    assert r.status_code == 200
+    message = r.json()["messages"][0]
+    assert message["is_pinned"] == True
+
+
+def test_message_already_pinned(create_public_channel):
+    _, token, channel_id = create_public_channel
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": token, "channel_id": channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/pin/v1",
+        json={"token": token, "message_id": message_id},
+    )
+    assert r.status_code == 200
+    r = requests.post(
+        f"{url}message/pin/v1",
+        json={"token": token, "message_id": message_id},
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_pin_message_doesnt_exist(create_public_channel):
+    _, token, _ = create_public_channel
+    r = requests.post(
+        f"{url}message/pin/v1",
+        json={"token": token, "message_id": -1},
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_pin_not_member(create_public_channel, register_bob):
+    _, joe_token, channel_id = create_public_channel
+    bob_token, _ = register_bob
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": joe_token, "channel_id": channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/pin/v1",
+        json={"token": bob_token, "message_id": message_id},
+    )
+    assert r.status_code == AccessError.code
+
+
+def test_message_pin_channel_authorised(register_bob, create_public_channel):
+    _, joe_token, channel_id = create_public_channel
+    bob_token, _ = register_bob
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": joe_token, "channel_id": channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/pin/v1",
+        json={"token": bob_token, "message_id": message_id},
+    )
+    assert r.status_code == 200
+    r = requests.get(
+        f"{url}channel/messages/v2",
+        params={"token": joe_token, "channel_id": channel_id, "start": 0},
+    )
+    assert r.status_code == 200
+    message = r.json()["messages"][0]
+    assert message["is_pinned"] == True
+
+
+def test_message_pin_channel_not_authorised(create_public_channel, register_bob):
+    _, _, channel_id = create_public_channel
+    token, _ = register_bob
+    r = requests.post(
+        f"{url}channel/join/v2", json={"token": token, "channel_id": channel_id}
+    )
+    assert r.status_code == 200
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": token, "channel_id": channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/pin/v1",
+        json={"token": token, "message_id": message_id},
+    )
+    assert r.status_code == AccessError.code
+
+
+def test_message_pin_dm_authorised(create_dm):
+    joe_token, _, _, _, dm_id = create_dm
+    r = requests.post(
+        f"{url}message/senddm/v1",
+        json={
+            "token": joe_token,
+            "message": "hi",
+            "dm_id": dm_id,
+        },
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/pin/v1",
+        json={"token": joe_token, "message_id": message_id},
+    )
+    assert r.status_code == 200
+    r = requests.get(
+        f"{url}dm/messages/v1",
+        params={"token": joe_token, "dm_id": dm_id, "start": 0},
+    )
+    assert r.status_code == 200
+    message = r.json()["messages"][0]
+    assert message["is_pinned"] == True
+
+
+def test_message_pin_dm_not_authorised(create_dm):
+    joe_token, _, bob_token, _, dm_id = create_dm
+    r = requests.post(
+        f"{url}message/senddm/v1",
+        json={
+            "token": joe_token,
+            "message": "hi",
+            "dm_id": dm_id,
+        },
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/pin/v1",
+        json={"token": bob_token, "message_id": message_id},
+    )
+    assert r.status_code == AccessError.code
+
+
+def test_message_is_unpinned(create_public_channel):
+    _, token, channel_id = create_public_channel
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": token, "channel_id": channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/pin/v1",
+        json={"token": token, "message_id": message_id},
+    )
+    assert r.status_code == 200
+    r = requests.get(
+        f"{url}channel/messages/v2",
+        params={"token": token, "channel_id": channel_id, "start": 0},
+    )
+    assert r.status_code == 200
+    message = r.json()["messages"][0]
+    assert message["is_pinned"] == True
+    r = requests.post(
+        f"{url}message/unpin/v1",
+        json={"token": token, "message_id": message_id},
+    )
+    assert r.status_code == 200
+    r = requests.get(
+        f"{url}channel/messages/v2",
+        params={"token": token, "channel_id": channel_id, "start": 0},
+    )
+    assert r.status_code == 200
+    message = r.json()["messages"][0]
+    assert message["is_pinned"] == False
+
+
+def test_message_already_unpinned(create_public_channel):
+    _, token, channel_id = create_public_channel
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": token, "channel_id": channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/unpin/v1",
+        json={"token": token, "message_id": message_id},
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_unpin_message_doesnt_exist(create_public_channel):
+    _, token, _ = create_public_channel
+    r = requests.post(
+        f"{url}message/unpin/v1",
+        json={"token": token, "message_id": -1},
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_unpin_not_member(create_public_channel, register_bob):
+    _, joe_token, channel_id = create_public_channel
+    bob_token, _ = register_bob
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": joe_token, "channel_id": channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/unpin/v1",
+        json={"token": bob_token, "message_id": message_id},
+    )
+    assert r.status_code == AccessError.code
+
+
+def test_message_unpin_channel_authorised(register_bob, create_public_channel):
+    _, joe_token, channel_id = create_public_channel
+    bob_token, _ = register_bob
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": joe_token, "channel_id": channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/pin/v1",
+        json={"token": bob_token, "message_id": message_id},
+    )
+    assert r.status_code == 200
+    r = requests.post(
+        f"{url}message/unpin/v1",
+        json={"token": bob_token, "message_id": message_id},
+    )
+    assert r.status_code == 200
+    r = requests.get(
+        f"{url}channel/messages/v2",
+        params={"token": joe_token, "channel_id": channel_id, "start": 0},
+    )
+    assert r.status_code == 200
+    message = r.json()["messages"][0]
+    assert message["is_pinned"] == False
+
+
+def test_message_unpin_channel_not_authorised(create_public_channel, register_bob):
+    _, _, channel_id = create_public_channel
+    token, _ = register_bob
+    r = requests.post(
+        f"{url}channel/join/v2", json={"token": token, "channel_id": channel_id}
+    )
+    assert r.status_code == 200
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": token, "channel_id": channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/unpin/v1",
+        json={"token": token, "message_id": message_id},
+    )
+    assert r.status_code == AccessError.code
+
+
+def test_message_unpin_dm_authorised(create_dm):
+    joe_token, _, _, _, dm_id = create_dm
+    r = requests.post(
+        f"{url}message/senddm/v1",
+        json={
+            "token": joe_token,
+            "message": "hi",
+            "dm_id": dm_id,
+        },
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/pin/v1",
+        json={"token": joe_token, "message_id": message_id},
+    )
+    assert r.status_code == 200
+    r = requests.post(
+        f"{url}message/unpin/v1",
+        json={"token": joe_token, "message_id": message_id},
+    )
+    assert r.status_code == 200
+    r = requests.get(
+        f"{url}dm/messages/v1",
+        params={"token": joe_token, "dm_id": dm_id, "start": 0},
+    )
+    assert r.status_code == 200
+    message = r.json()["messages"][0]
+    assert message["is_pinned"] == False
+
+
+def test_message_unpin_dm_not_authorised(create_dm):
+    joe_token, _, bob_token, _, dm_id = create_dm
+    r = requests.post(
+        f"{url}message/senddm/v1",
+        json={
+            "token": joe_token,
+            "message": "hi",
+            "dm_id": dm_id,
+        },
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/unpin/v1",
+        json={"token": bob_token, "message_id": message_id},
+    )
+    assert r.status_code == AccessError.code
+
+
+def test_message_react_invalid_message(register_joe):
+    token, _ = register_joe
+    r = requests.post(
+        f"{url}message/react/v1",
+        json={"token": token, "message_id": -1, "react_id": 1},
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_react_invalid_react(create_public_channel):
+    _, token, channel_id = create_public_channel
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": token, "channel_id": channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/react/v1",
+        json={"token": token, "message_id": message_id, "react_id": 0},
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_react_already_exists(create_public_channel):
+    _, token, channel_id = create_public_channel
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": token, "channel_id": channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/react/v1",
+        json={"token": token, "message_id": message_id, "react_id": 1},
+    )
+    assert r.status_code == 200
+    r = requests.post(
+        f"{url}message/react/v1",
+        json={"token": token, "message_id": message_id, "react_id": 1},
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_react_not_member_channel(register_bob, create_public_channel):
+    bob_token, _ = register_bob
+    _, joe_token, channel_id = create_public_channel
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": joe_token, "channel_id": channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/react/v1",
+        json={"token": bob_token, "message_id": message_id, "react_id": 1},
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_react_not_member_dm(register_jeff, create_dm):
+    jeff_token, _ = register_jeff
+    joe_token, _, _, _, dm_id = create_dm
+    r = requests.post(
+        f"{url}message/senddm/v1",
+        json={
+            "token": joe_token,
+            "message": "hi",
+            "dm_id": dm_id,
+        },
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/react/v1",
+        json={"token": jeff_token, "message_id": message_id, "react_id": 1},
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_react_get_react(create_public_channel):
+    user_id, token, channel_id = create_public_channel
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": token, "channel_id": channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/react/v1",
+        json={"token": token, "message_id": message_id, "react_id": 1},
+    )
+    assert r.status_code == 200
+    r = requests.get(
+        f"{url}channel/messages/v2",
+        params={"token": token, "channel_id": channel_id, "start": 0},
+    )
+    assert r.status_code == 200
+    message = r.json()["messages"][0]
+    assert message["reacts"] == {str(user_id): [1]}
+
+
+def test_message_unreact_invalid_message(register_joe):
+    token, _ = register_joe
+    r = requests.post(
+        f"{url}message/unreact/v1",
+        json={"token": token, "message_id": -1, "react_id": 1},
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_unreact_invalid_react(create_public_channel):
+    _, token, channel_id = create_public_channel
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": token, "channel_id": channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/react/v1",
+        json={"token": token, "message_id": message_id, "react_id": 1},
+    )
+    assert r.status_code == 200
+    r = requests.post(
+        f"{url}message/unreact/v1",
+        json={"token": token, "message_id": message_id, "react_id": 0},
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_unreact_doesnt_exists(create_public_channel):
+    _, token, channel_id = create_public_channel
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": token, "channel_id": channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/unreact/v1",
+        json={"token": token, "message_id": message_id, "react_id": 1},
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_unreact_not_member_channel(register_bob, create_public_channel):
+    bob_token, _ = register_bob
+    _, joe_token, channel_id = create_public_channel
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": joe_token, "channel_id": channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/unreact/v1",
+        json={"token": bob_token, "message_id": message_id, "react_id": 1},
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_unreact_not_member_dm(register_jeff, create_dm):
+    jeff_token, _ = register_jeff
+    joe_token, _, _, _, dm_id = create_dm
+    r = requests.post(
+        f"{url}message/senddm/v1",
+        json={
+            "token": joe_token,
+            "message": "hi",
+            "dm_id": dm_id,
+        },
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/unreact/v1",
+        json={"token": jeff_token, "message_id": message_id, "react_id": 1},
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_unreact_get_react(create_public_channel):
+    user_id, token, channel_id = create_public_channel
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": token, "channel_id": channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}message/react/v1",
+        json={"token": token, "message_id": message_id, "react_id": 1},
+    )
+    assert r.status_code == 200
+    r = requests.post(
+        f"{url}message/unreact/v1",
+        json={"token": token, "message_id": message_id, "react_id": 1},
+    )
+    assert r.status_code == 200
+    r = requests.get(
+        f"{url}channel/messages/v2",
+        params={"token": token, "channel_id": channel_id, "start": 0},
+    )
+    assert r.status_code == 200
+    message = r.json()["messages"][0]
+    assert message["reacts"] == {str(user_id): []}
