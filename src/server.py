@@ -1,5 +1,10 @@
 import signal
 from json import dumps
+from src.standup import (
+    standup_start_v1,
+    standup_active_v1,
+    standup_send_v1
+)
 from src.admin import admin_user_permission_change_v1, admin_user_remove_v1
 from src import config, auth, dm, message
 from src.channel import (
@@ -271,6 +276,23 @@ def do_admin_userpermission_change():
     permission_id = params["permission_id"]
     return dumps(admin_user_permission_change_v1(token, u_id, permission_id))
 
+@APP.route('/standup/start/v1', methods=['POST'])
+def do_standup_start():
+    params = request.get_json()
+    return dumps(standup_start_v1(params['token'], params['channel_id'], \
+        params['length']))
+
+@APP.route('/standup/active/v1', methods=['GET'])
+def do_standup_active():
+    token = request.args.get("token")
+    channel_id = int(request.args.get("channel_id"))
+    return dumps(standup_active_v1(token, channel_id))
+
+@APP.route('/standup/send/v1', methods=['POST'])
+def do_standup_send():
+    params = request.get_json()
+    return dumps(standup_send_v1(params['token'], params['channel_id'], \
+        params['message']))
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, quit_gracefully)  # For coverage
