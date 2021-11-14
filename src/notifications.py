@@ -1,18 +1,17 @@
 from src.data_store import data_store
 import re
 
-# { channel_id, dm_id, notification_to_add }
-# "{User’s handle} tagged you in {channel/DM name}: {first 20 characters of the to_add}"
-# "{User’s handle} reacted to your to_add in {channel/DM name}"
-# "{User’s handle} added you to {channel/DM name}"
 
-
+# Adds to the datastore, a new u_id and accompanying notifications
 def add_new_id_to_notif(u_id):
     store = data_store.get()
     store["all_notifications"].append({"u_id": u_id, "notifications": []})
     data_store.set(store)
 
 
+# Function which captures messages and other info which checks
+# if there is a @ and a valid handle after in the msg, it will add the message
+# to notifications
 def add_tagged_to_notif(u_id, ch_id, dm_id, message_text):
     if "@" not in message_text:
         return
@@ -34,6 +33,7 @@ def add_tagged_to_notif(u_id, ch_id, dm_id, message_text):
         add_to_notif(your_id, to_add)
 
 
+# Captures information in reacted function and adds it to notifications
 def add_reacted_msg_to_notif(u_id, your_id, ch_id, dm_id):
     info = get_handle_and_name(u_id, ch_id, dm_id)
     handle = info["handle"]
@@ -42,7 +42,7 @@ def add_reacted_msg_to_notif(u_id, your_id, ch_id, dm_id):
     to_add = {"channel_id": ch_id, "dm_id": dm_id, "notification_message": message}
     add_to_notif(your_id, to_add)
 
-
+# Captures information in channels invite and dm create, and adds notification
 def add_added_to_a_channel_or_dm_to_notif(u_id, your_id, ch_id, dm_id):
     info = get_handle_and_name(u_id, ch_id, dm_id)
     handle = info["handle"]
@@ -51,14 +51,14 @@ def add_added_to_a_channel_or_dm_to_notif(u_id, your_id, ch_id, dm_id):
     to_add = {"channel_id": ch_id, "dm_id": dm_id, "notification_message": message}
     add_to_notif(your_id, to_add)
 
-
+# Matches a u_id from a given handle.
 def get_u_id_from_handle(handle):
     store = data_store.get()
     for user in store["users"]:
         if user["handle_str"] == handle:
             return user["u_id"]
 
-
+# Gets a handle and the name of the channel or dm and returns them
 def get_handle_and_name(u_id, ch_id, dm_id):
     store = data_store.get()
     all_users = store["users"]
@@ -79,7 +79,7 @@ def get_handle_and_name(u_id, ch_id, dm_id):
             break
     return {"handle": handle, "name": name}
 
-
+# Adds a notification to the datastore
 def add_to_notif(u_id, to_add):
     store = data_store.get()
     notifs = store["all_notifications"]
@@ -93,6 +93,17 @@ def add_to_notif(u_id, to_add):
 
 
 def notifications_get_v1(u_id):
+    """Gets the last 20 notifications of a user
+
+    Arguments:
+        u_id (int) - id of a user who's notifications is being retrieved
+
+    Exceptions:
+        N/A
+
+    Return Value:
+        Returns {"notifications": [{messages}]}
+    """
     store = data_store.get()
     notifs = store["all_notifications"]
     ret_msg = []
