@@ -1,10 +1,7 @@
 import pytest
 from src.error import InputError, AccessError
 import requests
-import json
-from src.data_store import data_store
 from src import config
-import requests
 
 
 @pytest.fixture

@@ -12,6 +12,7 @@ data structure:
             "password": password,
             "name_first": name_first,
             "name_last": name_last,
+            "profile_img_url": img_url,
             "handle_str": handle,
             "user_stats": 
                 {
@@ -75,7 +76,7 @@ data structure:
 """
 import time
 import math
-
+import os
 from copy import deepcopy
 from json import dump, load
 from pathlib import Path
@@ -103,6 +104,8 @@ INITIAL_OBJECT = {
 DATA_STORE_FILE = "datastore.json"
 WRITE_INTERVAL = 30
 
+IMAGE_FOLDER = "imgfolder"
+
 
 class Datastore:
     """Datastore class used to store data for Streams."""
@@ -115,6 +118,9 @@ class Datastore:
                 self.__store = deepcopy(INITIAL_OBJECT)
         else:
             self.__store = deepcopy(INITIAL_OBJECT)
+
+        if not Path(IMAGE_FOLDER).is_dir():
+            os.mkdir(IMAGE_FOLDER)
 
     def get(self):
         """Get the dictionary of the data base.
@@ -146,6 +152,8 @@ def clear_v1():
     workspace = data_store.get()["workspace_stats"]
     for it in ("channels_exist", "dms_exist", "messages_exist"):
         workspace[it][0]["time_stamp"] = timestamp
+    os.rmdir(IMAGE_FOLDER)
+    os.mkdir(IMAGE_FOLDER)
 
     return {}
 

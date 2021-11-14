@@ -1,7 +1,10 @@
 import re
-from src.data_store import data_store
+import urllib.request
+from PIL import Image
+from src.data_store import data_store, IMAGE_FOLDER
 from src.error import InputError
 from src.auth import extract_token
+from src.config import url
 
 
 def all_users(token):
@@ -219,4 +222,21 @@ def user_upload_photo(token, img_url, x_start, y_start, x_end, y_end):
         Returns {}
 
     """
-    pass
+    u_information = extract_token(token)
+    store = data_store.get()
+    users = store["users"]
+
+    # fetch image
+    img_file = f"{IMAGE_FOLDER}/{u_information['u_id']}img.jpg"
+    urllib.request.urlretrieve(img_url, img_file)
+
+    # crop image
+
+    imageObject = Image.open(img_file)
+    cropped = imageObject.crop((x_start, y_start, x_end, y_end))
+    cropped.save(img_file)
+
+    # serve image
+    for user in users:
+        if user == u_information["u_id"]:
+            user["profile_img_url"] = url + "/profile_img/" + img_file

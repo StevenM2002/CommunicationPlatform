@@ -16,7 +16,7 @@ from src.channels import (
     channels_listall_v2,
     channels_list_v2,
 )
-from src.data_store import clear_v1
+from src.data_store import clear_v1, IMAGE_FOLDER
 from src.error import InputError
 from src.auth import extract_token
 from src.user import (
@@ -31,7 +31,7 @@ from src.stats import user_stats, workspace_stats
 from src.search import search_v1
 from src.notifications import notifications_get_v1
 
-from flask import Flask, request
+from flask import Flask, request, send_from_directory
 from flask_cors import CORS
 
 
@@ -213,7 +213,7 @@ def set_handle():
     return dumps(user_set_handle(data["token"], data["handle_str"]))
 
 
-@APP.route("user/profile/uploadphoto/v1", methods=["POST"])
+@APP.route("/user/profile/uploadphoto/v1", methods=["POST"])
 def upload_photo():
     data = request.json
     return dumps(
@@ -226,6 +226,11 @@ def upload_photo():
             data["y_end"],
         )
     )
+
+
+@APP.route("/profile_img/<path:path>")
+def serve_image(path):
+    return send_from_directory(IMAGE_FOLDER, path)
 
 
 @APP.route("/channel/invite/v2", methods=["POST"])

@@ -175,6 +175,7 @@ def auth_register_v2(email, password, name_first, name_last):
                 "messages_sent": [{"num_messages_sent": 0, "time_stamp": time_stamp}],
             },
             "reset_codes": [],
+            "profile_img_url": "",
         }
     )
 
