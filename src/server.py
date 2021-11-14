@@ -30,6 +30,8 @@ from src.user import (
     user_set_email,
     user_set_handle,
 )
+from src.search import search_v1
+from src.notifications import notifications_get_v1
 
 from flask import Flask, request
 from flask_cors import CORS
@@ -307,6 +309,18 @@ def do_admin_userpermission_change():
     u_id = params["u_id"]
     permission_id = params["permission_id"]
     return dumps(admin_user_permission_change_v1(token, u_id, permission_id))
+
+@APP.route("/search/v1", methods=["GET"])
+def search_the_messages():
+    token = request.args.get("token")
+    query_str = request.args.get("query_str")
+    return dumps(search_v1(token, query_str))
+
+@APP.route("/notifications/get/v1", methods=["GET"])
+def get_notifications():
+    token = request.args.get("token")
+    u_id = extract_token(token)["u_id"]
+    return dumps(notifications_get_v1(u_id))
 
 @APP.route('/standup/start/v1', methods=['POST'])
 def do_standup_start():

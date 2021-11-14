@@ -20,6 +20,7 @@ from src.data_store import data_store
 from src.error import AccessError, InputError
 from src.other import first
 from src.auth import extract_token
+from src import notifications
 
 
 EXCLUDE_LIST = ["password", "session_ids", "channel_id", "messages"]
@@ -84,6 +85,7 @@ def channel_invite_v1(auth_user_id, channel_id, u_id):
     # if no errors were raised, add u_id to the list of members of the channel
     channel["all_members"].append(u_id)
     data_store.set(store)
+    notifications.add_added_to_a_channel_or_dm_to_notif(auth_user_id, u_id, channel_id, -1)
     return {}
 
 

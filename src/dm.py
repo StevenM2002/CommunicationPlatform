@@ -1,6 +1,7 @@
 from src.data_store import data_store
 from src.error import InputError, AccessError
 from src.auth import extract_token
+from src.notifications import add_added_to_a_channel_or_dm_to_notif
 
 OUTPUT_KEYS = ["name", "dm_id"]
 USER_KEYS = ["u_id", "email", "name_first", "name_last", "handle_str"]
@@ -57,7 +58,8 @@ def dm_create_v1(token, u_ids):
     )
 
     data_store.set(store)
-
+    for u_id in u_ids:
+        add_added_to_a_channel_or_dm_to_notif(token_data["u_id"], u_id, -1, dm_id)
     return {"dm_id": dm_id}
 
 

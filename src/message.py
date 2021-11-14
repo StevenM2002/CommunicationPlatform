@@ -5,6 +5,9 @@ from collections import defaultdict
 from src.data_store import data_store
 from src.error import AccessError, InputError
 from src.other import first
+from src.notifications import add_tagged_to_notif
+from src.notifications import add_reacted_msg_to_notif
+
 
 VALID_REACT_IDS = (1,)
 
@@ -122,6 +125,7 @@ def message_send_v1(user_id, channel_id, message_text):
     message = create_message(message_text, message_id, user_id)
     channel["messages"].insert(0, message)
     data_store.set(data)
+    add_tagged_to_notif(user_id, channel_id, -1, message_text)
 
     return {"message_id": message_id}
 
@@ -228,6 +232,7 @@ def message_senddm_v1(user_id, dm_id, message_text):
             data_store.set(data)
             message = create_message(message_text, message_id, user_id)
             dm["messages"].insert(0, message)
+            add_tagged_to_notif(user_id, -1, dm_id, message_text)
             return {"message_id": message_id}
 
     raise InputError("no dm matching dm id")
@@ -246,8 +251,10 @@ def message_react_v1(auth_user_id, message_id, react_id):
         and react_id in message["reacts"][auth_user_id]
     ):
         raise InputError("message already contains reaction from user")
-
     message["reacts"][auth_user_id].append(react_id)
+    channel_id = -1 if "channel_id" not in group else group["channel_id"]
+    dm_id = -1 if "dm_id" not in group else group["dm_id"]
+    add_reacted_msg_to_notif(auth_user_id, message["u_id"], channel_id, dm_id)
 
     return {}
 
