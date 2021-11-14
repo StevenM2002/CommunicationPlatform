@@ -119,6 +119,7 @@ def test_details(dm_create):
                 "name_first": "first1",
                 "name_last": "last1",
                 "u_id": 0,
+                "profile_img_url": "",
             },
             {
                 "email": "wow2@wow.com",
@@ -126,6 +127,7 @@ def test_details(dm_create):
                 "name_first": "first2",
                 "name_last": "last2",
                 "u_id": 1,
+                "profile_img_url": "",
             },
             {
                 "email": "wow3@wow.com",
@@ -133,6 +135,7 @@ def test_details(dm_create):
                 "name_first": "first3",
                 "name_last": "last3",
                 "u_id": 2,
+                "profile_img_url": "",
             },
         ],
     }
