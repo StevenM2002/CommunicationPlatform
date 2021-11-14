@@ -1865,7 +1865,9 @@ def test_message_share_message_too_long(create_public_channel):
     assert r.status_code == InputError.code
 
 
-def test_message_share_message_from_unjoined_channel(create_public_channel, register_bob):
+def test_message_share_message_from_unjoined_channel(
+    create_public_channel, register_bob
+):
     joe_user_id, joe_token, joe_channel_id = create_public_channel
     bob_token, _ = register_bob
     r = requests.post(

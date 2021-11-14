@@ -307,7 +307,38 @@ def message_unpin_v1(auth_user_id, message_id):
 
 
 def message_share_v1(user_id, og_message_id, message, channel_id, dm_id):
-    ...
+    data = data_store.get()
+    channel = first(lambda c: c["channel_id"] == channel_id, data["channels"], {})
+    dm = first(lambda c: c["dm_id"] == dm_id, data["dms"], {})
+    og_message, message_group = get_message(og_message_id)
+
+    if not dm and not channel:
+        raise InputError("invalid dm id and channel id")
+    if channel and not is_member(user_id, channel):
+        raise AccessError("user not member of channel")
+    if dm and not is_member(user_id, dm):
+        raise AccessError("user not member of dm")
+    if not is_member(user_id, message_group):
+        raise InputError("message not from channel user has joined")
+    if dm_id != -1 and channel_id != -1:
+        raise InputError("either channel id or dm id")
+    if not len(message) <= 1000:
+        raise InputError("message is longer than 1000 characters")
+
+    message_text = og_message["message"]
+    if len(message) > 0:
+        message_text += f", {message}"
+
+    message_id = data["max_ids"]["message"] + 1
+    data["max_ids"]["message"] += 1
+    data_store.set(data)
+
+    if channel:
+        send_channel_message(channel_id, message_text, message_id, user_id)
+    if dm:
+        send_dm_message(dm_id, message_text, message_id, user_id)
+
+    return {"shared_message_id": message_id}
 
 
 def message_sendlater(user_id, channel_id, message, time_sent):
@@ -382,7 +413,7 @@ def send_dm_message(dm_id, message, message_id, user_id):
     removed = first(lambda u: u["u_id"] == user_id, data["removed_users"], {})
     if removed:
         message = "Removed user"
-    dm = first(lambda c: c["dm_id"] == dm_id, data["dms"], {})
+    dm = first(lambda d: d["dm_id"] == dm_id, data["dms"], {})
     message = create_message(message, message_id, user_id)
     dm["messages"].insert(0, message)
     data_store.set(data)
