@@ -77,7 +77,7 @@ data structure:
 import time
 import math
 import os
-import shutil
+import urllib.request
 from copy import deepcopy
 from json import dump, load
 from pathlib import Path
@@ -104,7 +104,7 @@ INITIAL_OBJECT = {
 }
 DATA_STORE_FILE = "datastore.json"
 WRITE_INTERVAL = 30
-
+DEFAULT_IMG = "http://i.postimg.cc/FRGqQfwC/Scanned-Document.jpg"
 IMAGE_FOLDER = "imgfolder"
 
 
@@ -122,6 +122,8 @@ class Datastore:
 
         if not Path(IMAGE_FOLDER).is_dir():
             os.mkdir(IMAGE_FOLDER)
+        if "DEFAULT_IMG.jpg" not in os.listdir(IMAGE_FOLDER):
+            urllib.request.urlretrieve(DEFAULT_IMG, IMAGE_FOLDER + "/DEFAULT_IMG.jpg")
 
     def get(self):
         """Get the dictionary of the data base.
@@ -153,8 +155,10 @@ def clear_v1():
     workspace = data_store.get()["workspace_stats"]
     for it in ("channels_exist", "dms_exist", "messages_exist"):
         workspace[it][0]["time_stamp"] = timestamp
-    os.rmdir(IMAGE_FOLDER)
-    os.mkdir(IMAGE_FOLDER)
+
+    for img in os.listdir(IMAGE_FOLDER):
+        if img != "DEFAULT_IMG.jpg":
+            os.remove(f"{IMAGE_FOLDER}/{img}")
 
     return {}
 

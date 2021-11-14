@@ -116,7 +116,7 @@ def test_valid_inputs(setup_public_channel):
                 "name_first": "Jon",
                 "name_last": "Doe",
                 "handle_str": "jondoe",
-                "profile_img_url": "",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             }
         ],
         "all_members": [
@@ -126,7 +126,7 @@ def test_valid_inputs(setup_public_channel):
                 "name_first": "Jon",
                 "name_last": "Doe",
                 "handle_str": "jondoe",
-                "profile_img_url": "",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             }
         ],
     }
@@ -141,7 +141,7 @@ def test_valid_multiple(setup_public_channel):
             "password": "password",
             "name_first": "Jane",
             "name_last": "Citizen",
-            "profile_img_url": "",
+            "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
         },
     )
     requests.post(
@@ -163,7 +163,7 @@ def test_valid_multiple(setup_public_channel):
                 "name_first": "Jon",
                 "name_last": "Doe",
                 "handle_str": "jondoe",
-                "profile_img_url": "",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             }
         ],
         "all_members": [
@@ -173,7 +173,7 @@ def test_valid_multiple(setup_public_channel):
                 "name_first": "Jon",
                 "name_last": "Doe",
                 "handle_str": "jondoe",
-                "profile_img_url": "",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             },
             {
                 "u_id": 1,
@@ -181,7 +181,7 @@ def test_valid_multiple(setup_public_channel):
                 "name_first": "Jane",
                 "name_last": "Citizen",
                 "handle_str": "janecitizen",
-                "profile_img_url": "",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             },
         ],
     }
@@ -196,7 +196,7 @@ def test_valid_private(setup_private_channel):
             "password": "password",
             "name_first": "Jane",
             "name_last": "Citizen",
-            "profile_img_url": "",
+            "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
         },
     )
     response = requests.get(
@@ -214,7 +214,7 @@ def test_valid_private(setup_private_channel):
                 "name_first": "Jon",
                 "name_last": "Doe",
                 "handle_str": "jondoe",
-                "profile_img_url": "",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             }
         ],
         "all_members": [
@@ -224,7 +224,7 @@ def test_valid_private(setup_private_channel):
                 "name_first": "Jon",
                 "name_last": "Doe",
                 "handle_str": "jondoe",
-                "profile_img_url": "",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             }
         ],
     }
@@ -239,7 +239,7 @@ def test_multiple_channels(setup_public_channel):
             "password": "password",
             "name_first": "Jane",
             "name_last": "Citizen",
-            "profile_img_url": "",
+            "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
         },
     )
     requests.post(
@@ -288,7 +288,7 @@ def test_multiple_channels(setup_public_channel):
                 "name_first": "Jon",
                 "name_last": "Doe",
                 "handle_str": "jondoe",
-                "profile_img_url": "",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             }
         ],
         "all_members": [
@@ -298,7 +298,7 @@ def test_multiple_channels(setup_public_channel):
                 "name_first": "Jon",
                 "name_last": "Doe",
                 "handle_str": "jondoe",
-                "profile_img_url": "",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             },
             {
                 "u_id": 1,
@@ -306,7 +306,7 @@ def test_multiple_channels(setup_public_channel):
                 "name_first": "Jane",
                 "name_last": "Citizen",
                 "handle_str": "janecitizen",
-                "profile_img_url": "",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             },
         ],
     }
@@ -320,7 +320,7 @@ def test_multiple_channels(setup_public_channel):
                 "name_first": "Jon",
                 "name_last": "Doe",
                 "handle_str": "jondoe",
-                "profile_img_url": "",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             }
         ],
         "all_members": [
@@ -330,7 +330,7 @@ def test_multiple_channels(setup_public_channel):
                 "name_first": "Jon",
                 "name_last": "Doe",
                 "handle_str": "jondoe",
-                "profile_img_url": "",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             },
             {
                 "u_id": 1,
@@ -338,7 +338,7 @@ def test_multiple_channels(setup_public_channel):
                 "name_first": "Jane",
                 "name_last": "Citizen",
                 "handle_str": "janecitizen",
-                "profile_img_url": "",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             },
         ],
     }
@@ -352,7 +352,7 @@ def test_multiple_channels(setup_public_channel):
                 "name_first": "Jon",
                 "name_last": "Doe",
                 "handle_str": "jondoe",
-                "profile_img_url": "",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             }
         ],
         "all_members": [
@@ -362,7 +362,7 @@ def test_multiple_channels(setup_public_channel):
                 "name_first": "Jon",
                 "name_last": "Doe",
                 "handle_str": "jondoe",
-                "profile_img_url": "",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             }
         ],
     }
