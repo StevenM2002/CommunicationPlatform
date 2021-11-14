@@ -226,10 +226,14 @@ def user_upload_photo(token, img_url, x_start, y_start, x_end, y_end):
 
     """
     if any(True for i in [x_start, y_start, x_end, y_end] if type(i) != int):
-        raise InputError
+        raise InputError(
+            description="any of x_start, y_start, x_end, y_end are not within the dimensions of the image at the URL"
+        )
 
-    if x_end < x_start or y_end < y_start:
-        raise InputError
+    if x_end <= x_start or y_end <= y_start:
+        raise InputError(
+            description="x_end is less than x_start or y_end is less than y_start"
+        )
 
     u_information = extract_token(token)
     store = data_store.get()
@@ -240,7 +244,7 @@ def user_upload_photo(token, img_url, x_start, y_start, x_end, y_end):
     try:
         urllib.request.urlretrieve(img_url, img_file)
     except HTTPError:
-        raise InputError from Exception
+        raise InputError("img_url returns an HTTP status other than 200") from Exception
 
     # crop image
 
@@ -248,7 +252,9 @@ def user_upload_photo(token, img_url, x_start, y_start, x_end, y_end):
     try:
         cropped = imageObject.crop((x_start, y_start, x_end, y_end))
     except DecompressionBombError:
-        raise InputError from Exception
+        raise InputError(
+            description="any of x_start, y_start, x_end, y_end are not within the dimensions of the image at the URL"
+        ) from Exception
     cropped.save(img_file)
 
     # serve image
