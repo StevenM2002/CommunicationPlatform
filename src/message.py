@@ -333,6 +333,7 @@ def message_share_v1(user_id, og_message_id, message, channel_id, dm_id):
     data["max_ids"]["message"] += 1
     data_store.set(data)
 
+    add_tagged_to_notif(user_id, channel_id, dm_id, message_text)
     if channel:
         send_channel_message(channel_id, message_text, message_id, user_id)
     if dm:
