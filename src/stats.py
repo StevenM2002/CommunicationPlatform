@@ -48,10 +48,12 @@ def user_stats(token):
 
     # Returns the user stats structure
     return {
-        "channels_joined": user_stats["channels_joined"],
-        "dms_joined": user_stats["dms_joined"],
-        "messages_sent": user_stats["messages_sent"],
-        "involvement_rate": involvement_rate,
+        "user_stats": {
+            "channels_joined": user_stats["channels_joined"],
+            "dms_joined": user_stats["dms_joined"],
+            "messages_sent": user_stats["messages_sent"],
+            "involvement_rate": involvement_rate,
+        }
     }
 
 
@@ -95,8 +97,10 @@ def workspace_stats(token):
 
     # Returning the workspace stats structure
     return {
-        "channels_exist": workspace["channels_exist"],
-        "dms_exist": workspace["dms_exist"],
-        "messages_exist": workspace["messages_exist"],
-        "utilization_rate": utilization_rate,
+        "workspace_stats": {
+            "channels_exist": workspace["channels_exist"],
+            "dms_exist": workspace["dms_exist"],
+            "messages_exist": workspace["messages_exist"],
+            "utilization_rate": utilization_rate,
+        }
     }

@@ -57,7 +57,7 @@ def test_workplace_init(new_time):
     assert response.status_code == OK
     print(timestamp)
     print(response.json())
-    assert response.json() == {
+    assert response.json()["workspace_stats"] == {
         "channels_exist": [{"num_channels_exist": 0, "time_stamp": timestamp}],
         "dms_exist": [{"num_dms_exist": 0, "time_stamp": timestamp}],
         "messages_exist": [{"num_messages_exist": 0, "time_stamp": timestamp}],
@@ -136,7 +136,7 @@ def test_workplace_stats(new_time):
     )
     response = requests.get(f"{config.url}/users/stats/v1", params={"token": token})
     assert response.status_code == OK
-    assert response.json() == {
+    assert response.json()["workspace_stats"] == {
         "channels_exist": [
             {"num_channels_exist": 0, "time_stamp": timestamps[2]},
             {"num_channels_exist": 1, "time_stamp": timestamps[1]},
@@ -216,7 +216,10 @@ def test_workspace_standups(new_time):
     # Checks that the message_sent value of the workspace has incremented by one
     response = requests.get(f"{config.url}/users/stats/v1", params={"token": token})
     assert response.status_code == OK
-    assert response.json()["messages_exist"][-1]["num_messages_exist"] == 1
+    assert (
+        response.json()["workspace_stats"]["messages_exist"][-1]["num_messages_exist"]
+        == 1
+    )
 
 
 """ =========================== User Stats Tests ==========================="""
@@ -234,7 +237,7 @@ def test_user_init(new_time):
     timestamp = new_time["timestamp"]
     response = requests.get(f"{config.url}/user/stats/v1", params={"token": token})
     assert response.status_code == OK
-    assert response.json() == {
+    assert response.json()["user_stats"] == {
         "channels_joined": [{"num_channels_joined": 0, "time_stamp": timestamp}],
         "dms_joined": [{"num_dms_joined": 0, "time_stamp": timestamp}],
         "messages_sent": [{"num_messages_sent": 0, "time_stamp": timestamp}],
@@ -314,7 +317,7 @@ def test_user_stats(new_time):
     )
     response = requests.get(f"{config.url}/user/stats/v1", params={"token": token})
     assert response.status_code == OK
-    assert response.json() == {
+    assert response.json()["user_stats"] == {
         "channels_joined": [
             {"num_channels_joined": 0, "time_stamp": timestamps[2]},
             {"num_channels_joined": 1, "time_stamp": timestamps[1]},
@@ -395,10 +398,10 @@ def test_user_stats_standups(new_time):
     # Checks that the message_sent value of the original user has incremented by one
     response = requests.get(f"{config.url}/user/stats/v1", params={"token": token})
     assert response.status_code == OK
-    assert response.json()["messages_sent"][-1]["num_messages_sent"] == 1
+    assert response.json()["user_stats"]["messages_sent"][-1]["num_messages_sent"] == 1
     # Checks that the new user's stats don't increase
     response = requests.get(
         f"{config.url}/user/stats/v1", params={"token": new_token.json()["token"]}
     )
     assert response.status_code == OK
-    assert response.json()["messages_sent"][-1]["num_messages_sent"] == 0
+    assert response.json()["user_stats"]["messages_sent"][-1]["num_messages_sent"] == 0
