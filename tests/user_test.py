@@ -1,8 +1,6 @@
-import json
 import requests
 import pytest
 from src import config
-from src.auth import auth_register_v2
 
 OK = 200
 INPUT_ERROR = 400
@@ -85,6 +83,7 @@ def test_all_single_user():
             "name_first": "Mario",
             "name_last": "Plumber",
             "handle_str": "marioplumber",
+            "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
         }
     ]
 
@@ -100,6 +99,7 @@ def test_all_valid_users(new_users):
             "name_first": "Mario",
             "name_last": "Plumber",
             "handle_str": "marioplumber",
+            "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
         },
         {
             "u_id": 1,
@@ -107,6 +107,7 @@ def test_all_valid_users(new_users):
             "name_first": "Luigi",
             "name_last": "Plumber",
             "handle_str": "luigiplumber",
+            "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
         },
         {
             "u_id": 2,
@@ -114,6 +115,7 @@ def test_all_valid_users(new_users):
             "name_first": "Princess",
             "name_last": "Peach",
             "handle_str": "princesspeach",
+            "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
         },
         {
             "u_id": 3,
@@ -121,6 +123,7 @@ def test_all_valid_users(new_users):
             "name_first": "Bowser",
             "name_last": "Turtle",
             "handle_str": "bowserturtle",
+            "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
         },
     ]
 
@@ -155,6 +158,7 @@ def test_profile_valid_id(new_users):
         "name_first": "Luigi",
         "name_last": "Plumber",
         "handle_str": "luigiplumber",
+        "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
     }
 
 
@@ -170,6 +174,7 @@ def test_profile_valid_self(new_users):
         "name_first": "Mario",
         "name_last": "Plumber",
         "handle_str": "marioplumber",
+        "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
     }
 
 
@@ -249,6 +254,7 @@ def test_setname_valid(new_users):
         "name_first": "Toad",
         "name_last": "Mushroom",
         "handle_str": "marioplumber",
+        "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
     }
 
 
@@ -310,6 +316,7 @@ def test_setemail_valid(new_users):
         "name_first": "Mario",
         "name_last": "Plumber",
         "handle_str": "marioplumber",
+        "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
     }
 
 
@@ -395,4 +402,5 @@ def test_sethandle_valid(new_users):
         "name_first": "Mario",
         "name_last": "Plumber",
         "handle_str": "toadmushroom",
+        "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
     }

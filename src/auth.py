@@ -21,6 +21,7 @@ from src.data_store import data_store
 from src.error import InputError, AccessError
 
 from src import notifications
+from src.config import url
 
 JWT_SECRET = "".join(random.choice(printable) for _ in range(50))
 
@@ -175,6 +176,7 @@ def auth_register_v2(email, password, name_first, name_last):
                 "messages_sent": [{"num_messages_sent": 0, "time_stamp": time_stamp}],
             },
             "reset_codes": [],
+            "profile_img_url": f"{url}imgfolder/DEFAULT_IMG.jpg",
         }
     )
 

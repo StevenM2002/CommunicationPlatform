@@ -16,7 +16,7 @@ from src.channels import (
     channels_listall_v2,
     channels_list_v2,
 )
-from src.data_store import clear_v1
+from src.data_store import clear_v1, IMAGE_FOLDER
 from src.error import InputError
 from src.auth import extract_token
 from src.user import (
@@ -25,12 +25,13 @@ from src.user import (
     user_set_name,
     user_set_email,
     user_set_handle,
+    user_upload_photo,
 )
 from src.stats import user_stats, workspace_stats
 from src.search import search_v1
 from src.notifications import notifications_get_v1
 
-from flask import Flask, request
+from flask import Flask, request, send_from_directory
 from flask_cors import CORS
 
 
@@ -53,7 +54,7 @@ def defaultHandler(err):
     return response
 
 
-APP = Flask(__name__)
+APP = Flask(__name__, static_url_path="")
 CORS(APP)
 
 APP.config["TRAP_HTTP_EXCEPTIONS"] = True
@@ -210,6 +211,26 @@ def set_email():
 def set_handle():
     data = request.json
     return dumps(user_set_handle(data["token"], data["handle_str"]))
+
+
+@APP.route("/user/profile/uploadphoto/v1", methods=["POST"])
+def upload_photo():
+    data = request.json
+    return dumps(
+        user_upload_photo(
+            data["token"],
+            data["img_url"],
+            data["x_start"],
+            data["y_start"],
+            data["x_end"],
+            data["y_end"],
+        )
+    )
+
+
+@APP.route("/imgfolder/<path:path>")
+def serve_image(path):
+    return send_from_directory("../imgfolder", path)
 
 
 @APP.route("/channel/invite/v2", methods=["POST"])

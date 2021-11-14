@@ -6,7 +6,7 @@ from src.auth import extract_token
 from src.notifications import add_added_to_a_channel_or_dm_to_notif
 
 OUTPUT_KEYS = ["name", "dm_id"]
-USER_KEYS = ["u_id", "email", "name_first", "name_last", "handle_str"]
+USER_KEYS = ["u_id", "email", "name_first", "name_last", "handle_str", "profile_img_url"]
 
 
 def dm_create_v1(token, u_ids):

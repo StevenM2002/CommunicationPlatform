@@ -1,6 +1,5 @@
-from src.search import search_v1
 from src import config
-from src.error import AccessError, InputError
+from src.error import InputError
 import requests
 import pytest
 import time

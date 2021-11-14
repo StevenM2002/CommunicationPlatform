@@ -1,7 +1,12 @@
 import re
-from src.data_store import data_store
+import urllib.request
+from urllib.error import HTTPError
+from PIL import Image
+from PIL.Image import DecompressionBombError
+from src.data_store import data_store, IMAGE_FOLDER
 from src.error import InputError
 from src.auth import extract_token
+from src.config import url
 
 
 def all_users(token):
@@ -31,6 +36,7 @@ def all_users(token):
             "name_first": user["name_first"],
             "name_last": user["name_last"],
             "handle_str": user["handle_str"],
+            "profile_img_url": user["profile_img_url"],
         }
         for user in store["users"]
     ]
@@ -195,3 +201,67 @@ def user_set_handle(token, handle_str):
     found_user = [user for user in users if user["u_id"] == u_information["u_id"]][0]
     found_user["handle_str"] = handle_str
     return {}
+
+
+def user_upload_photo(token, img_url, x_start, y_start, x_end, y_end):
+    """Given a URL of an image on the internet, crops the image within bounds
+
+    Arguments:
+        token (str) - an encoded JWT token
+        img_url (str) - url to image
+        x_start (int) - pixel to start crop x
+        y_start (int) - pixel to start crop y
+        x_end (int) - pixel to end crop x
+        y_end (int) - pixel to end crop y
+
+    Exceptions:
+        InputError - Occurs when:
+            - img_url returns an HTTP status other than 200
+            - any of x_start, y_start, x_end, y_end are not within the dimensions of the image at the URL
+            - x_end is less than x_start or y_end is less than y_start
+            - image uploaded is not a JPG
+
+    Return Value:
+        Returns {}
+
+    """
+    if any(True for i in [x_start, y_start, x_end, y_end] if type(i) != int):
+        raise InputError(
+            description="any of x_start, y_start, x_end, y_end are not within the dimensions of the image at the URL"
+        )
+
+    if x_end <= x_start or y_end <= y_start:
+        raise InputError(
+            description="x_end is less than x_start or y_end is less than y_start"
+        )
+
+    u_information = extract_token(token)
+    store = data_store.get()
+    users = store["users"]
+
+    # fetch image
+    img_file = f"{IMAGE_FOLDER}/{u_information['u_id']}img.jpg"
+    try:
+        urllib.request.urlretrieve(img_url, img_file)
+    except HTTPError:
+        raise InputError("img_url returns an HTTP status other than 200") from Exception
+
+    # crop image
+
+    imageObject = Image.open(img_file)
+    try:
+        cropped = imageObject.crop((x_start, y_start, x_end, y_end))
+    except DecompressionBombError:
+        raise InputError(
+            description="any of x_start, y_start, x_end, y_end are not within the dimensions of the image at the URL"
+        ) from Exception
+    cropped.save(img_file)
+
+    # serve image
+    for user in users:
+        if user["u_id"] == u_information["u_id"]:
+            user[
+                "profile_img_url"
+            ] = f"{url}imgfolder/{str(u_information['u_id'])}img.jpg"
+
+    data_store.set(store)

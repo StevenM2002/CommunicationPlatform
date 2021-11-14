@@ -116,6 +116,7 @@ def test_valid_inputs(setup_public_channel):
                 "name_first": "Jon",
                 "name_last": "Doe",
                 "handle_str": "jondoe",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             }
         ],
         "all_members": [
@@ -125,6 +126,7 @@ def test_valid_inputs(setup_public_channel):
                 "name_first": "Jon",
                 "name_last": "Doe",
                 "handle_str": "jondoe",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             }
         ],
     }
@@ -139,6 +141,7 @@ def test_valid_multiple(setup_public_channel):
             "password": "password",
             "name_first": "Jane",
             "name_last": "Citizen",
+            "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
         },
     )
     requests.post(
@@ -160,6 +163,7 @@ def test_valid_multiple(setup_public_channel):
                 "name_first": "Jon",
                 "name_last": "Doe",
                 "handle_str": "jondoe",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             }
         ],
         "all_members": [
@@ -169,6 +173,7 @@ def test_valid_multiple(setup_public_channel):
                 "name_first": "Jon",
                 "name_last": "Doe",
                 "handle_str": "jondoe",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             },
             {
                 "u_id": 1,
@@ -176,6 +181,7 @@ def test_valid_multiple(setup_public_channel):
                 "name_first": "Jane",
                 "name_last": "Citizen",
                 "handle_str": "janecitizen",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             },
         ],
     }
@@ -190,6 +196,7 @@ def test_valid_private(setup_private_channel):
             "password": "password",
             "name_first": "Jane",
             "name_last": "Citizen",
+            "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
         },
     )
     response = requests.get(
@@ -207,6 +214,7 @@ def test_valid_private(setup_private_channel):
                 "name_first": "Jon",
                 "name_last": "Doe",
                 "handle_str": "jondoe",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             }
         ],
         "all_members": [
@@ -216,6 +224,7 @@ def test_valid_private(setup_private_channel):
                 "name_first": "Jon",
                 "name_last": "Doe",
                 "handle_str": "jondoe",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             }
         ],
     }
@@ -230,6 +239,7 @@ def test_multiple_channels(setup_public_channel):
             "password": "password",
             "name_first": "Jane",
             "name_last": "Citizen",
+            "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
         },
     )
     requests.post(
@@ -278,6 +288,7 @@ def test_multiple_channels(setup_public_channel):
                 "name_first": "Jon",
                 "name_last": "Doe",
                 "handle_str": "jondoe",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             }
         ],
         "all_members": [
@@ -287,6 +298,7 @@ def test_multiple_channels(setup_public_channel):
                 "name_first": "Jon",
                 "name_last": "Doe",
                 "handle_str": "jondoe",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             },
             {
                 "u_id": 1,
@@ -294,6 +306,7 @@ def test_multiple_channels(setup_public_channel):
                 "name_first": "Jane",
                 "name_last": "Citizen",
                 "handle_str": "janecitizen",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             },
         ],
     }
@@ -307,6 +320,7 @@ def test_multiple_channels(setup_public_channel):
                 "name_first": "Jon",
                 "name_last": "Doe",
                 "handle_str": "jondoe",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             }
         ],
         "all_members": [
@@ -316,6 +330,7 @@ def test_multiple_channels(setup_public_channel):
                 "name_first": "Jon",
                 "name_last": "Doe",
                 "handle_str": "jondoe",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             },
             {
                 "u_id": 1,
@@ -323,6 +338,7 @@ def test_multiple_channels(setup_public_channel):
                 "name_first": "Jane",
                 "name_last": "Citizen",
                 "handle_str": "janecitizen",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             },
         ],
     }
@@ -336,6 +352,7 @@ def test_multiple_channels(setup_public_channel):
                 "name_first": "Jon",
                 "name_last": "Doe",
                 "handle_str": "jondoe",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             }
         ],
         "all_members": [
@@ -345,6 +362,7 @@ def test_multiple_channels(setup_public_channel):
                 "name_first": "Jon",
                 "name_last": "Doe",
                 "handle_str": "jondoe",
+                "profile_img_url": f"{config.url}imgfolder/DEFAULT_IMG.jpg",
             }
         ],
     }
@@ -391,6 +409,7 @@ def dataset_addownersv1():
     ).json()["channel_id"]
 
     return {"r": (reg0, reg1, reg2), "c": (chan_id0, chan_id1)}
+
 
 def test_add_1_owner_addownerv1(dataset_addownersv1):
     requests.post(
@@ -563,6 +582,7 @@ def test_add_owner_using_global_owner_to_auth_addowner(dataset_addownersv1):
     owner_ids = [owners["u_id"] for owners in response["owner_members"]]
     assert dataset_addownersv1["r"][0]["auth_user_id"] in owner_ids
 
+
 def test_global_owner_not_a_owner_adding_new_owner(dataset_addownersv1):
     response = requests.post(
         config.url + "channel/addowner/v1",
@@ -573,6 +593,7 @@ def test_global_owner_not_a_owner_adding_new_owner(dataset_addownersv1):
         },
     )
     assert response.status_code == 403
+
 
 @pytest.fixture
 def dataset_removeownerv1():
@@ -824,6 +845,7 @@ def test_invalid_token_removeowner(dataset_removeownerv1):
     )
     assert response.status_code == 403
 
+
 def test_global_owner_not_a_owner_removing_new_owner(dataset_addownersv1):
     response = requests.post(
         config.url + "channel/removeowner/v1",
@@ -834,6 +856,7 @@ def test_global_owner_not_a_owner_removing_new_owner(dataset_addownersv1):
         },
     )
     assert response.status_code == 403
+
 
 @pytest.fixture
 def dataset_leavev1():
