@@ -1,6 +1,8 @@
 import re
 import urllib.request
+from urllib.error import HTTPError
 from PIL import Image
+from PIL.Image import DecompressionBombError
 from src.data_store import data_store, IMAGE_FOLDER
 from src.error import InputError
 from src.auth import extract_token
@@ -231,16 +233,16 @@ def user_upload_photo(token, img_url, x_start, y_start, x_end, y_end):
     img_file = f"{IMAGE_FOLDER}/{u_information['u_id']}img.jpg"
     try:
         urllib.request.urlretrieve(img_url, img_file)
-    except:
-        raise InputError
+    except HTTPError:
+        raise InputError from Exception
 
     # crop image
 
     imageObject = Image.open(img_file)
     try:
         cropped = imageObject.crop((x_start, y_start, x_end, y_end))
-    except:
-        raise InputError
+    except DecompressionBombError:
+        raise InputError from Exception
     cropped.save(img_file)
 
     # serve image

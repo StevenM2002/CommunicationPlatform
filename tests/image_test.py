@@ -67,7 +67,7 @@ def test_crop_too_large():
     assert r.status_code == InputError.code
 
 
-def test_crop_bad_img():
+def test_bad_img():
     requests.delete(f"{config.url}clear/v1")
 
     user = requests.post(
