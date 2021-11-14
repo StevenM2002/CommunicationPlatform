@@ -410,3 +410,179 @@ def test_one_tag_dm(notifs_dataset):
             },
         ]
     }
+
+
+def test_one_react_channel(notifs_dataset):
+    chan_id1 = requests.post(
+        config.url + "channels/create/v2",
+        json={"token": notifs_dataset["t"][1], "name": "chan1", "is_public": True},
+    ).json()["channel_id"]
+    requests.post(
+        config.url + "channel/invite/v2",
+        json={
+            "token": notifs_dataset["t"][1],
+            "channel_id": chan_id1,
+            "u_id": notifs_dataset["id"][2],
+        },
+    )
+    msg_id1 = requests.post(
+        config.url + "message/send/v1",
+        json={
+            "token": notifs_dataset["t"][1],
+            "channel_id": chan_id1,
+            "message": "firstlast1 @haha",
+        },
+    ).json()["message_id"]
+    requests.post(
+        config.url + "message/react/v1",
+        json={"token": notifs_dataset["t"][2], "message_id": msg_id1, "react_id": 1},
+    )
+    response = requests.get(
+        config.url + "notifications/get/v1",
+        params={
+            "token": notifs_dataset["t"][1],
+        },
+    )
+    assert response.json() == {
+        "notifications": [
+            {
+                "channel_id": chan_id1,
+                "dm_id": -1,
+                "notification_message": "firstlast1 reacted to your message in chan1",
+            }
+        ]
+    }
+
+
+def test_over_20_notifs(notifs_dataset):
+    chan_id1 = requests.post(
+        config.url + "channels/create/v2",
+        json={"token": notifs_dataset["t"][1], "name": "chan1", "is_public": True},
+    ).json()["channel_id"]
+    requests.post(
+        config.url + "channel/invite/v2",
+        json={
+            "token": notifs_dataset["t"][1],
+            "channel_id": chan_id1,
+            "u_id": notifs_dataset["id"][2],
+        },
+    )
+    for i in range(25):
+        requests.post(
+            config.url + "message/send/v1",
+            json={
+                "token": notifs_dataset["t"][1],
+                "channel_id": chan_id1,
+                "message": str(i) + "@firstlast1 @haha",
+            },
+        )
+    response = requests.get(
+        config.url + "notifications/get/v1",
+        params={
+            "token": notifs_dataset["t"][2],
+        },
+    )
+    assert response.json() == {
+        "notifications": [
+            {
+                "channel_id": 0,
+                "dm_id": -1,
+                "notification_message": "firstlast0 tagged you in chan1: 24@firstlast1 @haha",
+            },
+            {
+                "channel_id": 0,
+                "dm_id": -1,
+                "notification_message": "firstlast0 tagged you in chan1: 23@firstlast1 @haha",
+            },
+            {
+                "channel_id": 0,
+                "dm_id": -1,
+                "notification_message": "firstlast0 tagged you in chan1: 22@firstlast1 @haha",
+            },
+            {
+                "channel_id": 0,
+                "dm_id": -1,
+                "notification_message": "firstlast0 tagged you in chan1: 21@firstlast1 @haha",
+            },
+            {
+                "channel_id": 0,
+                "dm_id": -1,
+                "notification_message": "firstlast0 tagged you in chan1: 20@firstlast1 @haha",
+            },
+            {
+                "channel_id": 0,
+                "dm_id": -1,
+                "notification_message": "firstlast0 tagged you in chan1: 19@firstlast1 @haha",
+            },
+            {
+                "channel_id": 0,
+                "dm_id": -1,
+                "notification_message": "firstlast0 tagged you in chan1: 18@firstlast1 @haha",
+            },
+            {
+                "channel_id": 0,
+                "dm_id": -1,
+                "notification_message": "firstlast0 tagged you in chan1: 17@firstlast1 @haha",
+            },
+            {
+                "channel_id": 0,
+                "dm_id": -1,
+                "notification_message": "firstlast0 tagged you in chan1: 16@firstlast1 @haha",
+            },
+            {
+                "channel_id": 0,
+                "dm_id": -1,
+                "notification_message": "firstlast0 tagged you in chan1: 15@firstlast1 @haha",
+            },
+            {
+                "channel_id": 0,
+                "dm_id": -1,
+                "notification_message": "firstlast0 tagged you in chan1: 14@firstlast1 @haha",
+            },
+            {
+                "channel_id": 0,
+                "dm_id": -1,
+                "notification_message": "firstlast0 tagged you in chan1: 13@firstlast1 @haha",
+            },
+            {
+                "channel_id": 0,
+                "dm_id": -1,
+                "notification_message": "firstlast0 tagged you in chan1: 12@firstlast1 @haha",
+            },
+            {
+                "channel_id": 0,
+                "dm_id": -1,
+                "notification_message": "firstlast0 tagged you in chan1: 11@firstlast1 @haha",
+            },
+            {
+                "channel_id": 0,
+                "dm_id": -1,
+                "notification_message": "firstlast0 tagged you in chan1: 10@firstlast1 @haha",
+            },
+            {
+                "channel_id": 0,
+                "dm_id": -1,
+                "notification_message": "firstlast0 tagged you in chan1: 9@firstlast1 @haha",
+            },
+            {
+                "channel_id": 0,
+                "dm_id": -1,
+                "notification_message": "firstlast0 tagged you in chan1: 8@firstlast1 @haha",
+            },
+            {
+                "channel_id": 0,
+                "dm_id": -1,
+                "notification_message": "firstlast0 tagged you in chan1: 7@firstlast1 @haha",
+            },
+            {
+                "channel_id": 0,
+                "dm_id": -1,
+                "notification_message": "firstlast0 tagged you in chan1: 6@firstlast1 @haha",
+            },
+            {
+                "channel_id": 0,
+                "dm_id": -1,
+                "notification_message": "firstlast0 tagged you in chan1: 5@firstlast1 @haha",
+            },
+        ]
+    }

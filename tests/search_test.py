@@ -75,6 +75,7 @@ def test_input_err_search(search_dataset):
     )
     assert response.status_code == InputError.code
 
+
 def test_match_one_channels_message_search(search_dataset):
     # {message_id, u_id, message, time_created, reacts, is_pinned}
     chan_id0 = requests.post(
@@ -115,6 +116,14 @@ def test_match_two_channels_message_search(search_dataset):
         json={
             "token": search_dataset["t"][0],
             "name": "first_chan",
+            "is_public": True,
+        },
+    ).json()["channel_id"]
+    requests.post(
+        config.url + "/channels/create/v2",
+        json={
+            "token": search_dataset["t"][1],
+            "name": "dummy_chan",
             "is_public": True,
         },
     ).json()["channel_id"]
@@ -199,6 +208,14 @@ def test_match_one_dm(search_dataset):
             "dm_id": dm_id0,
         },
     ).json()["message_id"]
+    requests.post(
+        config.url + "message/senddm/v1",
+        json={
+            "token": search_dataset["t"][0],
+            "message": "dummy_dm",
+            "dm_id": dm_id0,
+        },
+    ).json()["message_id"]
     response = requests.get(
         config.url + "search/v1",
         params={
@@ -273,5 +290,3 @@ def test_mixed(search_dataset):
     assert msg[1]["message_id"] == msg_id1
     assert msg[1]["u_id"] == search_dataset["id"][1]
     assert msg[1]["message"] == "goodstring"
-
-

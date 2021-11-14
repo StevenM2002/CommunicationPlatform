@@ -6,6 +6,8 @@ from src.data_store import data_store
 from src.error import AccessError, InputError
 from src.other import first
 from src.notifications import add_tagged_to_notif
+from src.notifications import add_reacted_msg_to_notif
+
 
 VALID_REACT_IDS = (1,)
 
@@ -249,8 +251,10 @@ def message_react_v1(auth_user_id, message_id, react_id):
         and react_id in message["reacts"][auth_user_id]
     ):
         raise InputError("message already contains reaction from user")
-
     message["reacts"][auth_user_id].append(react_id)
+    channel_id = -1 if "channel_id" not in group else group["channel_id"]
+    dm_id = -1 if "dm_id" not in group else group["dm_id"]
+    add_reacted_msg_to_notif(auth_user_id, message["u_id"], channel_id, dm_id)
 
     return {}
 
