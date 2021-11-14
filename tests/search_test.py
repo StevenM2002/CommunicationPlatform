@@ -136,7 +136,6 @@ def test_match_two_channels_message_search(search_dataset):
             "message": "string",
         },
     ).json()["message_id"]
-    time_created1 = math.floor(time.time())
     msg_id1 = requests.post(
         config.url + "message/send/v1",
         json={
@@ -174,7 +173,7 @@ def test_messages_no_match(search_dataset):
             "is_public": True,
         },
     ).json()["channel_id"]
-    msg_id0 = requests.post(
+    requests.post(
         config.url + "message/send/v1",
         json={
             "token": search_dataset["t"][0],
@@ -244,7 +243,7 @@ def test_mixed(search_dataset):
             "u_ids": [search_dataset["id"][1], search_dataset["id"][2]],
         },
     ).json()["dm_id"]
-    msg_id0 = requests.post(
+    requests.post(
         config.url + "message/senddm/v1",
         json={
             "token": search_dataset["t"][0],
