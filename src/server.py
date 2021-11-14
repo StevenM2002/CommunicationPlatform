@@ -1,5 +1,10 @@
 import signal
 from json import dumps
+from src.standup import (
+    standup_start_v1,
+    standup_active_v1,
+    standup_send_v1
+)
 from src.admin import admin_user_permission_change_v1, admin_user_remove_v1
 from src import config, auth, dm, message
 from src.channel import (
@@ -257,6 +262,38 @@ def remove_message():
     return dumps(message.message_remove_v1(user_id, data["message_id"]))
 
 
+@APP.route("/message/react/v1", methods=["POST"])
+def react_message():
+    data = request.json
+    user_id = extract_token(data["token"])["u_id"]
+    return dumps(
+        message.message_react_v1(user_id, data["message_id"], data["react_id"])
+    )
+
+
+@APP.route("/message/unreact/v1", methods=["POST"])
+def unreact_message():
+    data = request.json
+    user_id = extract_token(data["token"])["u_id"]
+    return dumps(
+        message.message_unreact_v1(user_id, data["message_id"], data["react_id"])
+    )
+
+
+@APP.route("/message/pin/v1", methods=["POST"])
+def pin_message():
+    data = request.json
+    user_id = extract_token(data["token"])["u_id"]
+    return dumps(message.message_pin_v1(user_id, data["message_id"]))
+
+
+@APP.route("/message/unpin/v1", methods=["POST"])
+def unpin_message():
+    data = request.json
+    user_id = extract_token(data["token"])["u_id"]
+    return dumps(message.message_unpin_v1(user_id, data["message_id"]))
+
+
 @APP.route("/admin/user/remove/v1", methods=["DELETE"])
 def do_admin_user_remove():
     params = request.get_json()
@@ -285,6 +322,23 @@ def get_notifications():
     u_id = extract_token(token)["u_id"]
     return dumps(notifications_get_v1(u_id))
 
+@APP.route('/standup/start/v1', methods=['POST'])
+def do_standup_start():
+    params = request.get_json()
+    return dumps(standup_start_v1(params['token'], params['channel_id'], \
+        params['length']))
+
+@APP.route('/standup/active/v1', methods=['GET'])
+def do_standup_active():
+    token = request.args.get("token")
+    channel_id = int(request.args.get("channel_id"))
+    return dumps(standup_active_v1(token, channel_id))
+
+@APP.route('/standup/send/v1', methods=['POST'])
+def do_standup_send():
+    params = request.get_json()
+    return dumps(standup_send_v1(params['token'], params['channel_id'], \
+        params['message']))
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, quit_gracefully)  # For coverage

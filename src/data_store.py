@@ -71,6 +71,7 @@ INITIAL_OBJECT = {
     "global_owners": [],
     "removed_users": [],
     "dms": [],
+    "standups": [],
     "max_ids": {"dm": -1, "message": -1, "channel": -1, "user": -1},
     "all_notifications": [],
 }
