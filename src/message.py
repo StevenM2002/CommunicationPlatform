@@ -117,6 +117,7 @@ def message_send_v1(user_id, channel_id, message_text):
         Returns {message_id}
     """
     data = data_store.get()
+
     channel = first(lambda c: c["channel_id"] == channel_id, data["channels"], {})
 
     if not channel:
@@ -130,6 +131,13 @@ def message_send_v1(user_id, channel_id, message_text):
     data["max_ids"]["message"] += 1
     message = create_message(message_text, message_id, user_id)
     channel["messages"].insert(0, message)
+
+    # Incrementing user stats
+    increment_user_messages(user_id)
+
+    # Incrementing workspace stats
+    increment_workspace_messages()
+
     data_store.set(data)
     add_tagged_to_notif(user_id, channel_id, -1, message_text)
 
@@ -201,6 +209,13 @@ def message_remove_v1(user_id, message_id):
     if message["u_id"] != user_id and not authorised:
         raise AccessError("user not authorised to edit message")
     group["messages"].remove(message)
+
+    # Decrementing user stats
+    decrement_user_messages(user_id)
+
+    # Decrementing workspace stats
+    decrement_workspace_messages()
+
     return {}
 
 
@@ -238,10 +253,81 @@ def message_senddm_v1(user_id, dm_id, message_text):
             data_store.set(data)
             message = create_message(message_text, message_id, user_id)
             dm["messages"].insert(0, message)
-            add_tagged_to_notif(user_id, -1, dm_id, message_text)
-            return {"message_id": message_id}
 
-    raise InputError("no dm matching dm id")
+            # Incrementing user stats
+            increment_user_messages(user_id)
+
+            # Incrementing workspace stats
+            increment_workspace_messages()
+            add_tagged_to_notif(user_id, -1, dm_id, message_text)
+
+            return {"message_id": message_id}
+    raise InputError(description="no dm matching dm id")
+
+
+def increment_workspace_messages():
+    # Fetching the data store
+    store = data_store.get()
+    workspace = store["workspace_stats"]
+    # Creating a timestamp and incrementing the workspace stats
+    timestamp = math.floor(time.time())
+    num_messages = workspace["messages_exist"][-1]["num_messages_exist"]
+    workspace["messages_exist"].append(
+        {"num_messages_exist": num_messages + 1, "time_stamp": timestamp}
+    )
+
+
+def decrement_workspace_messages():
+    # Fetching the data store
+    store = data_store.get()
+    workspace = store["workspace_stats"]
+    # Creating a timestamp and decrementing the workspace stats
+    timestamp = math.floor(time.time())
+    num_messages = workspace["messages_exist"][-1]["num_messages_exist"]
+    workspace["messages_exist"].append(
+        {"num_messages_exist": num_messages - 1, "time_stamp": timestamp}
+    )
+
+
+def increment_user_messages(u_id):
+    # Fetching the data store
+    users = data_store.get()["users"]
+
+    # Finding the given user in the data store
+    try:
+        found_user = [user for user in users if user["u_id"] == u_id][0]
+    except:
+        # Occurs when user has been removed before stats is called
+        removed_users = data_store.get()["removed_users"]
+        found_user = [user for user in removed_users if user["u_id"] == u_id][0]
+    user_stats = found_user["user_stats"]
+
+    # Creating a timestamp and saving the user stats
+    timestamp = math.floor(time.time())
+
+    # Incrementing messages_sent stat
+    messages_sent_prev = user_stats["messages_sent"][-1]["num_messages_sent"]
+    user_stats["messages_sent"].append(
+        {"num_messages_sent": messages_sent_prev + 1, "time_stamp": timestamp}
+    )
+
+
+def decrement_user_messages(u_id):
+    # Fetching the data store
+    users = data_store.get()["users"]
+
+    # Finding the given user in the data store
+    found_user = [user for user in users if user["u_id"] == u_id][0]
+    user_stats = found_user["user_stats"]
+
+    # Creating a timestamp and saving the user stats
+    timestamp = math.floor(time.time())
+
+    # Decrementing messages_sent stat
+    messages_sent_prev = user_stats["messages_sent"][-1]["num_messages_sent"]
+    user_stats["messages_sent"].append(
+        {"num_messages_sent": messages_sent_prev - 1, "time_stamp": timestamp}
+    )
 
 
 def message_react_v1(auth_user_id, message_id, react_id):
@@ -331,6 +417,7 @@ def message_share_v1(user_id, og_message_id, message, channel_id, dm_id):
 
     message_id = data["max_ids"]["message"] + 1
     data["max_ids"]["message"] += 1
+
     data_store.set(data)
 
     add_tagged_to_notif(user_id, channel_id, dm_id, message_text)
@@ -400,6 +487,10 @@ def message_sendlater_dm(user_id, dm_id, message, time_sent):
 
 def send_channel_message(channel_id, message, message_id, user_id):
     data = data_store.get()
+    # Increment stats
+    increment_workspace_messages()
+    increment_user_messages(user_id)
+
     removed = first(lambda u: u["u_id"] == user_id, data["removed_users"], {})
     if removed:
         message = "Removed user"
@@ -411,6 +502,9 @@ def send_channel_message(channel_id, message, message_id, user_id):
 
 def send_dm_message(dm_id, message, message_id, user_id):
     data = data_store.get()
+    # Increment stats
+    increment_workspace_messages()
+    increment_user_messages(user_id)
     removed = first(lambda u: u["u_id"] == user_id, data["removed_users"], {})
     if removed:
         message = "Removed user"

@@ -26,6 +26,7 @@ from src.user import (
     user_set_email,
     user_set_handle,
 )
+from src.stats import user_stats, workspace_stats
 from src.search import search_v1
 from src.notifications import notifications_get_v1
 
@@ -379,6 +380,18 @@ def do_standup_send():
     return dumps(
         standup_send_v1(params["token"], params["channel_id"], params["message"])
     )
+
+
+@APP.route("/user/stats/v1", methods=["GET"])
+def do_user_stats():
+    data = request.args.get("token")
+    return dumps(user_stats(data))
+
+
+@APP.route("/users/stats/v1", methods=["GET"])
+def do_workspace_stats():
+    data = request.args.get("token")
+    return dumps(workspace_stats(data))
 
 
 if __name__ == "__main__":

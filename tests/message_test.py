@@ -1730,7 +1730,6 @@ def test_message_sendlaterdm_5s(create_dm):
         params={"token": token, "dm_id": dm_id, "start": 0},
     )
     assert r.status_code == 200
-    print(r.json()["messages"])
     message = r.json()["messages"][0]
     assert message["message_id"] == message_id
     assert message["message"] == message_text
@@ -1752,6 +1751,10 @@ def test_message_sendlaterdm_user_deleted(create_dm):
         },
     )
     message_id = r.json()["message_id"]
+    r = requests.get(
+        f"{url}dm/messages/v1",
+        params={"token": joe_token, "dm_id": dm_id, "start": 0},
+    )
     r = requests.delete(
         f"{url}admin/user/remove/v1", json={"token": joe_token, "u_id": bob_user_id}
     )

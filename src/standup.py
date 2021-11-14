@@ -6,7 +6,11 @@ import math
 import threading
 from src.data_store import data_store
 from src.error import InputError, AccessError
-from src.message import create_message
+from src.message import (
+    increment_workspace_messages,
+    increment_user_messages,
+    create_message,
+)
 
 
 def is_valid_channel(channels, channel_id):
@@ -24,7 +28,9 @@ def auth_not_member(channels, channel_id, auth_user_id):
 
 
 def end_standup(auth_user_id, channel, standup):
+    print(f"{auth_user_id} is ending standup")
     data = data_store.get()
+
     message_id = data["max_ids"]["message"] + 1
     data["max_ids"]["message"] += 1
     standup["message_queue"] = standup["message_queue"][:-1]
@@ -39,6 +45,10 @@ def end_standup(auth_user_id, channel, standup):
     for standups in data["standups"]:
         if standups == standup:
             data["standups"].remove(standup)
+    # Increments the workspace stats, as well as the user stats for the user
+    # who initiated the standup
+    increment_workspace_messages()
+    increment_user_messages(auth_user_id)
 
     data_store.set(data)
 

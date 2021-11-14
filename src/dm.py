@@ -1,3 +1,5 @@
+import math
+import time
 from src.data_store import data_store
 from src.error import InputError, AccessError
 from src.auth import extract_token
@@ -39,7 +41,6 @@ def dm_create_v1(token, u_ids):
             if user["u_id"] in u_ids or user["u_id"] == token_data["u_id"]
         ]
     )
-
     name = ", ".join(handle_list)
 
     # set new dm_id to 1 + max current id
@@ -56,6 +57,14 @@ def dm_create_v1(token, u_ids):
             "owner": token_data["u_id"],
         }
     )
+
+    # incrementing the user stats for the owner
+    u_ids.append(token_data["u_id"])
+    for u_id in u_ids:
+        increment_user_dms(u_id)
+
+    # incrementing the workspace stats
+    increment_workspace_dms()
 
     data_store.set(store)
     for u_id in u_ids:
@@ -119,6 +128,15 @@ def dm_remove_v1(token, dm_id):
         raise AccessError(description="User is not DM owner")
 
     store["dms"] = [dm for dm in dms if dm is not selected_dm]
+
+    # Decrementing user stats
+    found_dm = [dm for dm in dms if dm["dm_id"] == dm_id][0]
+    members = found_dm["members"]
+    for member in members:
+        decrement_user_dms(member)
+
+    # Decrement workspace stats
+    decrement_workspace_dms()
 
     data_store.set(store)
 
@@ -192,9 +210,14 @@ def dm_leave_v1(token, dm_id):
         raise AccessError(description="User not in DM")
     selected_dm["members"].remove(token_data["u_id"])
 
+    # Updating the user stats
+    decrement_user_dms(token_data["u_id"])
+
     # if no members left in dm delete dm
     if len(selected_dm["members"]) == 0:
         store["dms"] = [dm for dm in dms if dm is not selected_dm]
+        # Updating workspace stats
+        decrement_workspace_dms()
 
     data_store.set(store)
 
@@ -242,3 +265,65 @@ def dm_messages_v1(token, dm_id, start):
         "start": start,
         "end": start + 50 if start + 50 < len(messages) else -1,
     }
+
+
+def increment_workspace_dms():
+    # Fetching the data store
+    store = data_store.get()
+    workspace = store["workspace_stats"]
+
+    # Creating a timestamp and incrementing the workspace stats
+    timestamp = math.floor(time.time())
+    num_dms = workspace["dms_exist"][-1]["num_dms_exist"]
+    workspace["dms_exist"].append(
+        {"num_dms_exist": num_dms + 1, "time_stamp": timestamp}
+    )
+
+
+def decrement_workspace_dms():
+    # Fetching the data store
+    store = data_store.get()
+    workspace = store["workspace_stats"]
+
+    # Creating a timestamp and decrementing the workspace stats
+    timestamp = math.floor(time.time())
+    num_dms = workspace["dms_exist"][-1]["num_dms_exist"]
+    workspace["dms_exist"].append(
+        {"num_dms_exist": num_dms - 1, "time_stamp": timestamp}
+    )
+
+
+def increment_user_dms(u_id):
+    # Fetching the data store
+    users = data_store.get()["users"]
+
+    # Creating a timestamp
+    timestamp = math.floor(time.time())
+
+    # Finding the required user to increment stats
+    found_user = [user for user in users if user["u_id"] == u_id][0]
+
+    # Increments the user stats
+    user_stats = found_user["user_stats"]
+    dms_joined_prev = user_stats["dms_joined"][-1]["num_dms_joined"]
+    user_stats["dms_joined"].append(
+        {"num_dms_joined": dms_joined_prev + 1, "time_stamp": timestamp}
+    )
+
+
+def decrement_user_dms(u_id):
+    # Fetching the data store
+    users = data_store.get()["users"]
+
+    # Creating a timestamp
+    timestamp = math.floor(time.time())
+
+    # Finding the required user to decrement stats
+    found_user = [user for user in users if user["u_id"] == u_id][0]
+
+    # Decrements the user stats
+    user_stats = found_user["user_stats"]
+    dms_joined_prev = user_stats["dms_joined"][-1]["num_dms_joined"]
+    user_stats["dms_joined"].append(
+        {"num_dms_joined": dms_joined_prev - 1, "time_stamp": timestamp}
+    )
