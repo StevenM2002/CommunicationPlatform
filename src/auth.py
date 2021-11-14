@@ -13,6 +13,8 @@ import hashlib
 import random
 import math
 import time
+import smtplib
+
 from string import printable
 
 from src.data_store import data_store
@@ -21,6 +23,8 @@ from src.error import InputError, AccessError
 from src import notifications
 
 JWT_SECRET = "".join(random.choice(printable) for _ in range(50))
+
+SERVER_EMAIL = "streamsbotbeagle@gmail.com"
 
 """jwt structure
 {"u_id": int, "session_id": int}
@@ -205,7 +209,27 @@ def auth_password_reset_request_v1(email):
             code_data = {"u_id": user["u_id"], "reset_id": reset_id}
             code = jwt.encode(code_data, JWT_SECRET, algorithm="HS256")
 
-            # send the email
+            # send the email, code snippit from https://stackoverflow.com/questions/10147455/how-to-send-an-email-with-gmail-as-provider-using-python
+
+            FROM = SERVER_EMAIL
+            TO = email
+            SUBJECT = "Password Reset Code For Streams"
+            TEXT = f"Your reset code is: {code}"
+
+            # Prepare actual message
+            message = """From: %s\nTo: %s\nSubject: %s\n\n%s
+            """ % (
+                FROM,
+                TO,
+                SUBJECT,
+                TEXT,
+            )
+            server = smtplib.SMTP("smtp.gmail.com", 587)
+            server.ehlo()
+            server.starttls()
+            server.login(SERVER_EMAIL, "SyC$8jZsrm&W")
+            server.sendmail(FROM, TO, message)
+            server.close()
 
     data_store.set(store)
 
@@ -237,7 +261,7 @@ def auth_password_reset_v1(reset_code, new_password):
         ):
             if len(new_password) < 6:
                 raise InputError
-            user["password"] = new_password
+            user["password"] = hashlib.sha256(new_password.encode()).hexdigest()
             user["reset_codes"].remove(code_data["reset_id"])
 
     data_store.set(store)

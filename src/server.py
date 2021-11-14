@@ -83,14 +83,14 @@ def auth_logout():
     return {}
 
 
-@APP.route("auth/passwordreset/request/v1", methods=["POST"])
-def auth_assword_reset_request():
+@APP.route("/auth/passwordreset/request/v1", methods=["POST"])
+def auth_password_reset_request():
     data = request.json
     auth.auth_password_reset_request_v1(data["email"])
     return {}
 
 
-@APP.route("auth/passwordreset/reset/v1", methods=["POST"])
+@APP.route("/auth/passwordreset/reset/v1", methods=["POST"])
 def auth_password_reset():
     data = request.json
     auth.auth_password_reset_v1(data["reset_code"], data["new_password"])
