@@ -138,20 +138,57 @@ def test_workplace_stats(new_time):
     assert response.status_code == OK
     assert response.json()["workspace_stats"] == {
         "channels_exist": [
-            {"num_channels_exist": 0, "time_stamp": timestamps[2]},
-            {"num_channels_exist": 1, "time_stamp": timestamps[1]},
-            {"num_channels_exist": 2, "time_stamp": timestamps[0]},
-            {"num_channels_exist": 3, "time_stamp": timestamp},
+            {"num_channels_exist": 0, "time_stamp": timestamp},
+            {"num_channels_exist": 1, "time_stamp": timestamps[0]},
+            {"num_channels_exist": 2, "time_stamp": timestamps[1]},
+            {"num_channels_exist": 3, "time_stamp": timestamps[2]},
         ],
         "dms_exist": [
-            {"num_dms_exist": 0, "time_stamp": timestamps[3]},
-            {"num_dms_exist": 1, "time_stamp": timestamp},
+            {"num_dms_exist": 0, "time_stamp": timestamp},
+            {"num_dms_exist": 1, "time_stamp": timestamps[3]},
         ],
         "messages_exist": [
-            {"num_messages_exist": 0, "time_stamp": timestamps[6]},
-            {"num_messages_exist": 1, "time_stamp": timestamps[5]},
-            {"num_messages_exist": 2, "time_stamp": timestamps[4]},
-            {"num_messages_exist": 3, "time_stamp": timestamp},
+            {"num_messages_exist": 0, "time_stamp": timestamp},
+            {"num_messages_exist": 1, "time_stamp": timestamps[4]},
+            {"num_messages_exist": 2, "time_stamp": timestamps[5]},
+            {"num_messages_exist": 3, "time_stamp": timestamps[6]},
+        ],
+        "utilization_rate": 1,
+    }
+
+
+# Testing whether a user that is in a dm and no channel creates correct stats
+def test_workplace_dms(new_time):
+    token = new_time["token"]
+    timestamp = new_time["timestamp"]
+    timestamps = []
+    # Creating members and dms
+    new_token = requests.post(
+        f"{config.url}/auth/register/v2",
+        json={
+            "email": "jane.citizen@gmail.com",
+            "password": "password",
+            "name_first": "Jane",
+            "name_last": "Citizen",
+        },
+    )
+
+    # Creates a new dm
+    timestamps.append(math.floor(time.time()))
+    requests.post(f"{config.url}/dm/create/v1", json={"token": token, "u_ids": [1]})
+
+    response = requests.get(f"{config.url}/users/stats/v1", params={"token": token})
+    assert response.status_code == OK
+    assert response.json()["workspace_stats"] == {
+        "channels_exist": [
+            {"num_channels_exist": 0, "time_stamp": timestamp},
+        ],
+        "dms_exist": [
+            {"num_dms_exist": 0, "time_stamp": timestamp},
+            {"num_dms_exist": 1, "time_stamp": timestamps[0]},
+        ],
+        "messages_exist": [
+            {"num_messages_exist": 0, "time_stamp": timestamp},
         ],
         "utilization_rate": 1,
     }
@@ -318,20 +355,20 @@ def test_user_stats(new_time):
     assert response.status_code == OK
     assert response.json()["user_stats"] == {
         "channels_joined": [
-            {"num_channels_joined": 0, "time_stamp": timestamps[2]},
-            {"num_channels_joined": 1, "time_stamp": timestamps[1]},
-            {"num_channels_joined": 2, "time_stamp": timestamps[0]},
-            {"num_channels_joined": 3, "time_stamp": timestamp},
+            {"num_channels_joined": 0, "time_stamp": timestamp},
+            {"num_channels_joined": 1, "time_stamp": timestamps[0]},
+            {"num_channels_joined": 2, "time_stamp": timestamps[1]},
+            {"num_channels_joined": 3, "time_stamp": timestamps[2]},
         ],
         "dms_joined": [
-            {"num_dms_joined": 0, "time_stamp": timestamps[3]},
-            {"num_dms_joined": 1, "time_stamp": timestamp},
+            {"num_dms_joined": 0, "time_stamp": timestamp},
+            {"num_dms_joined": 1, "time_stamp": timestamps[3]},
         ],
         "messages_sent": [
-            {"num_messages_sent": 0, "time_stamp": timestamps[6]},
-            {"num_messages_sent": 1, "time_stamp": timestamps[5]},
-            {"num_messages_sent": 2, "time_stamp": timestamps[4]},
-            {"num_messages_sent": 3, "time_stamp": timestamp},
+            {"num_messages_sent": 0, "time_stamp": timestamp},
+            {"num_messages_sent": 1, "time_stamp": timestamps[4]},
+            {"num_messages_sent": 2, "time_stamp": timestamps[5]},
+            {"num_messages_sent": 3, "time_stamp": timestamps[6]},
         ],
         "involvement_rate": 1,
     }

@@ -90,10 +90,7 @@ def workspace_stats(token):
     total_users = len(users)
 
     # Calculating the utilization rate
-    try:
-        utilization_rate = sum_users / total_users
-    except:
-        utilization_rate = 0
+    utilization_rate = sum_users / total_users
 
     # Returning the workspace stats structure
     return {
