@@ -200,7 +200,7 @@ def test_standup_send(setup_public):
     data = setup_public
     token = data['token']
     channel_id = data['channel_id']
-    length = 20
+    length = 3
     r = requests.post(config.url + 'standup/start/v1',
         json={
             'token': token,
@@ -217,7 +217,7 @@ def test_standup_send(setup_public):
         },
     )
     assert r.status_code == OK
-    time.sleep(25)
+    time.sleep(5)
     r = requests.get(config.url + 'channel/messages/v2', 
         params={
             "token": token,
