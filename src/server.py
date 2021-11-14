@@ -260,6 +260,38 @@ def remove_message():
     return dumps(message.message_remove_v1(user_id, data["message_id"]))
 
 
+@APP.route("/message/react/v1", methods=["POST"])
+def react_message():
+    data = request.json
+    user_id = extract_token(data["token"])["u_id"]
+    return dumps(
+        message.message_react_v1(user_id, data["message_id"], data["react_id"])
+    )
+
+
+@APP.route("/message/unreact/v1", methods=["POST"])
+def unreact_message():
+    data = request.json
+    user_id = extract_token(data["token"])["u_id"]
+    return dumps(
+        message.message_unreact_v1(user_id, data["message_id"], data["react_id"])
+    )
+
+
+@APP.route("/message/pin/v1", methods=["POST"])
+def pin_message():
+    data = request.json
+    user_id = extract_token(data["token"])["u_id"]
+    return dumps(message.message_pin_v1(user_id, data["message_id"]))
+
+
+@APP.route("/message/unpin/v1", methods=["POST"])
+def unpin_message():
+    data = request.json
+    user_id = extract_token(data["token"])["u_id"]
+    return dumps(message.message_unpin_v1(user_id, data["message_id"]))
+
+
 @APP.route("/admin/user/remove/v1", methods=["DELETE"])
 def do_admin_user_remove():
     params = request.get_json()
