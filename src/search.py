@@ -4,8 +4,18 @@ from src.data_store import data_store
 
 
 def search_v1(token, query_str):
-    """
-    {message_id, u_id, message, time_created, reacts, is_pinned}
+    """Searches for strings in channels and dms the user is part of
+
+    Arguments:
+        token (str) - token including the id of a user
+        query string (str) - a string to search for
+
+    Exceptions:
+        InputErr when query string is less than 1 character or greater
+            than 1000 characters
+
+    Return Value:
+        Returns {"messages": [{messages}]}
     """
 
     if len(query_str) < 1 or len(query_str) > 1000:
