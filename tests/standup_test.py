@@ -208,7 +208,7 @@ def test_send_invalid_channel(setup_public):
     data = setup_public
     token = data["token"]
     channel_id = data["channel_id"]
-    length = 300
+    length = 3
     r = requests.post(
         config.url + "standup/start/v1",
         json={"token": token, "channel_id": channel_id, "length": length},
@@ -229,7 +229,7 @@ def test_send_message_too_long(setup_public):
     data = setup_public
     token = data["token"]
     channel_id = data["channel_id"]
-    length = 300
+    length = 3
     r = requests.post(
         config.url + "standup/start/v1",
         json={"token": token, "channel_id": channel_id, "length": length},
@@ -246,7 +246,7 @@ def test_send_auth_not_member(setup_public):
     data = setup_public
     token = data["token"]
     channel_id = data["channel_id"]
-    length = 300
+    length = 3
     r = requests.post(
         config.url + "standup/start/v1",
         json={"token": token, "channel_id": channel_id, "length": length},
@@ -275,4 +275,5 @@ def test_send_standup_not_running(setup_public):
             "message": "This is a test standup message",
         },
     )
+    time.sleep(20)
     assert r.status_code == InputError.code

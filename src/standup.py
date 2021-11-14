@@ -28,6 +28,7 @@ def auth_not_member(channels, channel_id, auth_user_id):
 
 
 def end_standup(auth_user_id, channel, standup):
+    print(f"{auth_user_id} is ending standup")
     data = data_store.get()
 
     message_id = data["max_ids"]["message"] + 1

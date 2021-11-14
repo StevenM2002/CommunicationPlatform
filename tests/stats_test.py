@@ -215,6 +215,7 @@ def test_workspace_standups(new_time):
 
     # Checks that the message_sent value of the workspace has incremented by one
     response = requests.get(f"{config.url}/users/stats/v1", params={"token": token})
+    print(response.json())
     assert response.status_code == OK
     assert (
         response.json()["workspace_stats"]["messages_exist"][-1]["num_messages_exist"]
