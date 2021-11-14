@@ -1,10 +1,6 @@
 import signal
 from json import dumps
-from src.standup import (
-    standup_start_v1,
-    standup_active_v1,
-    standup_send_v1
-)
+from src.standup import standup_start_v1, standup_active_v1, standup_send_v1
 from src.admin import admin_user_permission_change_v1, admin_user_remove_v1
 from src import config, auth, dm, message
 from src.channel import (
@@ -295,6 +291,43 @@ def unpin_message():
     return dumps(message.message_unpin_v1(user_id, data["message_id"]))
 
 
+@APP.route("/message/share/v1", methods=["POST"])
+def share_message():
+    data = request.json
+    user_id = extract_token(data["token"])["u_id"]
+    return dumps(
+        message.message_share_v1(
+            user_id,
+            data["og_message_id"],
+            data["message"],
+            data["channel_id"],
+            data["dm_id"],
+        )
+    )
+
+
+@APP.route("/message/sendlater/v1", methods=["POST"])
+def message_sendlater():
+    data = request.json
+    user_id = extract_token(data["token"])["u_id"]
+    return dumps(
+        message.message_sendlater(
+            user_id, data["channel_id"], data["message"], data["time_sent"]
+        )
+    )
+
+
+@APP.route("/message/sendlaterdm/v1", methods=["POST"])
+def dm_sendlater():
+    data = request.json
+    user_id = extract_token(data["token"])["u_id"]
+    return dumps(
+        message.message_sendlater_dm(
+            user_id, data["dm_id"], data["message"], data["time_sent"]
+        )
+    )
+
+
 @APP.route("/admin/user/remove/v1", methods=["DELETE"])
 def do_admin_user_remove():
     params = request.get_json()
@@ -311,11 +344,13 @@ def do_admin_userpermission_change():
     permission_id = params["permission_id"]
     return dumps(admin_user_permission_change_v1(token, u_id, permission_id))
 
+
 @APP.route("/search/v1", methods=["GET"])
 def search_the_messages():
     token = request.args.get("token")
     query_str = request.args.get("query_str")
     return dumps(search_v1(token, query_str))
+
 
 @APP.route("/notifications/get/v1", methods=["GET"])
 def get_notifications():
@@ -323,23 +358,29 @@ def get_notifications():
     u_id = extract_token(token)["u_id"]
     return dumps(notifications_get_v1(u_id))
 
-@APP.route('/standup/start/v1', methods=['POST'])
+
+@APP.route("/standup/start/v1", methods=["POST"])
 def do_standup_start():
     params = request.get_json()
-    return dumps(standup_start_v1(params['token'], params['channel_id'], \
-        params['length']))
+    return dumps(
+        standup_start_v1(params["token"], params["channel_id"], params["length"])
+    )
 
-@APP.route('/standup/active/v1', methods=['GET'])
+
+@APP.route("/standup/active/v1", methods=["GET"])
 def do_standup_active():
     token = request.args.get("token")
     channel_id = int(request.args.get("channel_id"))
     return dumps(standup_active_v1(token, channel_id))
 
-@APP.route('/standup/send/v1', methods=['POST'])
+
+@APP.route("/standup/send/v1", methods=["POST"])
 def do_standup_send():
     params = request.get_json()
-    return dumps(standup_send_v1(params['token'], params['channel_id'], \
-        params['message']))
+    return dumps(
+        standup_send_v1(params["token"], params["channel_id"], params["message"])
+    )
+
 
 @APP.route("/user/stats/v1", methods=["GET"])
 def do_user_stats():

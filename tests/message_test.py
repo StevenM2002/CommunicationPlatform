@@ -1326,7 +1326,9 @@ def test_message_react_get_react(create_public_channel):
     )
     assert r.status_code == 200
     message = r.json()["messages"][0]
-    assert message["reacts"] == {str(user_id): [1]}
+    assert message["reacts"] == [
+        {"react_id": 1, "u_ids": [user_id], "is_this_user_reacted": True}
+    ]
 
 
 def test_message_unreact_invalid_message(register_joe):
@@ -1422,6 +1424,15 @@ def test_message_unreact_get_react(create_public_channel):
         json={"token": token, "message_id": message_id, "react_id": 1},
     )
     assert r.status_code == 200
+    r = requests.get(
+        f"{url}channel/messages/v2",
+        params={"token": token, "channel_id": channel_id, "start": 0},
+    )
+    assert r.status_code == 200
+    message = r.json()["messages"][0]
+    assert message["reacts"] == [
+        {"react_id": 1, "u_ids": [user_id], "is_this_user_reacted": True}
+    ]
     r = requests.post(
         f"{url}message/unreact/v1",
         json={"token": token, "message_id": message_id, "react_id": 1},
@@ -1433,4 +1444,609 @@ def test_message_unreact_get_react(create_public_channel):
     )
     assert r.status_code == 200
     message = r.json()["messages"][0]
-    assert message["reacts"] == {str(user_id): []}
+    assert message["reacts"] == [
+        {"react_id": 1, "u_ids": [], "is_this_user_reacted": False}
+    ]
+
+
+def test_message_sendlater_invalid_channel(register_joe):
+    token, _ = register_joe
+    message_text = "hi there"
+    send_time = round(time.time()) + 2
+    r = requests.post(
+        f"{url}message/sendlater/v1",
+        json={
+            "token": token,
+            "channel_id": -1,
+            "message": message_text,
+            "time_sent": send_time,
+        },
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_sendlater_message_too_long(create_public_channel):
+    _, token, channel_id = create_public_channel
+    message_text = "hi" * 1000
+    send_time = round(time.time()) + 2
+    r = requests.post(
+        f"{url}message/sendlater/v1",
+        json={
+            "token": token,
+            "channel_id": channel_id,
+            "message": message_text,
+            "time_sent": send_time,
+        },
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_sendlater_invalid_send_time(create_public_channel):
+    _, token, channel_id = create_public_channel
+    message_text = "hi"
+    send_time = round(time.time()) - 2
+    r = requests.post(
+        f"{url}message/sendlater/v1",
+        json={
+            "token": token,
+            "channel_id": channel_id,
+            "message": message_text,
+            "time_sent": send_time,
+        },
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_sendlater_not_member(create_public_channel, register_bob):
+    _, _, channel_id = create_public_channel
+    bob_token, _ = register_bob
+    message_text = "hi" * 1000
+    send_time = round(time.time()) - 2
+    r = requests.post(
+        f"{url}message/sendlater/v1",
+        json={
+            "token": bob_token,
+            "channel_id": channel_id,
+            "message": message_text,
+            "time_sent": send_time,
+        },
+    )
+    assert r.status_code == AccessError.code
+
+
+def test_message_sendlater_5s(create_public_channel):
+    _, token, channel_id = create_public_channel
+    delay = 5
+    send_time = math.ceil(time.time()) + delay
+    message_text = "hi there"
+    r = requests.post(
+        f"{url}message/sendlater/v1",
+        json={
+            "token": token,
+            "channel_id": channel_id,
+            "message": message_text,
+            "time_sent": send_time,
+        },
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.get(
+        f"{url}channel/messages/v2",
+        params={"token": token, "channel_id": channel_id, "start": 0},
+    )
+    assert r.status_code == 200
+    assert len(r.json()["messages"]) == 0
+    time.sleep(delay + 1)
+    r = requests.get(
+        f"{url}channel/messages/v2",
+        params={"token": token, "channel_id": channel_id, "start": 0},
+    )
+    assert r.status_code == 200
+    message = r.json()["messages"][0]
+    assert message["message_id"] == message_id
+    assert message["message"] == message_text
+    assert abs(message["time_created"] - send_time) < 2
+
+
+def test_message_sendlater_left_channel(create_public_channel, register_bob):
+    _, joe_token, channel_id = create_public_channel
+    bob_token, _ = register_bob
+    delay = 5
+    send_time = math.ceil(time.time()) + delay
+    message_text = "hi there"
+    r = requests.post(
+        f"{url}message/sendlater/v1",
+        json={
+            "token": joe_token,
+            "channel_id": channel_id,
+            "message": message_text,
+            "time_sent": send_time,
+        },
+    )
+    message_id = r.json()["message_id"]
+    assert r.status_code == 200
+
+    r = requests.post(
+        f"{url}channel/join/v2", json={"token": bob_token, "channel_id": channel_id}
+    )
+    assert r.status_code == 200
+    r = requests.post(
+        f"{url}channel/leave/v1",
+        json={"token": joe_token, "channel_id": channel_id},
+    )
+    assert r.status_code == 200
+
+    r = requests.get(
+        f"{url}channel/messages/v2",
+        params={"token": bob_token, "channel_id": channel_id, "start": 0},
+    )
+    assert r.status_code == 200
+    assert len(r.json()["messages"]) == 0
+    time.sleep(delay + 1)
+    r = requests.get(
+        f"{url}channel/messages/v2",
+        params={"token": bob_token, "channel_id": channel_id, "start": 0},
+    )
+    assert r.status_code == 200
+    message = r.json()["messages"][0]
+    assert message["message_id"] == message_id
+    assert message["message"] == message_text
+    assert abs(message["time_created"] - send_time) < 2
+
+
+def test_message_sendlater_user_deleted(register_bob, create_public_channel):
+    joe_user_id, joe_token, channel_id = create_public_channel
+    bob_token, _ = register_bob
+    delay = 5
+    send_time = math.ceil(time.time()) + delay
+    message_text = "hi there"
+    r = requests.post(
+        f"{url}message/sendlater/v1",
+        json={
+            "token": joe_token,
+            "channel_id": channel_id,
+            "message": message_text,
+            "time_sent": send_time,
+        },
+    )
+    message_id = r.json()["message_id"]
+    assert r.status_code == 200
+    r = requests.post(
+        f"{url}channel/join/v2", json={"token": bob_token, "channel_id": channel_id}
+    )
+    assert r.status_code == 200
+    r = requests.delete(
+        f"{url}admin/user/remove/v1", json={"token": bob_token, "u_id": joe_user_id}
+    )
+    assert r.status_code == 200
+    r = requests.get(
+        f"{url}channel/messages/v2",
+        params={"token": bob_token, "channel_id": channel_id, "start": 0},
+    )
+    assert r.status_code == 200
+    assert len(r.json()["messages"]) == 0
+    time.sleep(delay + 1)
+    r = requests.get(
+        f"{url}channel/messages/v2",
+        params={"token": bob_token, "channel_id": channel_id, "start": 0},
+    )
+    assert r.status_code == 200
+    message = r.json()["messages"][0]
+    assert message["message_id"] == message_id
+    assert message["message"] == "Removed user"
+    assert abs(message["time_created"] - send_time) < 2
+
+
+def test_message_sendlaterdm_invalid_channel(register_joe):
+    token, _ = register_joe
+    message_text = "hi there"
+    send_time = round(time.time()) + 2
+    r = requests.post(
+        f"{url}message/sendlaterdm/v1",
+        json={
+            "token": token,
+            "dm_id": -1,
+            "message": message_text,
+            "time_sent": send_time,
+        },
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_sendlaterdm_message_too_long(create_dm):
+    token, _, _, _, dm_id = create_dm
+    message_text = "hi" * 1000
+    send_time = round(time.time()) + 2
+    r = requests.post(
+        f"{url}message/sendlaterdm/v1",
+        json={
+            "token": token,
+            "dm_id": dm_id,
+            "message": message_text,
+            "time_sent": send_time,
+        },
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_sendlaterdm_invalid_send_time(create_dm):
+    token, _, _, _, dm_id = create_dm
+    message_text = "hi"
+    send_time = round(time.time()) - 2
+    r = requests.post(
+        f"{url}message/sendlaterdm/v1",
+        json={
+            "token": token,
+            "dm_id": dm_id,
+            "message": message_text,
+            "time_sent": send_time,
+        },
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_sendlaterdm_not_member(create_dm, register_jeff):
+    _, _, _, _, dm_id = create_dm
+    jeff_token, _ = register_jeff
+    message_text = "hi" * 1000
+    send_time = round(time.time()) - 2
+    r = requests.post(
+        f"{url}message/sendlaterdm/v1",
+        json={
+            "token": jeff_token,
+            "dm_id": dm_id,
+            "message": message_text,
+            "time_sent": send_time,
+        },
+    )
+    assert r.status_code == AccessError.code
+
+
+def test_message_sendlaterdm_5s(create_dm):
+    token, _, _, _, dm_id = create_dm
+    delay = 5
+    send_time = math.ceil(time.time()) + delay
+    message_text = "hi there"
+    r = requests.post(
+        f"{url}message/sendlaterdm/v1",
+        json={
+            "token": token,
+            "dm_id": dm_id,
+            "message": message_text,
+            "time_sent": send_time,
+        },
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.get(
+        f"{url}dm/messages/v1",
+        params={"token": token, "dm_id": dm_id, "start": 0},
+    )
+    assert r.status_code == 200
+    assert len(r.json()["messages"]) == 0
+    time.sleep(delay + 1)
+    r = requests.get(
+        f"{url}dm/messages/v1",
+        params={"token": token, "dm_id": dm_id, "start": 0},
+    )
+    assert r.status_code == 200
+    print(r.json()["messages"])
+    message = r.json()["messages"][0]
+    assert message["message_id"] == message_id
+    assert message["message"] == message_text
+    assert abs(message["time_created"] - send_time) < 2
+
+
+def test_message_sendlaterdm_user_deleted(create_dm):
+    joe_token, _, bob_token, bob_user_id, dm_id = create_dm
+    delay = 5
+    send_time = math.ceil(time.time()) + delay
+    message_text = "hi there"
+    r = requests.post(
+        f"{url}message/sendlaterdm/v1",
+        json={
+            "token": bob_token,
+            "dm_id": dm_id,
+            "message": message_text,
+            "time_sent": send_time,
+        },
+    )
+    message_id = r.json()["message_id"]
+    r = requests.delete(
+        f"{url}admin/user/remove/v1", json={"token": joe_token, "u_id": bob_user_id}
+    )
+    assert r.status_code == 200
+    r = requests.get(
+        f"{url}dm/messages/v1",
+        params={"token": joe_token, "dm_id": dm_id, "start": 0},
+    )
+    assert r.status_code == 200
+    assert len(r.json()["messages"]) == 0
+    time.sleep(delay + 1)
+    r = requests.get(
+        f"{url}dm/messages/v1",
+        params={"token": joe_token, "dm_id": dm_id, "start": 0},
+    )
+    assert r.status_code == 200
+    message = r.json()["messages"][0]
+    assert message["message_id"] == message_id
+    assert message["message"] == "Removed user"
+    assert abs(message["time_created"] - send_time) < 2
+
+
+def test_message_share_no_dm_or_channel(create_public_channel):
+    user_id, token, channel_id = create_public_channel
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": token, "channel_id": channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}/message/share/v1",
+        json={
+            "token": token,
+            "og_message_id": message_id,
+            "channel_id": -1,
+            "dm_id": -1,
+            "message": "",
+            "user_id": user_id,
+        },
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_share_both_channel_and_dm(create_public_channel):
+    user_id, token, channel_id = create_public_channel
+    r = requests.post(
+        f"{url}dm/create/v1",
+        json={
+            "token": token,
+            "u_ids": [user_id],
+        },
+    )
+    assert r.status_code == 200
+    dm_id = r.json()["dm_id"]
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": token, "channel_id": channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}/message/share/v1",
+        json={
+            "token": token,
+            "og_message_id": message_id,
+            "channel_id": channel_id,
+            "dm_id": dm_id,
+            "message": "",
+            "user_id": user_id,
+        },
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_share_invalid_message(create_public_channel):
+    user_id, token, channel_id = create_public_channel
+    r = requests.post(
+        f"{url}/message/share/v1",
+        json={
+            "token": token,
+            "og_message_id": -1,
+            "channel_id": channel_id,
+            "dm_id": -1,
+            "message": "",
+            "user_id": user_id,
+        },
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_share_message_too_long(create_public_channel):
+    user_id, token, channel_id = create_public_channel
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": token, "channel_id": channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}/message/share/v1",
+        json={
+            "token": token,
+            "og_message_id": message_id,
+            "channel_id": channel_id,
+            "dm_id": -1,
+            "message": "hi" * 1000,
+            "user_id": user_id,
+        },
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_share_message_from_unjoined_channel(
+    create_public_channel, register_bob
+):
+    joe_user_id, joe_token, joe_channel_id = create_public_channel
+    bob_token, _ = register_bob
+    r = requests.post(
+        f"{url}channels/create/v2",
+        json={"token": bob_token, "name": "test-channel", "is_public": True},
+    )
+    assert r.status_code == 200
+    bob_channel_id = r.json()["channel_id"]
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": bob_token, "channel_id": bob_channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}/message/share/v1",
+        json={
+            "token": joe_token,
+            "og_message_id": message_id,
+            "channel_id": joe_channel_id,
+            "dm_id": -1,
+            "message": "",
+            "user_id": joe_user_id,
+        },
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_share_message_from_unjoined_dm(create_dm, register_jeff):
+    joe_token, joe_user_id, _, _, dm_id = create_dm
+    jeff_token, _ = register_jeff
+    r = requests.post(
+        f"{url}channels/create/v2",
+        json={"token": jeff_token, "name": "test-channel", "is_public": True},
+    )
+    assert r.status_code == 200
+    jeff_channel_id = r.json()["channel_id"]
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": jeff_token, "channel_id": jeff_channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}/message/share/v1",
+        json={
+            "token": joe_token,
+            "og_message_id": message_id,
+            "channel_id": -1,
+            "dm_id": dm_id,
+            "message": "",
+            "user_id": joe_user_id,
+        },
+    )
+    assert r.status_code == InputError.code
+
+
+def test_message_share_not_member_channel(create_public_channel, register_bob):
+    joe_user_id, joe_token, _ = create_public_channel
+    bob_token, _ = register_bob
+    r = requests.post(
+        f"{url}channels/create/v2",
+        json={"token": bob_token, "name": "test-channel", "is_public": True},
+    )
+    assert r.status_code == 200
+    bob_channel_id = r.json()["channel_id"]
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": bob_token, "channel_id": bob_channel_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}/message/share/v1",
+        json={
+            "token": joe_token,
+            "og_message_id": message_id,
+            "channel_id": bob_channel_id,
+            "dm_id": -1,
+            "message": "",
+            "user_id": joe_user_id,
+        },
+    )
+    assert r.status_code == AccessError.code
+
+
+def test_message_share_not_member_dm(create_dm, register_jeff):
+    joe_token, joe_user_id, _, _, _ = create_dm
+    jeff_token, jeff_user_id = register_jeff
+    r = requests.post(
+        f"{url}dm/create/v1",
+        json={
+            "token": jeff_token,
+            "u_ids": [jeff_user_id],
+        },
+    )
+    assert r.status_code == 200
+    jeff_dm_id = r.json()["dm_id"]
+    r = requests.post(
+        f"{url}message/senddm/v1",
+        json={"token": jeff_token, "dm_id": jeff_dm_id, "message": "hi"},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}/message/share/v1",
+        json={
+            "token": joe_token,
+            "og_message_id": message_id,
+            "channel_id": -1,
+            "dm_id": jeff_dm_id,
+            "message": "",
+            "user_id": joe_user_id,
+        },
+    )
+    assert r.status_code == AccessError.code
+
+
+def test_message_share_channel_message(create_public_channel):
+    joe_user_id, joe_token, channel_id = create_public_channel
+    message_text = "hi"
+    extra_message = "check this"
+    r = requests.post(
+        f"{url}message/send/v1",
+        json={"token": joe_token, "channel_id": channel_id, "message": message_text},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}/message/share/v1",
+        json={
+            "token": joe_token,
+            "og_message_id": message_id,
+            "channel_id": channel_id,
+            "dm_id": -1,
+            "message": extra_message,
+            "user_id": joe_user_id,
+        },
+    )
+    assert r.status_code == 200
+    r = requests.get(
+        f"{url}channel/messages/v2",
+        params={"token": joe_token, "channel_id": channel_id, "start": 0},
+    )
+    assert r.status_code == 200
+    messages = r.json()
+    assert len(messages["messages"]) == 2
+    message = messages["messages"][0]
+    assert message_text in message["message"]
+    assert extra_message in message["message"]
+
+
+def test_message_share_channel_dm(create_dm):
+    joe_token, joe_user_id, _, _, dm_id = create_dm
+    message_text = "hi"
+    r = requests.post(
+        f"{url}message/senddm/v1",
+        json={"token": joe_token, "dm_id": dm_id, "message": message_text},
+    )
+    assert r.status_code == 200
+    message_id = r.json()["message_id"]
+    r = requests.post(
+        f"{url}/message/share/v1",
+        json={
+            "token": joe_token,
+            "og_message_id": message_id,
+            "channel_id": -1,
+            "dm_id": dm_id,
+            "message": "",
+            "user_id": joe_user_id,
+        },
+    )
+    assert r.status_code == 200
+    r = requests.get(
+        f"{url}dm/messages/v1",
+        params={"token": joe_token, "dm_id": dm_id, "start": 0},
+    )
+    assert r.status_code == 200
+    messages = r.json()
+    assert len(messages["messages"]) == 2
+    message = messages["messages"][0]
+    assert message_text in message["message"]
