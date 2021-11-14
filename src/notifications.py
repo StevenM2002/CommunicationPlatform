@@ -40,7 +40,6 @@ def add_reacted_msg_to_notif(u_id, your_id, ch_id, dm_id):
     name = info["name"]
     message = f"{handle} reacted to your message in {name}"
     to_add = {"channel_id": ch_id, "dm_id": dm_id, "notification_message": message}
-    print(to_add)
     add_to_notif(your_id, to_add)
 
 
@@ -86,8 +85,6 @@ def add_to_notif(u_id, to_add):
     notifs = store["all_notifications"]
     for notif in notifs:
         if notif["u_id"] == u_id:
-            print("XXXXXXXXX")
-            print(to_add)
             if len(notif["notifications"]) >= 20:
                 notif["notifications"].pop(0)
             notif["notifications"].append(to_add)
