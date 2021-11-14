@@ -180,7 +180,7 @@ def test_workspace_standups(new_time):
             "name_last": "Citizen",
         },
     )
-
+    print(new_token.json()["token"])
     requests.post(
         f"{config.url}/channel/join/v2",
         json={"token": new_token.json()["token"], "channel_id": 0},

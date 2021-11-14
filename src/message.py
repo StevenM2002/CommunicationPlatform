@@ -294,7 +294,12 @@ def increment_user_messages(u_id):
     users = data_store.get()["users"]
 
     # Finding the given user in the data store
-    found_user = [user for user in users if user["u_id"] == u_id][0]
+    try:
+        found_user = [user for user in users if user["u_id"] == u_id][0]
+    except:
+        # Occurs when user has been removed before stats is called
+        removed_users = data_store.get()["removed_users"]
+        found_user = [user for user in removed_users if user["u_id"] == u_id][0]
     user_stats = found_user["user_stats"]
 
     # Creating a timestamp and saving the user stats
@@ -485,11 +490,11 @@ def message_sendlater_dm(user_id, dm_id, message, time_sent):
 
 
 def send_channel_message(channel_id, message, message_id, user_id):
-    print("sending channel message")
     data = data_store.get()
     # Increment stats
     increment_workspace_messages()
     increment_user_messages(user_id)
+
     removed = first(lambda u: u["u_id"] == user_id, data["removed_users"], {})
     if removed:
         message = "Removed user"
@@ -500,7 +505,6 @@ def send_channel_message(channel_id, message, message_id, user_id):
 
 
 def send_dm_message(dm_id, message, message_id, user_id):
-    print("sending dm")
     data = data_store.get()
     # Increment stats
     increment_workspace_messages()
