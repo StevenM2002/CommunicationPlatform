@@ -220,7 +220,7 @@ def channel_addowner_v1(token, channel_id, u_id):
     for channels in store["channels"]:
         if channel_id == channels["channel_id"]:
             if (payload["u_id"] in channels["owner_members"]) or (
-                payload["u_id"] in store["global_owners"] and is_global_owner
+                payload["u_id"] in channels["all_members"] and is_global_owner
             ):
                 which_channel = channels["owner_members"]
             else:
@@ -272,7 +272,7 @@ def channel_removeowner_v1(token, channel_id, u_id):
     for channels in store["channels"]:
         if channel_id == channels["channel_id"]:
             if (payload["u_id"] in channels["owner_members"]) or (
-                payload["u_id"] in store["global_owners"] and is_global_owner
+                payload["u_id"] in channels["all_members"] and is_global_owner
             ):
                 which_channel = channels["owner_members"]
             else:
