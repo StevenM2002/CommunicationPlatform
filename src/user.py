@@ -225,6 +225,12 @@ def user_upload_photo(token, img_url, x_start, y_start, x_end, y_end):
         Returns {}
 
     """
+    if any(True for i in [x_start, y_start, x_end, y_end] if type(i) != int):
+        raise InputError
+
+    if x_end < x_start or y_end < y_start:
+        raise InputError
+
     u_information = extract_token(token)
     store = data_store.get()
     users = store["users"]
