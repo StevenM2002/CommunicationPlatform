@@ -405,3 +405,139 @@ def test_user_stats_standups(new_time):
     )
     assert response.status_code == OK
     assert response.json()["user_stats"]["messages_sent"][-1]["num_messages_sent"] == 0
+
+
+# Tests that message/sendlater functions as expected, incrementing the user stats
+def test_user_stats_sendlater(new_time):
+    token = new_time["token"]
+
+    # Creating new channels, and making members join the channels
+    requests.post(
+        f"{config.url}/channels/create/v2",
+        json={
+            "token": token,
+            "name": "public_channel",
+            "is_public": True,
+        },
+    )
+    new_token = requests.post(
+        f"{config.url}/auth/register/v2",
+        json={
+            "email": "jane.citizen@gmail.com",
+            "password": "password",
+            "name_first": "Jane",
+            "name_last": "Citizen",
+        },
+    )
+    requests.post(
+        f"{config.url}/channels/create/v2",
+        json={
+            "token": token,
+            "name": "second_channel",
+            "is_public": True,
+        },
+    )
+    requests.post(
+        f"{config.url}/channels/create/v2",
+        json={
+            "token": token,
+            "name": "private_channel",
+            "is_public": False,
+        },
+    )
+    requests.post(
+        f"{config.url}/channel/join/v2",
+        json={"token": new_token.json()["token"], "channel_id": 0},
+    )
+    requests.post(
+        f"{config.url}/channel/join/v2",
+        json={"token": new_token.json()["token"], "channel_id": 1},
+    )
+
+    # Creating a dm with both users
+    requests.post(f"{config.url}/dm/create/v1", json={"token": token, "u_ids": [1]})
+
+    # Sending a message
+    timestamp = math.floor(time.time())
+    requests.post(
+        f"{config.url}/message/sendlater/v1",
+        json={
+            "token": token,
+            "channel_id": 0,
+            "message": "This is a test message",
+            "time_sent": timestamp + 5,
+        },
+    )
+    time.sleep(8)
+    # Checking that the stats for the user were incremented successfully
+    response = requests.get(f"{config.url}/user/stats/v1", params={"token": token})
+    assert response.status_code == OK
+    assert response.json()["user_stats"]["messages_sent"][-1]["num_messages_sent"] == 1
+
+
+# Tests that message/sendlater/dm functions as expected, incrementing the user stats
+def test_user_stats_sendlater_dm(new_time):
+    token = new_time["token"]
+
+    # Creating new channels, and making members join the channels
+    requests.post(
+        f"{config.url}/channels/create/v2",
+        json={
+            "token": token,
+            "name": "public_channel",
+            "is_public": True,
+        },
+    )
+    new_token = requests.post(
+        f"{config.url}/auth/register/v2",
+        json={
+            "email": "jane.citizen@gmail.com",
+            "password": "password",
+            "name_first": "Jane",
+            "name_last": "Citizen",
+        },
+    )
+    requests.post(
+        f"{config.url}/channels/create/v2",
+        json={
+            "token": token,
+            "name": "second_channel",
+            "is_public": True,
+        },
+    )
+    requests.post(
+        f"{config.url}/channels/create/v2",
+        json={
+            "token": token,
+            "name": "private_channel",
+            "is_public": False,
+        },
+    )
+    requests.post(
+        f"{config.url}/channel/join/v2",
+        json={"token": new_token.json()["token"], "channel_id": 0},
+    )
+    requests.post(
+        f"{config.url}/channel/join/v2",
+        json={"token": new_token.json()["token"], "channel_id": 1},
+    )
+
+    # Creating a dm with both users
+    requests.post(f"{config.url}/dm/create/v1", json={"token": token, "u_ids": [1]})
+
+    # Sending a message
+    timestamp = math.floor(time.time())
+    requests.post(
+        f"{config.url}/message/sendlaterdm/v1",
+        json={
+            "token": token,
+            "dm_id": 0,
+            "message": "This is a test message",
+            "time_sent": timestamp + 5,
+        },
+    )
+    time.sleep(8)
+    # Checking that the stats for the user were incremented successfully
+    response = requests.get(f"{config.url}/user/stats/v1", params={"token": token})
+    assert response.status_code == OK
+    assert response.json()["user_stats"]["messages_sent"][-1]["num_messages_sent"] == 1

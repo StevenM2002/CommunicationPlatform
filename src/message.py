@@ -412,6 +412,11 @@ def message_share_v1(user_id, og_message_id, message, channel_id, dm_id):
 
     message_id = data["max_ids"]["message"] + 1
     data["max_ids"]["message"] += 1
+
+    # Updating user and workspace stats
+    increment_user_messages(user_id)
+    increment_workspace_messages()
+
     data_store.set(data)
 
     add_tagged_to_notif(user_id, channel_id, dm_id, message_text)
@@ -480,7 +485,11 @@ def message_sendlater_dm(user_id, dm_id, message, time_sent):
 
 
 def send_channel_message(channel_id, message, message_id, user_id):
+    print("sending channel message")
     data = data_store.get()
+    # Increment stats
+    increment_workspace_messages()
+    increment_user_messages(user_id)
     removed = first(lambda u: u["u_id"] == user_id, data["removed_users"], {})
     if removed:
         message = "Removed user"
@@ -491,7 +500,11 @@ def send_channel_message(channel_id, message, message_id, user_id):
 
 
 def send_dm_message(dm_id, message, message_id, user_id):
+    print("sending dm")
     data = data_store.get()
+    # Increment stats
+    increment_workspace_messages()
+    increment_user_messages(user_id)
     removed = first(lambda u: u["u_id"] == user_id, data["removed_users"], {})
     if removed:
         message = "Removed user"
