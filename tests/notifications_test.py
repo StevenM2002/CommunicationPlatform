@@ -186,13 +186,6 @@ def test_two_added_to_dms(notifs_dataset):
             "u_ids": [notifs_dataset["id"][0], notifs_dataset["id"][1]],
         },
     ).json()["dm_id"]
-    requests.post(
-        config.url + "dm/create/v1",
-        json={
-            "token": notifs_dataset["t"][0],
-            "u_ids": [notifs_dataset["id"][1], notifs_dataset["id"][2]],
-        },
-    ).json()["dm_id"]
     response = requests.get(
         config.url + "notifications/get/v1",
         params={
