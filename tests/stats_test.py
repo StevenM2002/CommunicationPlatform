@@ -163,7 +163,7 @@ def test_workplace_dms(new_time):
     timestamp = new_time["timestamp"]
     timestamps = []
     # Creating members and dms
-    new_token = requests.post(
+    requests.post(
         f"{config.url}/auth/register/v2",
         json={
             "email": "jane.citizen@gmail.com",
