@@ -6,7 +6,11 @@ import math
 import threading
 from src.data_store import data_store
 from src.error import InputError, AccessError
-from src.message import increment_workspace_messages, increment_user_messages
+from src.message import (
+    increment_workspace_messages,
+    increment_user_messages,
+    create_message,
+)
 
 
 def is_valid_channel(channels, channel_id):
@@ -29,12 +33,13 @@ def end_standup(auth_user_id, channel, standup):
     message_id = data["max_ids"]["message"] + 1
     data["max_ids"]["message"] += 1
     standup["message_queue"] = standup["message_queue"][:-1]
-    message = {
-        "message": standup["message_queue"],
-        "message_id": message_id,
-        "time_created": math.floor(time.time()),
-        "u_id": auth_user_id,
-    }
+    message = create_message(standup["message_queue"], message_id, auth_user_id)
+    # message = {
+    #     "message": standup["message_queue"],
+    #     "message_id": message_id,
+    #     "time_created": math.floor(time.time()),
+    #     "u_id": auth_user_id,
+    # }
     channel["messages"].insert(0, message)
     for standups in data["standups"]:
         if standups == standup:

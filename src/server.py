@@ -291,6 +291,43 @@ def unpin_message():
     return dumps(message.message_unpin_v1(user_id, data["message_id"]))
 
 
+@APP.route("/message/share/v1", methods=["POST"])
+def share_message():
+    data = request.json
+    user_id = extract_token(data["token"])["u_id"]
+    return dumps(
+        message.message_share_v1(
+            user_id,
+            data["og_message_id"],
+            data["message"],
+            data["channel_id"],
+            data["dm_id"],
+        )
+    )
+
+
+@APP.route("/message/sendlater/v1", methods=["POST"])
+def message_sendlater():
+    data = request.json
+    user_id = extract_token(data["token"])["u_id"]
+    return dumps(
+        message.message_sendlater(
+            user_id, data["channel_id"], data["message"], data["time_sent"]
+        )
+    )
+
+
+@APP.route("/message/sendlaterdm/v1", methods=["POST"])
+def dm_sendlater():
+    data = request.json
+    user_id = extract_token(data["token"])["u_id"]
+    return dumps(
+        message.message_sendlater_dm(
+            user_id, data["dm_id"], data["message"], data["time_sent"]
+        )
+    )
+
+
 @APP.route("/admin/user/remove/v1", methods=["DELETE"])
 def do_admin_user_remove():
     params = request.get_json()
