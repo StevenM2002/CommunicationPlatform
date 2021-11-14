@@ -133,18 +133,14 @@ def message_edit_v1(user_id, message_id, edited_message):
     data = data_store.get()
     global_owner = user_id in data["global_owners"]
     if "dm_id" in group:
-        group_owner = user_id in group["members"]
-        sender_is_member = message["u_id"] in group["members"]
+        authorised = user_id == group["owner"]
     else:
-        group_owner = user_id in group["owner_members"]
-        sender_is_member = message["u_id"] in group["all_members"]
+        authorised = user_id in group["owner_members"] or global_owner
 
-    if not sender_is_member and (not global_owner or not group_owner):
+    if message["u_id"] != user_id and not authorised:
         raise AccessError(
             description="message not sent by a member and user_id is not an owner"
         )
-    if message["u_id"] != user_id and (not global_owner or not group_owner):
-        raise AccessError(description="message not sent by user and user not an owner")
     if len(edited_message) > 1000:
         raise InputError(description="message longer than 1000 characters")
     if edited_message == "":
@@ -179,18 +175,12 @@ def message_remove_v1(user_id, message_id):
     data = data_store.get()
     global_owner = user_id in data["global_owners"]
     if "dm_id" in group:
-        group_owner = user_id in group["members"]
-        sender_is_member = message["u_id"] in group["members"]
+        authorised = user_id == group["owner"]
     else:
-        group_owner = user_id in group["owner_members"]
-        sender_is_member = message["u_id"] in group["all_members"]
+        authorised = user_id in group["owner_members"] or global_owner
 
-    if not sender_is_member and (not global_owner or not group_owner):
-        raise AccessError(
-            description="message not sent by a member and user_id is not an owner"
-        )
-    if message["u_id"] != user_id and (not global_owner or not group_owner):
-        raise AccessError(description="message not sent by user and user not an owner")
+    if message["u_id"] != user_id and not authorised:
+        raise AccessError(description="user not authorised to edit message")
     group["messages"].remove(message)
 
     # Decrementing user stats
