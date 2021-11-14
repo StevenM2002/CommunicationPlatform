@@ -18,6 +18,8 @@ from string import printable
 from src.data_store import data_store
 from src.error import InputError, AccessError
 
+from src import notifications
+
 JWT_SECRET = "".join(random.choice(printable) for _ in range(50))
 
 """jwt structure
@@ -175,6 +177,8 @@ def auth_register_v2(email, password, name_first, name_last):
 
     token_data = {"u_id": user_id, "session_id": 1}
     token = jwt.encode(token_data, JWT_SECRET, algorithm="HS256")
+
+    notifications.add_new_id_to_notif(user_id)
 
     return {"auth_user_id": user_id, "token": token}
 

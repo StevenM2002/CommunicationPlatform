@@ -22,6 +22,7 @@ from src.data_store import data_store
 from src.error import AccessError, InputError
 from src.other import first
 from src.auth import extract_token
+from src import notifications
 
 
 EXCLUDE_LIST = ["password", "session_ids", "channel_id", "messages", "user_stats"]
@@ -96,6 +97,7 @@ def channel_invite_v1(auth_user_id, channel_id, u_id):
     )
 
     data_store.set(store)
+    notifications.add_added_to_a_channel_or_dm_to_notif(auth_user_id, u_id, channel_id, -1)
     return {}
 
 
@@ -241,7 +243,7 @@ def channel_addowner_v1(token, channel_id, u_id):
     for channels in store["channels"]:
         if channel_id == channels["channel_id"]:
             if (payload["u_id"] in channels["owner_members"]) or (
-                payload["u_id"] in store["global_owners"] and is_global_owner
+                payload["u_id"] in channels["all_members"] and is_global_owner
             ):
                 which_channel = channels["owner_members"]
             else:
@@ -293,7 +295,7 @@ def channel_removeowner_v1(token, channel_id, u_id):
     for channels in store["channels"]:
         if channel_id == channels["channel_id"]:
             if (payload["u_id"] in channels["owner_members"]) or (
-                payload["u_id"] in store["global_owners"] and is_global_owner
+                payload["u_id"] in channels["all_members"] and is_global_owner
             ):
                 which_channel = channels["owner_members"]
             else:
