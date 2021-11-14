@@ -104,7 +104,7 @@ INITIAL_OBJECT = {
 }
 DATA_STORE_FILE = "datastore.json"
 WRITE_INTERVAL = 30
-DEFAULT_IMG = "http://i.postimg.cc/FRGqQfwC/Scanned-Document.jpg"
+DEFAULT_IMG = "https://i.postimg.cc/8znq7rC2/default-profile-pic-150x150.jpg"
 IMAGE_FOLDER = "imgfolder"
 
 
