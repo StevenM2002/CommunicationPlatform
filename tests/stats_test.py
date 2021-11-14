@@ -18,7 +18,6 @@ def new_time():
     requests.delete(f"{config.url}/clear/v1")
     # Clears the Data Store and finds the timestamp of when the code was cleared
     timestamp = math.floor(time.time())
-    print(timestamp)
     requests.delete(f"{config.url}/clear/v1")
     # Initialises a new user
     user_timestamp = math.floor(time.time())
@@ -137,7 +136,6 @@ def test_workplace_stats(new_time):
     )
     response = requests.get(f"{config.url}/users/stats/v1", params={"token": token})
     assert response.status_code == OK
-    print(response.json())
     assert response.json() == {
         "channels_exist": [
             {"num_channels_exist": 0, "time_stamp": timestamps[2]},
@@ -159,6 +157,68 @@ def test_workplace_stats(new_time):
     }
 
 
+# Tests that a standup produces the correct workspace stats
+def test_workspace_standups(new_time):
+    token = new_time["token"]
+
+    # Creates a new channel and user to be in the channel for the standup
+    requests.post(
+        f"{config.url}/channels/create/v2",
+        json={
+            "token": token,
+            "name": "public_channel",
+            "is_public": True,
+        },
+    )
+
+    new_token = requests.post(
+        f"{config.url}/auth/register/v2",
+        json={
+            "email": "jane.citizen@gmail.com",
+            "password": "password",
+            "name_first": "Jane",
+            "name_last": "Citizen",
+        },
+    )
+
+    requests.post(
+        f"{config.url}/channel/join/v2",
+        json={"token": new_token.json()["token"], "channel_id": 0},
+    )
+
+    # Calls a standup
+    requests.post(
+        f"{config.url}standup/start/v1",
+        json={"token": token, "channel_id": 0, "length": 10},
+    )
+
+    # Gets both users to send a message in the standup
+    requests.post(
+        f"{config.url}standup/send/v1",
+        json={
+            "token": token,
+            "channel_id": 0,
+            "message": "Owner sending a message",
+        },
+    )
+    requests.post(
+        f"{config.url}standup/send/v1",
+        json={
+            "token": new_token.json()["token"],
+            "channel_id": 0,
+            "message": "Other user sending a message",
+        },
+    )
+
+    # Sleeping until the standup ends
+    time.sleep(10)
+
+    # Checks that the message_sent value of the workspace has incremented by one
+    response = requests.get(f"{config.url}/users/stats/v1", params={"token": token})
+    assert response.status_code == OK
+    assert response.json()["messages_exist"][-1]["num_messages_exist"] == 1
+
+
 """ =========================== User Stats Tests ==========================="""
 # Tests that when given an invalid token, an Access Error is raised
 def test_user_invalid(new_time):
@@ -174,7 +234,6 @@ def test_user_init(new_time):
     timestamp = new_time["timestamp"]
     response = requests.get(f"{config.url}/user/stats/v1", params={"token": token})
     assert response.status_code == OK
-    print(response.json())
     assert response.json() == {
         "channels_joined": [{"num_channels_joined": 0, "time_stamp": timestamp}],
         "dms_joined": [{"num_dms_joined": 0, "time_stamp": timestamp}],
@@ -255,7 +314,6 @@ def test_user_stats(new_time):
     )
     response = requests.get(f"{config.url}/user/stats/v1", params={"token": token})
     assert response.status_code == OK
-    print(response.json())
     assert response.json() == {
         "channels_joined": [
             {"num_channels_joined": 0, "time_stamp": timestamps[2]},
@@ -275,3 +333,72 @@ def test_user_stats(new_time):
         ],
         "involvement_rate": 1,
     }
+
+
+# Tests that a standup produces the correct user stats
+def test_user_stats_standups(new_time):
+    token = new_time["token"]
+
+    # Creates a new channel and user to be in the channel for the standup
+    requests.post(
+        f"{config.url}/channels/create/v2",
+        json={
+            "token": token,
+            "name": "public_channel",
+            "is_public": True,
+        },
+    )
+
+    new_token = requests.post(
+        f"{config.url}/auth/register/v2",
+        json={
+            "email": "jane.citizen@gmail.com",
+            "password": "password",
+            "name_first": "Jane",
+            "name_last": "Citizen",
+        },
+    )
+
+    requests.post(
+        f"{config.url}/channel/join/v2",
+        json={"token": new_token.json()["token"], "channel_id": 0},
+    )
+
+    # Calls a standup
+    requests.post(
+        f"{config.url}standup/start/v1",
+        json={"token": token, "channel_id": 0, "length": 10},
+    )
+
+    # Gets both users to send a message in the standup
+    requests.post(
+        f"{config.url}standup/send/v1",
+        json={
+            "token": token,
+            "channel_id": 0,
+            "message": "Owner sending a message",
+        },
+    )
+
+    requests.post(
+        f"{config.url}standup/send/v1",
+        json={
+            "token": new_token.json()["token"],
+            "channel_id": 0,
+            "message": "Other user sending a message",
+        },
+    )
+
+    # Sleeping until the standup ends
+    time.sleep(10)
+
+    # Checks that the message_sent value of the original user has incremented by one
+    response = requests.get(f"{config.url}/user/stats/v1", params={"token": token})
+    assert response.status_code == OK
+    assert response.json()["messages_sent"][-1]["num_messages_sent"] == 1
+    # Checks that the new user's stats don't increase
+    response = requests.get(
+        f"{config.url}/user/stats/v1", params={"token": new_token.json()["token"]}
+    )
+    assert response.status_code == OK
+    assert response.json()["messages_sent"][-1]["num_messages_sent"] == 0
