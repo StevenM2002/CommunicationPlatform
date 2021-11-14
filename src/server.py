@@ -25,6 +25,7 @@ from src.user import (
     user_set_name,
     user_set_email,
     user_set_handle,
+    user_upload_photo,
 )
 from src.stats import user_stats, workspace_stats
 from src.search import search_v1
@@ -210,6 +211,21 @@ def set_email():
 def set_handle():
     data = request.json
     return dumps(user_set_handle(data["token"], data["handle_str"]))
+
+
+@APP.route("user/profile/uploadphoto/v1", methods=["POST"])
+def upload_photo():
+    data = request.json
+    return dumps(
+        user_upload_photo(
+            data["token"],
+            data["img_url"],
+            data["x_start"],
+            data["y_start"],
+            data["x_end"],
+            data["y_end"],
+        )
+    )
 
 
 @APP.route("/channel/invite/v2", methods=["POST"])

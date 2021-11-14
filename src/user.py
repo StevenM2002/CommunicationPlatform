@@ -195,3 +195,28 @@ def user_set_handle(token, handle_str):
     found_user = [user for user in users if user["u_id"] == u_information["u_id"]][0]
     found_user["handle_str"] = handle_str
     return {}
+
+
+def user_upload_photo(token, img_url, x_start, y_start, x_end, y_end):
+    """Given a URL of an image on the internet, crops the image within bounds
+
+    Arguments:
+        token (str) - an encoded JWT token
+        img_url (str) - url to image
+        x_start (int) - pixel to start crop x
+        y_start (int) - pixel to start crop y
+        x_end (int) - pixel to end crop x
+        y_end (int) - pixel to end crop y
+
+    Exceptions:
+        InputError - Occurs when:
+            - img_url returns an HTTP status other than 200
+            - any of x_start, y_start, x_end, y_end are not within the dimensions of the image at the URL
+            - x_end is less than x_start or y_end is less than y_start
+            - image uploaded is not a JPG
+
+    Return Value:
+        Returns {}
+
+    """
+    pass
