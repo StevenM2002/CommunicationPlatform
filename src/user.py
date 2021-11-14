@@ -229,15 +229,25 @@ def user_upload_photo(token, img_url, x_start, y_start, x_end, y_end):
 
     # fetch image
     img_file = f"{IMAGE_FOLDER}/{u_information['u_id']}img.jpg"
-    urllib.request.urlretrieve(img_url, img_file)
+    try:
+        urllib.request.urlretrieve(img_url, img_file)
+    except:
+        raise InputError
 
     # crop image
 
     imageObject = Image.open(img_file)
-    cropped = imageObject.crop((x_start, y_start, x_end, y_end))
+    try:
+        cropped = imageObject.crop((x_start, y_start, x_end, y_end))
+    except:
+        raise InputError
     cropped.save(img_file)
 
     # serve image
     for user in users:
-        if user == u_information["u_id"]:
-            user["profile_img_url"] = url + "/profile_img/" + img_file
+        if user["u_id"] == u_information["u_id"]:
+            user[
+                "profile_img_url"
+            ] = f"{url}imgfolder/{str(u_information['u_id'])}img.jpg"
+
+    data_store.set(store)

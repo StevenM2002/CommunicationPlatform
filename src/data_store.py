@@ -77,6 +77,7 @@ data structure:
 import time
 import math
 import os
+import shutil
 from copy import deepcopy
 from json import dump, load
 from pathlib import Path

@@ -54,7 +54,7 @@ def defaultHandler(err):
     return response
 
 
-APP = Flask(__name__)
+APP = Flask(__name__, static_url_path="")
 CORS(APP)
 
 APP.config["TRAP_HTTP_EXCEPTIONS"] = True
@@ -228,9 +228,9 @@ def upload_photo():
     )
 
 
-@APP.route("/profile_img/<path:path>")
+@APP.route("/imgfolder/<path:path>")
 def serve_image(path):
-    return send_from_directory(IMAGE_FOLDER, path)
+    return send_from_directory("../imgfolder", path)
 
 
 @APP.route("/channel/invite/v2", methods=["POST"])
