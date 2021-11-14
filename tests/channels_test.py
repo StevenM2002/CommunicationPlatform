@@ -346,7 +346,7 @@ def test_user_is_not_owner_listallv2(listall_data_v2):
     ).json()
     requests.post(
         config.url + "channel/join/v2",
-        params={"token": listall_data_v2[1], "channel_id": chan_id0["channel_id"]},
+        json={"token": listall_data_v2[1], "channel_id": chan_id0["channel_id"]},
     )
     payload = requests.get(
         config.url + "channels/listall/v2", params={"token": listall_data_v2[1]}

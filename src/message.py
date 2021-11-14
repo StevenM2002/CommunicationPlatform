@@ -1,9 +1,55 @@
 import math
 import time
+from collections import defaultdict
 
 from src.data_store import data_store
 from src.error import AccessError, InputError
 from src.other import first
+from src.notifications import add_tagged_to_notif
+from src.notifications import add_reacted_msg_to_notif
+
+
+VALID_REACT_IDS = (1,)
+
+
+def create_message(message_text, message_id, user_id):
+    return {
+        "message": message_text,
+        "message_id": message_id,
+        "time_created": math.floor(time.time()),
+        "u_id": user_id,
+        "reacts": defaultdict(list),
+        "is_pinned": False,
+    }
+
+
+def get_message(message_id):
+    """Get a message from a message id"""
+    data = data_store.get()
+    for group in (*data["channels"], *data["dms"]):
+        for message in group["messages"]:
+            if message["message_id"] == message_id:
+                return message, group
+
+    raise InputError("no message with message id was found")
+
+
+def owner_perms(user_id, group):
+    data = data_store.get()
+    global_owner = user_id in data["global_owners"]
+    if "dm_id" in group:
+        authorised = user_id == group["owner"]
+    else:
+        authorised = user_id in group["owner_members"] or global_owner
+
+    return authorised
+
+
+def is_member(user_id, group):
+    if "dm_id" in group:
+        return user_id == group["owner"] or user_id in group["members"]
+    else:
+        return user_id in group["owner_members"] or user_id in group["all_members"]
 
 
 def channel_messages_v1(auth_user_id, channel_id, start):
@@ -31,14 +77,12 @@ def channel_messages_v1(auth_user_id, channel_id, start):
     channels = data_store.get()["channels"]
     channel = first(lambda c: c["channel_id"] == channel_id, channels, {})
     if not channel:
-        raise InputError(description="no channel matching channel id")
+        raise InputError("no channel matching channel id")
     if not auth_user_id in channel["all_members"]:
-        raise AccessError(description="user is not a member of this channel")
+        raise AccessError("user is not a member of this channel")
     messages = len(channel["messages"])
     if start > messages:
-        raise InputError(
-            description="start message id is greater than latest message id"
-        )
+        raise InputError("start message id is greater than latest message id")
 
     # end is set to -1 if the most recent message has been returned
     return {
@@ -69,20 +113,17 @@ def message_send_v1(user_id, channel_id, message_text):
     data = data_store.get()
 
     channel = first(lambda c: c["channel_id"] == channel_id, data["channels"], {})
+
     if not channel:
-        raise InputError(description="no channel matching channel id")
+        raise InputError("no channel matching channel id")
     if not user_id in channel["all_members"]:
-        raise AccessError(description="user is not a member of this channel")
+        raise AccessError("user is not a member of this channel")
     if not 1 <= len(message_text) <= 1000:
-        raise InputError(description="message must be between 1 and 1000 characters")
+        raise InputError("message must be between 1 and 1000 characters")
+
     message_id = data["max_ids"]["message"] + 1
     data["max_ids"]["message"] += 1
-    message = {
-        "message": message_text,
-        "message_id": message_id,
-        "time_created": math.floor(time.time()),
-        "u_id": user_id,
-    }
+    message = create_message(message_text, message_id, user_id)
     channel["messages"].insert(0, message)
 
     # Incrementing user stats
@@ -92,17 +133,9 @@ def message_send_v1(user_id, channel_id, message_text):
     increment_workspace_messages()
 
     data_store.set(data)
+    add_tagged_to_notif(user_id, channel_id, -1, message_text)
+
     return {"message_id": message_id}
-
-
-def get_message(message_id):
-    """Get a message from a message id"""
-    data = data_store.get()
-    for group in (*data["channels"], *data["dms"]):
-        for message in group["messages"]:
-            if message["message_id"] == message_id:
-                return message, group
-    raise InputError(description="no message with message id was found")
 
 
 def message_edit_v1(user_id, message_id, edited_message):
@@ -130,19 +163,12 @@ def message_edit_v1(user_id, message_id, edited_message):
         Returns {}
     """
     message, group = get_message(message_id)
-    data = data_store.get()
-    global_owner = user_id in data["global_owners"]
-    if "dm_id" in group:
-        authorised = user_id == group["owner"]
-    else:
-        authorised = user_id in group["owner_members"] or global_owner
+    authorised = owner_perms(user_id, group)
 
     if message["u_id"] != user_id and not authorised:
-        raise AccessError(
-            description="message not sent by a member and user_id is not an owner"
-        )
+        raise AccessError("user not authorised to edit message")
     if len(edited_message) > 1000:
-        raise InputError(description="message longer than 1000 characters")
+        raise InputError("message longer than 1000 characters")
     if edited_message == "":
         message_remove_v1(user_id, message_id)
     else:
@@ -172,15 +198,10 @@ def message_remove_v1(user_id, message_id):
         Returns {}
     """
     message, group = get_message(message_id)
-    data = data_store.get()
-    global_owner = user_id in data["global_owners"]
-    if "dm_id" in group:
-        authorised = user_id == group["owner"]
-    else:
-        authorised = user_id in group["owner_members"] or global_owner
+    authorised = owner_perms(user_id, group)
 
     if message["u_id"] != user_id and not authorised:
-        raise AccessError(description="user not authorised to edit message")
+        raise AccessError("user not authorised to edit message")
     group["messages"].remove(message)
 
     # Decrementing user stats
@@ -218,20 +239,13 @@ def message_senddm_v1(user_id, dm_id, message_text):
     for dm in data["dms"]:
         if dm["dm_id"] == dm_id:
             if user_id not in dm["members"]:
-                raise AccessError(description="user not a member of dm")
+                raise AccessError("user not a member of dm")
             if not 1 <= len(message_text) <= 1000:
-                raise InputError(
-                    description="message must be between 1 and 1000 characters"
-                )
+                raise InputError("message must be between 1 and 1000 characters")
             data["max_ids"]["message"] += 1
             message_id = data["max_ids"]["message"]
             data_store.set(data)
-            message = {
-                "message": message_text,
-                "message_id": message_id,
-                "time_created": math.floor(time.time()),
-                "u_id": user_id,
-            }
+            message = create_message(message_text, message_id, user_id)
             dm["messages"].insert(0, message)
 
             # Incrementing user stats
@@ -239,6 +253,7 @@ def message_senddm_v1(user_id, dm_id, message_text):
 
             # Incrementing workspace stats
             increment_workspace_messages()
+            add_tagged_to_notif(user_id, -1, dm_id, message_text)
 
             return {"message_id": message_id}
     raise InputError(description="no dm matching dm id")
@@ -302,3 +317,68 @@ def decrement_user_messages(u_id):
     user_stats["messages_sent"].append(
         {"num_messages_sent": messages_sent_prev - 1, "time_stamp": timestamp}
     )
+
+
+def message_react_v1(auth_user_id, message_id, react_id):
+    message, group = get_message(message_id)
+    member = is_member(auth_user_id, group)
+
+    if not member:
+        raise InputError("user not a member of group")
+    if react_id not in VALID_REACT_IDS:
+        raise InputError("invalid react_id")
+    if (
+        auth_user_id in message["reacts"]
+        and react_id in message["reacts"][auth_user_id]
+    ):
+        raise InputError("message already contains reaction from user")
+    message["reacts"][auth_user_id].append(react_id)
+    channel_id = -1 if "channel_id" not in group else group["channel_id"]
+    dm_id = -1 if "dm_id" not in group else group["dm_id"]
+    add_reacted_msg_to_notif(auth_user_id, message["u_id"], channel_id, dm_id)
+
+    return {}
+
+
+def message_unreact_v1(auth_user_id, message_id, react_id):
+    message, group = get_message(message_id)
+    member = is_member(auth_user_id, group)
+
+    if not member:
+        raise InputError("user not a member of group")
+    if react_id not in VALID_REACT_IDS:
+        raise InputError("invalid react_id")
+    if auth_user_id not in message["reacts"]:
+        raise InputError("message does not contain a reaction")
+
+    message["reacts"][auth_user_id].remove(react_id)
+
+    return {}
+
+
+def message_pin_v1(auth_user_id, message_id):
+    message, group = get_message(message_id)
+    authorised = owner_perms(auth_user_id, group)
+
+    if not authorised:
+        raise AccessError("user does not have owner permissions in group")
+    if message["is_pinned"]:
+        raise InputError("message already pinned")
+
+    message["is_pinned"] = True
+
+    return {}
+
+
+def message_unpin_v1(auth_user_id, message_id):
+    message, group = get_message(message_id)
+    authorised = owner_perms(auth_user_id, group)
+
+    if not authorised:
+        raise AccessError("user does not have owner permissions in group")
+    if not message["is_pinned"]:
+        raise InputError("message already unpinned")
+
+    message["is_pinned"] = False
+
+    return {}

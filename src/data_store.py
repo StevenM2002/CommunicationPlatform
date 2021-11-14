@@ -49,6 +49,7 @@ data structure:
              dms_exist: [{num_dms_exist, time_stamp}], 
              messages_exist: [{num_messages_exist, time_stamp}], 
         },
+    "all_notifications":[{"u_id": int, "notifications":[]},...]
 }
 
     Typical usage example:
@@ -95,6 +96,7 @@ INITIAL_OBJECT = {
         "dms_exist": [{"num_dms_exist": 0, "time_stamp": timestamp}],
         "messages_exist": [{"num_messages_exist": 0, "time_stamp": timestamp}],
     },
+    "all_notifications": [],
 }
 DATA_STORE_FILE = "datastore.json"
 WRITE_INTERVAL = 30
