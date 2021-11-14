@@ -180,7 +180,6 @@ def test_workspace_standups(new_time):
             "name_last": "Citizen",
         },
     )
-    print(new_token.json()["token"])
     requests.post(
         f"{config.url}/channel/join/v2",
         json={"token": new_token.json()["token"], "channel_id": 0},
@@ -215,7 +214,6 @@ def test_workspace_standups(new_time):
 
     # Checks that the message_sent value of the workspace has incremented by one
     response = requests.get(f"{config.url}/users/stats/v1", params={"token": token})
-    print(response.json())
     assert response.status_code == OK
     assert (
         response.json()["workspace_stats"]["messages_exist"][-1]["num_messages_exist"]
