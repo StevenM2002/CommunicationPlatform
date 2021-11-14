@@ -25,7 +25,14 @@ from src.auth import extract_token
 from src import notifications
 
 
-EXCLUDE_LIST = ["password", "session_ids", "channel_id", "messages", "user_stats"]
+EXCLUDE_LIST = [
+    "password",
+    "session_ids",
+    "channel_id",
+    "messages",
+    "user_stats",
+    "reset_codes",
+]
 
 
 def channel_invite_v1(auth_user_id, channel_id, u_id):

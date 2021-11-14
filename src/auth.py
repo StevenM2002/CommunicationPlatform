@@ -13,6 +13,8 @@ import hashlib
 import random
 import math
 import time
+import smtplib
+
 from string import printable
 
 from src.data_store import data_store
@@ -21,6 +23,8 @@ from src.error import InputError, AccessError
 from src import notifications
 
 JWT_SECRET = "".join(random.choice(printable) for _ in range(50))
+
+SERVER_EMAIL = "streamsbotbeagle@gmail.com"
 
 """jwt structure
 {"u_id": int, "session_id": int}
@@ -170,6 +174,7 @@ def auth_register_v2(email, password, name_first, name_last):
                 "dms_joined": [{"num_dms_joined": 0, "time_stamp": time_stamp}],
                 "messages_sent": [{"num_messages_sent": 0, "time_stamp": time_stamp}],
             },
+            "reset_codes": [],
         }
     )
 
@@ -181,6 +186,85 @@ def auth_register_v2(email, password, name_first, name_last):
     notifications.add_new_id_to_notif(user_id)
 
     return {"auth_user_id": user_id, "token": token}
+
+
+def auth_password_reset_request_v1(email):
+    """Given an email address, if the user is a registered user, sends them an email containing a specific secret code
+        - also logs user out of all sessions
+
+    Arguments:
+        email (str) - email of user
+    """
+    store = data_store.get()
+    users = store["users"]
+
+    for user in users:
+        if user["email"] == email:
+            user["session_ids"] = []
+
+            reset_id = store["max_ids"]["reset_id"] + 1
+            store["max_ids"]["reset_id"] = reset_id
+            user["reset_codes"].append(reset_id)
+
+            code_data = {"u_id": user["u_id"], "reset_id": reset_id}
+            code = jwt.encode(code_data, JWT_SECRET, algorithm="HS256")
+
+            # send the email, code snippit from https://stackoverflow.com/questions/10147455/how-to-send-an-email-with-gmail-as-provider-using-python
+
+            FROM = SERVER_EMAIL
+            TO = email
+            SUBJECT = "Password Reset Code For Streams"
+            TEXT = f"Your reset code is: {code}"
+
+            # Prepare actual message
+            message = """From: %s\nTo: %s\nSubject: %s\n\n%s
+            """ % (
+                FROM,
+                TO,
+                SUBJECT,
+                TEXT,
+            )
+            server = smtplib.SMTP("smtp.gmail.com", 587)
+            server.ehlo()
+            server.starttls()
+            server.login(SERVER_EMAIL, "SyC$8jZsrm&W")
+            server.sendmail(FROM, TO, message)
+            server.close()
+
+    data_store.set(store)
+
+
+def auth_password_reset_v1(reset_code, new_password):
+    """Given a reset code for a user, set that user's new password to the password provided.
+
+    Arguments:
+        reset_code (str) - reset code for user
+        new_password (str) - new password for user
+
+    Exceptions:
+        InputError - Occurs when:
+            - reset_code is not a valid reset code
+            - password entered is less than 6 characters long
+    """
+    store = data_store.get()
+    users = store["users"]
+
+    try:
+        code_data = jwt.decode(reset_code, JWT_SECRET, algorithms=["HS256"])
+    except jwt.DecodeError:
+        raise InputError(description="not a valid reset code") from Exception
+
+    for user in users:
+        if (
+            code_data["u_id"] == user["u_id"]
+            and code_data["reset_id"] in user["reset_codes"]
+        ):
+            if len(new_password) < 6:
+                raise InputError
+            user["password"] = hashlib.sha256(new_password.encode()).hexdigest()
+            user["reset_codes"].remove(code_data["reset_id"])
+
+    data_store.set(store)
 
 
 def create_handle(handle, base_length):

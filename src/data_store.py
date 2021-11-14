@@ -19,6 +19,8 @@ data structure:
                     dms_joined: [{num_dms_joined, time_stamp}], 
                     messages_sent: [{num_messages_sent, time_stamp}], 
                 }
+            "session_ids": [session_id]
+            "reset_codes": [reset_code]
         },
         ...
     ],
@@ -90,12 +92,12 @@ INITIAL_OBJECT = {
     "removed_users": [],
     "dms": [],
     "standups": [],
-    "max_ids": {"dm": -1, "message": -1, "channel": -1, "user": -1},
     "workspace_stats": {
         "channels_exist": [{"num_channels_exist": 0, "time_stamp": timestamp}],
         "dms_exist": [{"num_dms_exist": 0, "time_stamp": timestamp}],
         "messages_exist": [{"num_messages_exist": 0, "time_stamp": timestamp}],
     },
+    "max_ids": {"dm": -1, "message": -1, "channel": -1, "user": -1, "reset_id": -1},
     "all_notifications": [],
 }
 DATA_STORE_FILE = "datastore.json"

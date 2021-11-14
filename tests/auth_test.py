@@ -570,3 +570,57 @@ def test_logout_removed_user():
         },
     )
     assert r.status_code == AccessError.code
+
+
+def test_reset_password():
+    requests.delete(f"{config.url}clear/v1")
+
+    r = requests.post(
+        f"{config.url}auth/register/v2",
+        json={
+            "email": "wow@wow.com",
+            "password": "awesome",
+            "name_first": "first",
+            "name_last": "last",
+        },
+    )
+    # token = r.json()["token"]
+
+    r = requests.post(
+        f"{config.url}auth/passwordreset/request/v1",
+        json={
+            "email": "wow@wow.com",
+        },
+    )
+    assert r.status_code == 200
+
+    r = requests.post(
+        f"{config.url}auth/passwordreset/reset/v1",
+        json={
+            "reset_code": "",
+            "new_password": "awesome25",
+        },
+    )
+    # assert r.status_code == 200
+
+
+
+def test_reset_invalid_email():
+    requests.delete(f"{config.url}clear/v1")
+
+    r = requests.post(
+        f"{config.url}auth/register/v2",
+        json={
+            "email": "wow@wow.com",
+            "password": "awesome",
+            "name_first": "first",
+            "name_last": "last",
+        },
+    )
+    r = requests.post(
+        f"{config.url}auth/passwordreset/request/v1",
+        json={
+            "email": "wow100@wow.com",
+        },
+    )
+    assert r.status_code == 200
